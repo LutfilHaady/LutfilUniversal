@@ -1,0 +1,8 @@
+{
+  "id": "2",
+  "subject": "Wire roster coverage guard into MainMacro.bas",
+  "description": "Call ComputeRosterCoverage after File A cleaning, before BuildOutputWorkbook; add 0% abort/continue MsgBox and <70% warning MsgBox; pass suppressTeamBlocks/rosterCoverage/unmatchedNames to BuildOutputWorkbook",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

@@ -1,0 +1,8 @@
+{
+  "id": "11",
+  "subject": "Task 11: Final cross-file verification",
+  "description": "Sub/Function balance checks across all touched modules, dangling reference check, module marker count per plan Task 11.",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

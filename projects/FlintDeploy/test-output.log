@@ -1,0 +1,1279 @@
+
+> flint@0.1.0 test
+> playwright test
+
+
+Running 108 tests using 1 worker
+
+  ✓    1 [setup] › tests\global.setup.ts:8:6 › authenticate as dev engineer (1.6s)
+  ✓    2 [setup] › tests\global.setup.ts:22:6 › authenticate as dev admin (1.5s)
+  ✓    3 [sprint3] › tests\sprint3\alerts.spec.ts:47:5 › dashboard AlertPanel shows live alerts and Engineer can dismiss (1.9s)
+  ✓    4 [sprint3] › tests\sprint3\alerts.spec.ts:66:7 › admin › Settings → Alert Rules renders and toggling persists (1.8s)
+  ✓    5 [sprint3] › tests\sprint3\batch-history-toggle.spec.ts:46:7 › Task 3 — Batch History Toggle › toggle expands history from 7 days to 30 days (1.3s)
+  -    6 [sprint3] › tests\sprint3\batch-history-toggle.spec.ts:90:8 › Task 3 — Batch History Toggle › Operator role has no history toggle button
+  ✓    7 [sprint3] › tests\sprint3\dashboard-kpis.spec.ts:32:7 › Task 4 — Dashboard KPIs › QC Pass Rate shows 80% and KPI card is present (1.3s)
+  ✓    8 [sprint3] › tests\sprint3\dashboard-kpis.spec.ts:57:7 › Task 4 — Dashboard KPIs › QC Pass Rate shows 60% when majority of checks fail (1.3s)
+  ✓    9 [sprint3] › tests\sprint3\dashboard-kpis.spec.ts:81:7 › Task 4 — Dashboard KPIs › QC Pass Rate shows 0% when there are no QC results (1.6s)
+  ✘   10 [sprint3] › tests\sprint3\main-batch-detail.spec.ts:125:7 › Main batch detail — /batches/[id] › renders identity, info cards and sub-batch table from data (5.8s)
+  ✘   11 [sprint3] › tests\sprint3\main-batch-detail.spec.ts:154:7 › Main batch detail — /batches/[id] › sub-batch link points to /batches/[parentId]/[subId] (6.0s)
+  ✘   12 [sprint3] › tests\sprint3\main-batch-detail.spec.ts:162:7 › Main batch detail — /batches/[id] › Change status button is visible for the Engineer role (6.0s)
+  ✘   13 [sprint3] › tests\sprint3\main-batch-detail.spec.ts:168:7 › Main batch detail — /batches/[id] › Create sub-batch drawer opens and ID preview uses the process code prefix (30.1s)
+  ✘   14 [sprint3] › tests\sprint3\main-batch-detail.spec.ts:192:7 › Main batch detail — /batches/[id] › Create button is disabled until process step and quantity are filled (30.0s)
+  ✘   15 [sprint3] › tests\sprint3\process-timeline.spec.ts:27:7 › Task 2 — Process Timeline › timeline loads with SGT timestamps, Live indicator, and QC PASSED/FAILED badges (6.9s)
+  ✓   16 [sprint3] › tests\sprint3\qc-override.spec.ts:89:7 › QC Override — /qc-override › renders heading and shows empty state when no failures pending (1.9s)
+  ✓   17 [sprint3] › tests\sprint3\qc-override.spec.ts:98:7 › QC Override — /qc-override › displays pending failure cards when unoverridden results exist (3.6s)
+  ✓   18 [sprint3] › tests\sprint3\qc-override.spec.ts:108:7 › QC Override — /qc-override › Confirm Override is disabled without a reason, enabled after typing (1.9s)
+  ✓   19 [sprint3] › tests\sprint3\qc-override.spec.ts:124:7 › QC Override — /qc-override › full override flow — success banner shown, form cleared after submit (2.0s)
+  ✓   20 [sprint3] › tests\sprint3\qc-override.spec.ts:145:7 › QC Override — /qc-override › already-overridden results are filtered from the pending queue (1.5s)
+  ✓   21 [sprint3] › tests\sprint3\qc-wizard.spec.ts:124:7 › QC Wizard — /log/qc › renders step 1 and Continue button is disabled when input is empty (1.3s)
+  ✓   22 [sprint3] › tests\sprint3\qc-wizard.spec.ts:130:7 › QC Wizard — /log/qc › shows error when batch number is not found (1.6s)
+  ✓   23 [sprint3] › tests\sprint3\qc-wizard.spec.ts:152:7 › QC Wizard — /log/qc › QC pass path — output batch number displayed on success screen (2.4s)
+  ✓   24 [sprint3] › tests\sprint3\qc-wizard.spec.ts:183:7 › QC Wizard — /log/qc › QC fail path — Failed status shown, no output batch on success screen (2.4s)
+  ✓   25 [sprint3] › tests\sprint3\scan-qr-lookup.spec.ts:24:7 › Task 1 — Scan QR Lookup › successful sub-batch lookup navigates to batch detail page (5.3s)
+  ✓   26 [sprint3] › tests\sprint3\scan-qr-lookup.spec.ts:49:7 › Task 1 — Scan QR Lookup › unknown batch number shows Batch Not Found error (2.8s)
+  ✘   27 [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:145:7 › Sprint 3 End-to-End Workflows › 2. Main Batch / Sub-batch Navigation (7.5s)
+  ✘   28 [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:159:7 › Sprint 3 End-to-End Workflows › 3. Process Timeline Rendering (8.2s)
+  ✘   29 [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:173:7 › Sprint 3 End-to-End Workflows › 4. Sub-Batch Log Process Step (Auto-fill Bypass) (30.1s)
+  ✓   30 [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:187:7 › Sprint 3 End-to-End Workflows › 5. Sub-Batch Log Process Step (Manual QR Scanner fallback) (5.3s)
+  ✘   31 [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:105:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent segment links to the parent batch detail page (12.5s)
+  ✘   32 [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:125:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent number resolves via fallback when the parent_batch join is absent (11.7s)
+  ✓   33 [sprint4] › tests\sprint4\alerts-autoresolve.spec.ts:43:5 › scan auto-resolves an open alert whose condition has cleared (9.1s)
+  ✓   34 [sprint4] › tests\sprint4\batch-lab-qc-gate.spec.ts:76:7 › Register batch — lab QC gate › toggle renders, defaults to No, and shows the On-Hold hint (10.1s)
+  ✓   35 [sprint4] › tests\sprint4\batch-lab-qc-gate.spec.ts:87:7 › Register batch — lab QC gate › flipping to Yes swaps the hint to In-Progress wording (10.2s)
+  ✓   36 [sprint4] › tests\sprint4\batch-lab-qc-gate.spec.ts:96:7 › Register batch — lab QC gate › default (No) submit registers the batch On Hold (10.4s)
+  ✓   37 [sprint4] › tests\sprint4\batch-lab-qc-gate.spec.ts:106:7 › Register batch — lab QC gate › approved (Yes) submit registers the batch In Progress (11.7s)
+  ✓   38 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:80:5 › first-pass yield shows percentage when run data exists (11.4s)
+  ✓   39 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:92:5 › first-pass yield shows "Not yet available" when no QC data (12.0s)
+  ✓   40 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:99:5 › top defect shows most common QC failure item name (12.1s)
+  ✓   41 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:111:5 › top defect shows "None" when no failures (12.8s)
+  ✓   42 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:121:5 › active alerts card shows unresolved count (13.6s)
+  ✓   43 [sprint4] › tests\sprint4\dashboard-kpis.spec.ts:133:5 › active alerts shows 0 when all resolved (13.7s)
+  ✘   44 [sprint4] › tests\sprint4\genealogy.spec.ts:57:7 › Genealogy panel › renders ancestor, self and descendant nodes from the RPC (16.4s)
+  ✘   45 [sprint4] › tests\sprint4\genealogy.spec.ts:79:7 › Genealogy panel › shows the empty state when the RPC returns only the self row (18.4s)
+  ✘   46 [sprint4] › tests\sprint4\global-search.spec.ts:71:5 › palette searches and a batch result navigates to its detail route (33.4s)
+  ✓   47 [sprint4] › tests\sprint4\global-search.spec.ts:93:5 › Cmd+K opens the palette and Escape closes it (23.6s)
+  ✓   48 [sprint4] › tests\sprint4\global-search.spec.ts:105:5 › Machines sidebar item no longer shows the hardcoded badge (23.2s)
+  ✘   49 [sprint4] › tests\sprint4\identity-header.spec.ts:109:5 › Hold button visible for Engineer on InProgress batch (27.2s)
+  ✘   50 [sprint4] › tests\sprint4\identity-header.spec.ts:115:5 › Quarantine button visible for Engineer on InProgress batch (27.0s)
+  ✘   51 [sprint4] › tests\sprint4\identity-header.spec.ts:121:5 › Scrap button opens confirmation dialog (30.1s)
+  ✘   52 [sprint4] › tests\sprint4\identity-header.spec.ts:131:5 › Confirm Scrap calls RPC and updates badge to Scrapped (30.0s)
+  ✘   53 [sprint4] › tests\sprint4\identity-header.spec.ts:156:5 › Hold RPC success updates badge to On Hold (30.1s)
+  ✘   54 [sprint4] › tests\sprint4\identity-header.spec.ts:173:5 › RPC error leaves badge unchanged and shows error text (30.0s)
+  ✘   55 [sprint4] › tests\sprint4\identity-header.spec.ts:191:5 › Scrapped batch shows "No further actions" instead of buttons (26.8s)
+  ✘   56 [sprint4] › tests\sprint4\identity-header.spec.ts:198:5 › Release button visible when batch is OnHold (28.1s)
+  ✓   57 [sprint4] › tests\sprint4\intake-completeness.spec.ts:96:5 › happy path: batch + intake + audit rows written, QR shown (27.0s)
+  ✓   58 [sprint4] › tests\sprint4\intake-completeness.spec.ts:118:5 › intake fields are included in the intake INSERT payload (28.7s)
+  ✘   59 [sprint4] › tests\sprint4\intake-completeness.spec.ts:153:5 › Done button on QR screen closes modal and adds batch to list (30.1s)
+  ✘   60 [sprint4] › tests\sprint4\intake-completeness.spec.ts:167:5 › intake INSERT failure shows recovery message without silently losing the batch (30.0s)
+  ✓   61 [sprint4] › tests\sprint4\machines-checklist.spec.ts:45:5 › Add Equipment: checklist tasks can be added/removed and POST carries checklist_template (25.7s)
+  ✓   62 [sprint4] › tests\sprint4\machines-checklist.spec.ts:84:5 › Log Maintenance: renders checklist from template and saves checklist_results (26.1s)
+  ✘   63 [sprint4] › tests\sprint4\machines-checklist.spec.ts:122:5 › Machines page: expanded log renders saved checklist_results (30.0s)
+  ✘   64 [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:47:5 › toggling a machine active state PATCHes Supabase (30.1s)
+  ✘   65 [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:59:5 › deleting a machine DELETEs and removes the row (30.1s)
+  ✘   66 [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:72:5 › delete blocked by FK shows the in-use message and keeps the row (30.1s)
+  ✘   67 [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:85:5 › a failed toggle PATCH rolls back and shows an error toast (30.1s)
+  ✘   68 [sprint4] › tests\sprint4\process-step-logging.spec.ts:166:5 › Step 1 — Continue disabled without batch number (30.1s)
+  ✘   69 [sprint4] › tests\sprint4\process-step-logging.spec.ts:173:5 › Step 1 — Batch not found shows error (30.2s)
+  ✘   70 [sprint4] › tests\sprint4\process-step-logging.spec.ts:191:5 › Step 2 — Calibration step shown for process with requires_calibration=true (30.2s)
+  ✘   71 [sprint4] › tests\sprint4\process-step-logging.spec.ts:200:5 › Step 3 — Calibration gate: Continue disabled until checkbox confirmed (30.1s)
+  ✘   72 [sprint4] › tests\sprint4\process-step-logging.spec.ts:212:5 › Step 2 — Calibration step skipped for process with requires_calibration=false (33.5s)
+  ✘   73 [sprint4] › tests\sprint4\process-step-logging.spec.ts:222:5 › Step 4 — Equipment and recipe selects are rendered (30.1s)
+  ✘   74 [sprint4] › tests\sprint4\process-step-logging.spec.ts:236:5 › Step 5 — Summary shows selected equipment and recipe (30.1s)
+  ✘   75 [sprint4] › tests\sprint4\process-step-logging.spec.ts:252:5 › Submit — process_runs INSERT contains equipment_id, recipe_id and status=InProgress (30.1s)
+  ✘   76 [sprint4] › tests\sprint4\process-step-logging.spec.ts:272:5 › Submit — PATCH stamps end_date, end_time and status=AwaitingQC (30.1s)
+  ✘   77 [sprint4] › tests\sprint4\process-step-logging.spec.ts:291:5 › Submit — success screen shows batch number with Return to Batch and Log Another buttons (30.2s)
+  ✘   78 [sprint4] › tests\sprint4\process-step-logging.spec.ts:305:5 › Submit — Log Another resets wizard to Scan Batch (step 1) (30.1s)
+  ✘   79 [sprint4] › tests\sprint4\process-step-logging.spec.ts:319:5 › Submit — process_run_inputs INSERT records the input batch id (30.1s)
+  ✘   80 [sprint4] › tests\sprint4\process-step-logging.spec.ts:336:5 › Submit — server error on INSERT shows error message and keeps Submit enabled (30.1s)
+  ✘   81 [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:37:7 › QR scan → machine deep-link › scanning a valid equipment code navigates to /machines?equipment=<code> (30.1s)
+  ✘   82 [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:59:7 › QR scan → machine deep-link › scanning an unknown equipment code shows Machine Not Found with the code (30.1s)
+  ✘   83 [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:83:7 › QR scan → machine deep-link › machines page auto-expands the row matching ?equipment= on load (30.2s)
+  ✘   84 [sprint4] › tests\sprint4\recipes-toggle.spec.ts:27:5 › toggling a recipe active state PATCHes Supabase (30.1s)
+  ✘   85 [sprint4] › tests\sprint4\reports-compliance.spec.ts:35:5 › Compliance tab renders pass rate / fail / override from live QC results (30.1s)
+  ✘   86 [sprint4] › tests\sprint4\split-integrity.spec.ts:75:5 › submitting a split deducts parent qty, writes audit row and process run (30.1s)
+  ✘   87 [sprint4] › tests\sprint4\split-integrity.spec.ts:92:5 › over-allocation is blocked by the server guard before any write (30.1s)
+  ✘   88 [sprint5] › tests\sprint5\mixing-ratio-calculator.spec.ts:66:5 › ratio calculator computes per-material quantities from recipe ratios (23.3m)
+  ✘   89 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:24:7 › J-3 — Passcode walkthrough › "Start walkthrough" button is visible on the profile page (0ms)
+  -   90 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:29:7 › J-3 — Passcode walkthrough › opening walkthrough shows step 1 intro
+  -   91 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:36:7 › J-3 — Passcode walkthrough › step 1 → 2: Get started shows passcode input
+  -   92 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:43:7 › J-3 — Passcode walkthrough › step 2: short passcode shows error
+  -   93 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:52:7 › J-3 — Passcode walkthrough › step 2 → 3: valid passcode shows confirm input
+  -   94 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:61:7 › J-3 — Passcode walkthrough › step 3: mismatched confirm shows error
+  -   95 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:72:7 › J-3 — Passcode walkthrough › completing the full flow shows success screen
+  -   96 [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:94:7 › J-3 — Passcode walkthrough › "Return to profile" button closes the walkthrough
+  ✘   97 [sprint5] › tests\sprint5\profile.spec.ts:24:7 › J-2 — Profile page › renders user name and role badge (0ms)
+  -   98 [sprint5] › tests\sprint5\profile.spec.ts:30:7 › J-2 — Profile page › shows new-password and confirm-password fields
+  -   99 [sprint5] › tests\sprint5\profile.spec.ts:37:7 › J-2 — Profile page › short password shows inline error
+  -  100 [sprint5] › tests\sprint5\profile.spec.ts:45:7 › J-2 — Profile page › mismatched passwords shows inline error
+  -  101 [sprint5] › tests\sprint5\profile.spec.ts:53:7 › J-2 — Profile page › successful update shows success banner and clears fields
+  -  102 [sprint5] › tests\sprint5\profile.spec.ts:73:7 › J-2 — Profile page › server error shows error banner and re-enables button
+  -  103 [sprint5] › tests\sprint5\profile.spec.ts:91:7 › J-2 — Profile page › sidebar shows profile link to /profile
+  ✘  104 [sprint5] › tests\sprint5\recipe-amounts.spec.ts:33:5 › new Mixing recipe — Amount defaults to 1 kg and the entered value is saved (0ms)
+  -  105 [sprint5] › tests\sprint5\recipe-amounts.spec.ts:83:5 › editing an existing recipe pre-fills Amount from saved params (defaults to 1 if missing)
+  ✘  106 [sprint5] › tests\sprint5\subbatch-features.spec.ts:110:7 › E-3: Sub-batch ID Suffix › Sub-batch preview ID includes material code suffix (0ms)
+  -  107 [sprint5] › tests\sprint5\subbatch-features.spec.ts:127:7 › E-5: Engineer-only Edit Sub-batch › Edit details button opens drawer and allows updating
+  ✘  108 [sprint6] › tests\sprint6\maintenance-reviewed-approved.spec.ts:29:5 › Log Maintenance shows single "Reviewed & Approved By" field and writes to both DB columns (0ms)
+
+
+  1) [sprint3] › tests\sprint3\main-batch-detail.spec.ts:125:7 › Main batch detail — /batches/[id] › renders identity, info cards and sub-batch table from data 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('MTC1-20260521-A01').first()
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('MTC1-20260521-A01').first()[22m
+
+
+      128 |
+      129 |     // Identity
+    > 130 |     await expect(page.getByText(M.parentNum).first()).toBeVisible()
+          |                                                       ^
+      131 |
+      132 |     // Info cards
+      133 |     await expect(page.getByText('Total Qty')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\main-batch-detail.spec.ts:130:55
+
+    Error Context: test-results\main-batch-detail-Main-bat-45f72-d-sub-batch-table-from-data-sprint3\error-context.md
+
+  2) [sprint3] › tests\sprint3\main-batch-detail.spec.ts:154:7 › Main batch detail — /batches/[id] › sub-batch link points to /batches/[parentId]/[subId] 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByRole('link', { name: 'MIXC-20260521-A01' })
+    Expected: [32m"/batches/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/cccccccc-cccc-cccc-cccc-cccccccccccc"[39m
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('link', { name: 'MIXC-20260521-A01' })[22m
+
+
+      157 |
+      158 |     const link = page.getByRole('link', { name: 'MIXC-20260521-A01' })
+    > 159 |     await expect(link).toHaveAttribute('href', `/batches/${M.parentId}/${M.sub1}`)
+          |                        ^
+      160 |   })
+      161 |
+      162 |   test('Change status button is visible for the Engineer role', async ({ page }) => {
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\main-batch-detail.spec.ts:159:24
+
+    Error Context: test-results\main-batch-detail-Main-bat-f3b8f--to-batches-parentId-subId--sprint3\error-context.md
+
+  3) [sprint3] › tests\sprint3\main-batch-detail.spec.ts:162:7 › Main batch detail — /batches/[id] › Change status button is visible for the Engineer role 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: 'Change status' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: 'Change status' })[22m
+
+
+      163 |     await setupMocks(page)
+      164 |     await page.goto(`/batches/${M.parentId}`)
+    > 165 |     await expect(page.getByRole('button', { name: 'Change status' })).toBeVisible()
+          |                                                                       ^
+      166 |   })
+      167 |
+      168 |   test('Create sub-batch drawer opens and ID preview uses the process code prefix', async ({ page }) => {
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\main-batch-detail.spec.ts:165:71
+
+    Error Context: test-results\main-batch-detail-Main-bat-62751-sible-for-the-Engineer-role-sprint3\error-context.md
+
+  4) [sprint3] › tests\sprint3\main-batch-detail.spec.ts:168:7 › Main batch detail — /batches/[id] › Create sub-batch drawer opens and ID preview uses the process code prefix 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /create sub-batch/i })[22m
+    [2m    - waiting for" http://localhost:3000/batches/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" navigation to finish...[22m
+    [2m    - navigated to "http://localhost:3000/batches/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"[22m
+
+
+      170 |     await page.goto(`/batches/${M.parentId}`)
+      171 |
+    > 172 |     await page.getByRole('button', { name: /create sub-batch/i }).click()
+          |                                                                   ^
+      173 |
+      174 |     const drawer = page.getByRole('dialog', { name: 'Create sub-batch' })
+      175 |     await expect(drawer).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\main-batch-detail.spec.ts:172:67
+
+    Error Context: test-results\main-batch-detail-Main-bat-d5770-ses-the-process-code-prefix-sprint3\error-context.md
+
+  5) [sprint3] › tests\sprint3\main-batch-detail.spec.ts:192:7 › Main batch detail — /batches/[id] › Create button is disabled until process step and quantity are filled 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /create sub-batch/i })[22m
+
+
+      193 |     await setupMocks(page)
+      194 |     await page.goto(`/batches/${M.parentId}`)
+    > 195 |     await page.getByRole('button', { name: /create sub-batch/i }).click()
+          |                                                                   ^
+      196 |
+      197 |     const drawer = page.getByRole('dialog', { name: 'Create sub-batch' })
+      198 |     const createBtn = drawer.getByRole('button', { name: /create sub-batch/i })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\main-batch-detail.spec.ts:195:67
+
+    Error Context: test-results\main-batch-detail-Main-bat-a08c5-tep-and-quantity-are-filled-sprint3\error-context.md
+
+  6) [sprint3] › tests\sprint3\process-timeline.spec.ts:27:7 › Task 2 — Process Timeline › timeline loads with SGT timestamps, Live indicator, and QC PASSED/FAILED badges 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Process Timeline')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Process Timeline')[22m
+
+
+      137 |
+      138 |     // Panel header
+    > 139 |     await expect(page.getByText('Process Timeline')).toBeVisible()
+          |                                                      ^
+      140 |
+      141 |     // Process run entries
+      142 |     await expect(page.getByText('Coating')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\process-timeline.spec.ts:139:54
+
+    Error Context: test-results\process-timeline-Task-2-—--f01af-and-QC-PASSED-FAILED-badges-sprint3\error-context.md
+
+  7) [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:145:7 › Sprint 3 End-to-End Workflows › 2. Main Batch / Sub-batch Navigation 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: 'Sub-batches' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: 'Sub-batches' })[22m
+
+
+      148 |     // Start on the main-batch detail page, then navigate into its sub-batch.
+      149 |     await page.goto(`/batches/${F.parentId}`);
+    > 150 |     await expect(page.getByRole('heading', { name: 'Sub-batches' })).toBeVisible();
+          |                                                                      ^
+      151 |
+      152 |     await page.getByRole('link', { name: F.subNum }).click();
+      153 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\sprint3-workflows.spec.ts:150:70
+
+    Error Context: test-results\sprint3-workflows-Sprint-3-b2277--Batch-Sub-batch-Navigation-sprint3\error-context.md
+
+  8) [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:159:7 › Sprint 3 End-to-End Workflows › 3. Process Timeline Rendering 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Process Timeline')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Process Timeline')[22m
+
+
+      162 |     // A non-mixing (CTGC) sub-batch renders the Process Timeline panel.
+      163 |     await page.goto(`/batches/${F.parentId}/${F.subId}`);
+    > 164 |     await expect(page.getByText('Process Timeline')).toBeVisible();
+          |                                                      ^
+      165 |
+      166 |     // The mocked run appears as a timeline entry; expanding it shows params.
+      167 |     const entry = page.getByRole('button', { name: /Coating & Oven Drying/ });
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\sprint3-workflows.spec.ts:164:54
+
+    Error Context: test-results\sprint3-workflows-Sprint-3-beea2--Process-Timeline-Rendering-sprint3\error-context.md
+
+  9) [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:173:7 › Sprint 3 End-to-End Workflows › 4. Sub-Batch Log Process Step (Auto-fill Bypass) 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Log Process Step' })[22m
+
+
+      178 |     // The sub-batch is InProgress → the Log Process Step button is present and
+      179 |     // carries ?subbatchId=, which auto-resolves the batch and skips the scanner.
+    > 180 |     await page.getByRole('button', { name: 'Log Process Step' }).click();
+          |                                                                  ^
+      181 |
+      182 |     await expect(page.getByText('Select Process Step')).toBeVisible();
+      183 |     // Step 1's manual-entry field is gone — we bypassed the scanner.
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\sprint3-workflows.spec.ts:180:66
+
+    Error Context: test-results\sprint3-workflows-Sprint-3-85234-cess-Step-Auto-fill-Bypass--sprint3\error-context.md
+
+  10) [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:105:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent segment links to the parent batch detail page 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: getByRole('banner').getByRole('link', { name: 'Batches' })
+    Expected: [32m"/batches"[39m
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('banner').getByRole('link', { name: 'Batches' })[22m
+
+
+      111 |
+      112 |     // Root "Batches" link
+    > 113 |     await expect(crumb.getByRole('link', { name: 'Batches' })).toHaveAttribute('href', '/batches')
+          |                                                                ^
+      114 |
+      115 |     // Parent segment → /batches/[parentId], showing the parent batch_number
+      116 |     const parentLink = crumb.getByRole('link', { name: M.parentNum })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\subbatch-breadcrumb.spec.ts:113:64
+
+    Error Context: test-results\subbatch-breadcrumb-Sub-ba-51da4-he-parent-batch-detail-page-sprint3\error-context.md
+
+  11) [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:125:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent number resolves via fallback when the parent_batch join is absent 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('banner').getByRole('link', { name: 'MTC1-20260521-A01' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('banner').getByRole('link', { name: 'MTC1-20260521-A01' })[22m
+
+
+      130 |     // and the link still targets the parent detail page.
+      131 |     const parentLink = page.getByRole('banner').getByRole('link', { name: M.parentNum })
+    > 132 |     await expect(parentLink).toBeVisible()
+          |                              ^
+      133 |     await expect(parentLink).toHaveAttribute('href', `/batches/${M.parentId}`)
+      134 |   })
+      135 | })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint3\subbatch-breadcrumb.spec.ts:132:30
+
+    Error Context: test-results\subbatch-breadcrumb-Sub-ba-5c632-parent-batch-join-is-absent-sprint3\error-context.md
+
+  12) [sprint4] › tests\sprint4\genealogy.spec.ts:57:7 › Genealogy panel › renders ancestor, self and descendant nodes from the RPC 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('Material Genealogy')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('Material Genealogy')[22m
+
+
+      69 |
+      70 |     const main = page.getByRole('main')
+    > 71 |     await expect(page.getByText('Material Genealogy')).toBeVisible()
+         |                                                        ^
+      72 |     await expect(main.getByText(M.parentNum)).toBeVisible()
+      73 |     await expect(main.getByText(M.childNum)).toBeVisible()
+      74 |     await expect(main.getByText('current', { exact: true })).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\genealogy.spec.ts:71:56
+
+    Error Context: test-results\genealogy-Genealogy-panel--80480-scendant-nodes-from-the-RPC-sprint4\error-context.md
+
+  13) [sprint4] › tests\sprint4\genealogy.spec.ts:79:7 › Genealogy panel › shows the empty state when the RPC returns only the self row 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('No parent or child batches recorded yet.')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('No parent or child batches recorded yet.')[22m
+
+
+      87 |
+      88 |     await page.goto(`/batches/${M.parentId}/${M.subId}`)
+    > 89 |     await expect(page.getByText('No parent or child batches recorded yet.')).toBeVisible()
+         |                                                                              ^
+      90 |   })
+      91 | })
+      92 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\genealogy.spec.ts:89:78
+
+    Error Context: test-results\genealogy-Genealogy-panel--aa5e3-C-returns-only-the-self-row-sprint4\error-context.md
+
+  14) [sprint4] › tests\sprint4\global-search.spec.ts:71:5 › palette searches and a batch result navigates to its detail route 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForURL: Test timeout of 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/batches/10000000-1000-1000-1000-100000000000/20000000-2000-2000-2000-200000000000" until "load"
+      navigated to "http://localhost:3000/batches/10000000-1000-1000-1000-100000000000/20000000-2000-2000-2000-200000000000"
+    ============================================================
+
+      87 |
+      88 |   await dialog.getByText('MIXC-20260601-A01-01').click()
+    > 89 |   await page.waitForURL(`**/batches/${PARENT_ID}/${SUB_ID}`)
+         |              ^
+      90 |   await expect(page).toHaveURL(new RegExp(`/batches/${PARENT_ID}/${SUB_ID}`))
+      91 | })
+      92 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\global-search.spec.ts:89:14
+
+    Error Context: test-results\global-search-palette-sear-69cbf-vigates-to-its-detail-route-sprint4\error-context.md
+
+  15) [sprint4] › tests\sprint4\identity-header.spec.ts:109:5 › Hold button visible for Engineer on InProgress batch 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Place On Hold/i })
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Place On Hold/i })[22m
+
+
+      110 |   await setupMocks(page)
+      111 |   await page.goto(PAGE_URL)
+    > 112 |   await expect(page.getByRole('button', { name: /Place On Hold/i })).toBeVisible({ timeout: 8000 })
+          |                                                                      ^
+      113 | })
+      114 |
+      115 | test('Quarantine button visible for Engineer on InProgress batch', async ({ page }) => {
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:112:70
+
+    Error Context: test-results\identity-header-Hold-butto-13f26-ngineer-on-InProgress-batch-sprint4\error-context.md
+
+  16) [sprint4] › tests\sprint4\identity-header.spec.ts:115:5 › Quarantine button visible for Engineer on InProgress batch 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Quarantine/i })
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Quarantine/i })[22m
+
+
+      116 |   await setupMocks(page)
+      117 |   await page.goto(PAGE_URL)
+    > 118 |   await expect(page.getByRole('button', { name: /Quarantine/i })).toBeVisible({ timeout: 8000 })
+          |                                                                   ^
+      119 | })
+      120 |
+      121 | test('Scrap button opens confirmation dialog', async ({ page }) => {
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:118:67
+
+    Error Context: test-results\identity-header-Quarantine-a04de-ngineer-on-InProgress-batch-sprint4\error-context.md
+
+  17) [sprint4] › tests\sprint4\identity-header.spec.ts:121:5 › Scrap button opens confirmation dialog 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Scrap' })[22m
+
+
+      123 |   await page.goto(PAGE_URL)
+      124 |   // Use exact name 'Scrap' to avoid matching 'Confirm Scrap' button
+    > 125 |   await page.getByRole('button', { name: 'Scrap' }).click()
+          |                                                     ^
+      126 |   // Dialog heading (div, not button) — use first() to avoid strict violation with the confirm button
+      127 |   await expect(page.getByText('Confirm Scrap').first()).toBeVisible()
+      128 |   await expect(page.getByText('This action cannot be undone')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:125:53
+
+    Error Context: test-results\identity-header-Scrap-button-opens-confirmation-dialog-sprint4\error-context.md
+
+  18) [sprint4] › tests\sprint4\identity-header.spec.ts:131:5 › Confirm Scrap calls RPC and updates badge to Scrapped 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: 'Scrap' })[22m
+
+
+      144 |   await page.goto(PAGE_URL)
+      145 |   // Use exact name to avoid matching 'Confirm Scrap'
+    > 146 |   await page.getByRole('button', { name: 'Scrap' }).click()
+          |                                                     ^
+      147 |   await page.getByRole('button', { name: 'Confirm Scrap' }).click()
+      148 |
+      149 |   // Wait for dialog to close (proves the RPC completed and state updated)
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:146:53
+
+    Error Context: test-results\identity-header-Confirm-Sc-29aea-d-updates-badge-to-Scrapped-sprint4\error-context.md
+
+  19) [sprint4] › tests\sprint4\identity-header.spec.ts:156:5 › Hold RPC success updates badge to On Hold 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /Place On Hold/i })[22m
+
+
+      166 |
+      167 |   await page.goto(PAGE_URL)
+    > 168 |   await page.getByRole('button', { name: /Place On Hold/i }).click()
+          |                                                              ^
+      169 |   // StatusBadge renders label 'On Hold' (not 'OnHold')
+      170 |   await expect(page.getByText('On Hold')).toBeVisible({ timeout: 5000 })
+      171 | })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:168:62
+
+    Error Context: test-results\identity-header-Hold-RPC-success-updates-badge-to-On-Hold-sprint4\error-context.md
+
+  20) [sprint4] › tests\sprint4\identity-header.spec.ts:173:5 › RPC error leaves badge unchanged and shows error text 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /Place On Hold/i })[22m
+
+
+      183 |
+      184 |   await page.goto(PAGE_URL)
+    > 185 |   await page.getByRole('button', { name: /Place On Hold/i }).click()
+          |                                                              ^
+      186 |
+      187 |   // Badge should stay 'In Progress' (StatusBadge label) since the RPC failed
+      188 |   await expect(page.getByText('In Progress')).toBeVisible({ timeout: 5000 })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:185:62
+
+    Error Context: test-results\identity-header-RPC-error--a956e-hanged-and-shows-error-text-sprint4\error-context.md
+
+  21) [sprint4] › tests\sprint4\identity-header.spec.ts:191:5 › Scrapped batch shows "No further actions" instead of buttons 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('No further actions')
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByText('No further actions')[22m
+
+
+      192 |   await setupMocks(page, 'Scrapped')
+      193 |   await page.goto(PAGE_URL)
+    > 194 |   await expect(page.getByText('No further actions')).toBeVisible({ timeout: 8000 })
+          |                                                      ^
+      195 |   await expect(page.getByRole('button', { name: /Place On Hold/i })).not.toBeVisible()
+      196 | })
+      197 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:194:54
+
+    Error Context: test-results\identity-header-Scrapped-b-8ded9--actions-instead-of-buttons-sprint4\error-context.md
+
+  22) [sprint4] › tests\sprint4\identity-header.spec.ts:198:5 › Release button visible when batch is OnHold 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Release/i })
+    Expected: visible
+    Timeout: 8000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 8000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Release/i })[22m
+
+
+      199 |   await setupMocks(page, 'OnHold')
+      200 |   await page.goto(PAGE_URL)
+    > 201 |   await expect(page.getByRole('button', { name: /Release/i })).toBeVisible({ timeout: 8000 })
+          |                                                                ^
+      202 | })
+      203 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\identity-header.spec.ts:201:64
+
+    Error Context: test-results\identity-header-Release-button-visible-when-batch-is-OnHold-sprint4\error-context.md
+
+  23) [sprint4] › tests\sprint4\intake-completeness.spec.ts:153:5 › Done button on QR screen closes modal and adds batch to list 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/batches", waiting until "load"[22m
+
+
+      80 |
+      81 | async function openModalAndFill(page: Page) {
+    > 82 |   await page.goto('/batches')
+         |              ^
+      83 |   await page.getByRole('button', { name: /register batch|new batch/i }).first().click()
+      84 |
+      85 |   // Pick Cathode Electrode category (default) then specific material
+        at openModalAndFill (C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\intake-completeness.spec.ts:82:14)
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\intake-completeness.spec.ts:156:9
+
+    Error Context: test-results\intake-completeness-Done-b-1f685-odal-and-adds-batch-to-list-sprint4\error-context.md
+
+  24) [sprint4] › tests\sprint4\intake-completeness.spec.ts:167:5 › intake INSERT failure shows recovery message without silently losing the batch 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('button', { name: /cathode material c1/i })[22m
+
+
+      84 |
+      85 |   // Pick Cathode Electrode category (default) then specific material
+    > 86 |   await page.getByRole('button', { name: /cathode material c1/i }).click()
+         |                                                                    ^
+      87 |
+      88 |   // Fill supplier and quantity (required)
+      89 |   await page.getByPlaceholder(/targray/i).fill('Targray Industries')
+        at openModalAndFill (C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\intake-completeness.spec.ts:86:68)
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\intake-completeness.spec.ts:170:3
+
+    Error Context: test-results\intake-completeness-intake-12b77-t-silently-losing-the-batch-sprint4\error-context.md
+
+  25) [sprint4] › tests\sprint4\machines-checklist.spec.ts:122:5 › Machines page: expanded log renders saved checklist_results 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('row', { name: /MA001/ })[22m
+
+
+      140 |
+      141 |   await page.goto('/machines')
+    > 142 |   await page.getByRole('row', { name: /MA001/ }).click()  // expand
+          |                                                  ^
+      143 |
+      144 |   await expect(page.getByText('Quarterly service')).toBeVisible()
+      145 |   await expect(page.getByText('Mixing Blade Inspection')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\machines-checklist.spec.ts:142:50
+
+    Error Context: test-results\machines-checklist-Machine-9ae4f-ers-saved-checklist-results-sprint4\error-context.md
+
+  26) [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:47:5 › toggling a machine active state PATCHes Supabase 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/machines", waiting until "load"[22m
+
+
+      49 |   await adminUser(page)
+      50 |   await equipmentMock(page, { deleteStatus: 204, calls })
+    > 51 |   await page.goto('/machines')
+         |              ^
+      52 |
+      53 |   await expect(page.getByText('Cathode Mixer')).toBeVisible()
+      54 |   const row = page.getByRole('row', { name: /MIX-01/ })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\machines-toggle-delete.spec.ts:51:14
+
+    Error Context: test-results\machines-toggle-delete-tog-6f7ed-tive-state-PATCHes-Supabase-sprint4\error-context.md
+
+  27) [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:59:5 › deleting a machine DELETEs and removes the row 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/machines", waiting until "load"[22m
+
+
+      62 |   await equipmentMock(page, { deleteStatus: 204, calls })
+      63 |   page.on('dialog', d => d.accept())
+    > 64 |   await page.goto('/machines')
+         |              ^
+      65 |
+      66 |   await page.getByRole('row', { name: /MIX-01/ }).click() // expand
+      67 |   await page.getByRole('button', { name: 'Delete' }).click()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\machines-toggle-delete.spec.ts:64:14
+
+    Error Context: test-results\machines-toggle-delete-del-da1a5-DELETEs-and-removes-the-row-sprint4\error-context.md
+
+  28) [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:72:5 › delete blocked by FK shows the in-use message and keeps the row 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: locator.click: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - waiting for getByRole('row', { name: /MIX-01/ })[22m
+
+
+      77 |   await page.goto('/machines')
+      78 |
+    > 79 |   await page.getByRole('row', { name: /MIX-01/ }).click()
+         |                                                   ^
+      80 |   await page.getByRole('button', { name: 'Delete' }).click()
+      81 |   await expect(page.getByText('Cannot delete — equipment is in use')).toBeVisible()
+      82 |   await expect(page.getByText('Cathode Mixer')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\machines-toggle-delete.spec.ts:79:51
+
+    Error Context: test-results\machines-toggle-delete-del-ed47b-e-message-and-keeps-the-row-sprint4\error-context.md
+
+  29) [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:85:5 › a failed toggle PATCH rolls back and shows an error toast 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/machines", waiting until "load"[22m
+
+
+       99 |     })
+      100 |   })
+    > 101 |   await page.goto('/machines')
+          |              ^
+      102 |
+      103 |   const row = page.getByRole('row', { name: /MIX-01/ })
+      104 |   await expect(row.locator('input[type="checkbox"]')).toBeChecked()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\machines-toggle-delete.spec.ts:101:14
+
+    Error Context: test-results\machines-toggle-delete-a-f-b47b1-ck-and-shows-an-error-toast-sprint4\error-context.md
+
+  30) [sprint4] › tests\sprint4\process-step-logging.spec.ts:166:5 › Step 1 — Continue disabled without batch number 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      166 | test('Step 1 — Continue disabled without batch number', async ({ page }) => {
+      167 |   await setupCommonMocks(page)
+    > 168 |   await page.goto('/log/process-step')
+          |              ^
+      169 |   const continueBtn = page.getByRole('button', { name: /Continue/i })
+      170 |   await expect(continueBtn).toBeDisabled()
+      171 | })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:168:14
+
+    Error Context: test-results\process-step-logging-Step--fb341-sabled-without-batch-number-sprint4\error-context.md
+
+  31) [sprint4] › tests\sprint4\process-step-logging.spec.ts:173:5 › Step 1 — Batch not found shows error 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      183 |   )
+      184 |
+    > 185 |   await page.goto('/log/process-step')
+          |              ^
+      186 |   await page.fill('input[placeholder="e.g. CTGC-20260601-A01"]', 'FAKE-BATCH-NUM')
+      187 |   await page.getByRole('button', { name: /Continue/i }).click()
+      188 |   await expect(page.getByText(/Batch not found/i)).toBeVisible({ timeout: 5000 })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:185:14
+
+    Error Context: test-results\process-step-logging-Step-1-—-Batch-not-found-shows-error-sprint4\error-context.md
+
+  32) [sprint4] › tests\sprint4\process-step-logging.spec.ts:191:5 › Step 2 — Calibration step shown for process with requires_calibration=true 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      191 | test('Step 2 — Calibration step shown for process with requires_calibration=true', async ({ page }) => {
+      192 |   await setupCommonMocks(page, PROCESS_WITH_CALIB)
+    > 193 |   await page.goto('/log/process-step')
+          |              ^
+      194 |   await reachStep2(page)
+      195 |   await selectProcessStep(page, 'Coating & Oven Drying')
+      196 |   await expect(page.getByText('Calibration Check')).toBeVisible({ timeout: 5000 })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:193:14
+
+    Error Context: test-results\process-step-logging-Step--67c6c-h-requires-calibration-true-sprint4\error-context.md
+
+  33) [sprint4] › tests\sprint4\process-step-logging.spec.ts:200:5 › Step 3 — Calibration gate: Continue disabled until checkbox confirmed 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      200 | test('Step 3 — Calibration gate: Continue disabled until checkbox confirmed', async ({ page }) => {
+      201 |   await setupCommonMocks(page, PROCESS_WITH_CALIB)
+    > 202 |   await page.goto('/log/process-step')
+          |              ^
+      203 |   await reachStep2(page)
+      204 |   await selectProcessStep(page, 'Coating & Oven Drying')
+      205 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:202:14
+
+    Error Context: test-results\process-step-logging-Step--dcef0-ed-until-checkbox-confirmed-sprint4\error-context.md
+
+  34) [sprint4] › tests\sprint4\process-step-logging.spec.ts:212:5 › Step 2 — Calibration step skipped for process with requires_calibration=false 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      212 | test('Step 2 — Calibration step skipped for process with requires_calibration=false', async ({ page }) => {
+      213 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 214 |   await page.goto('/log/process-step')
+          |              ^
+      215 |   await reachStep2(page)
+      216 |   await selectProcessStep(page, 'Calendaring')
+      217 |   // Should land directly on Enter Parameters, not calibration
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:214:14
+
+    Error Context: test-results\process-step-logging-Step--6b821--requires-calibration-false-sprint4\error-context.md
+
+  35) [sprint4] › tests\sprint4\process-step-logging.spec.ts:222:5 › Step 4 — Equipment and recipe selects are rendered 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      222 | test('Step 4 — Equipment and recipe selects are rendered', async ({ page }) => {
+      223 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 224 |   await page.goto('/log/process-step')
+          |              ^
+      225 |   await reachStep2(page)
+      226 |   await selectProcessStep(page, 'Calendaring')
+      227 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:224:14
+
+    Error Context: test-results\process-step-logging-Step--da667-recipe-selects-are-rendered-sprint4\error-context.md
+
+  36) [sprint4] › tests\sprint4\process-step-logging.spec.ts:236:5 › Step 5 — Summary shows selected equipment and recipe 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      236 | test('Step 5 — Summary shows selected equipment and recipe', async ({ page }) => {
+      237 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 238 |   await page.goto('/log/process-step')
+          |              ^
+      239 |   await reachStep2(page)
+      240 |   await selectProcessStep(page, 'Calendaring')
+      241 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:238:14
+
+    Error Context: test-results\process-step-logging-Step--50ac6-lected-equipment-and-recipe-sprint4\error-context.md
+
+  37) [sprint4] › tests\sprint4\process-step-logging.spec.ts:252:5 › Submit — process_runs INSERT contains equipment_id, recipe_id and status=InProgress 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      253 |   await blockCamera(page)
+      254 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 255 |   await page.goto('/log/process-step')
+          |              ^
+      256 |   await reachSubmit(page)
+      257 |
+      258 |   // waitForResponse is more reliable than waitForRequest when route mocks are in play
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:255:14
+
+    Error Context: test-results\process-step-logging-Submi-ca3e4-pe-id-and-status-InProgress-sprint4\error-context.md
+
+  38) [sprint4] › tests\sprint4\process-step-logging.spec.ts:272:5 › Submit — PATCH stamps end_date, end_time and status=AwaitingQC 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      273 |   await blockCamera(page)
+      274 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 275 |   await page.goto('/log/process-step')
+          |              ^
+      276 |   await reachSubmit(page)
+      277 |
+      278 |   await page.getByRole('button', { name: /Submit Log/i }).click()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:275:14
+
+    Error Context: test-results\process-step-logging-Submi-46156--time-and-status-AwaitingQC-sprint4\error-context.md
+
+  39) [sprint4] › tests\sprint4\process-step-logging.spec.ts:291:5 › Submit — success screen shows batch number with Return to Batch and Log Another buttons 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      292 |   await blockCamera(page)
+      293 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 294 |   await page.goto('/log/process-step')
+          |              ^
+      295 |   await reachSubmit(page)
+      296 |
+      297 |   await page.getByRole('button', { name: /Submit Log/i }).click()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:294:14
+
+    Error Context: test-results\process-step-logging-Submi-8ebd2-tch-and-Log-Another-buttons-sprint4\error-context.md
+
+  40) [sprint4] › tests\sprint4\process-step-logging.spec.ts:305:5 › Submit — Log Another resets wizard to Scan Batch (step 1) 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      306 |   await blockCamera(page)
+      307 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 308 |   await page.goto('/log/process-step')
+          |              ^
+      309 |   await reachSubmit(page)
+      310 |
+      311 |   await page.getByRole('button', { name: /Submit Log/i }).click()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:308:14
+
+    Error Context: test-results\process-step-logging-Submi-c1970-izard-to-Scan-Batch-step-1--sprint4\error-context.md
+
+  41) [sprint4] › tests\sprint4\process-step-logging.spec.ts:319:5 › Submit — process_run_inputs INSERT records the input batch id 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      320 |   await blockCamera(page)
+      321 |   await setupCommonMocks(page, PROCESS_NO_CALIB)
+    > 322 |   await page.goto('/log/process-step')
+          |              ^
+      323 |   await reachSubmit(page)
+      324 |
+      325 |   const responsePromise = page.waitForResponse(
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:322:14
+
+    Error Context: test-results\process-step-logging-Submi-05240--records-the-input-batch-id-sprint4\error-context.md
+
+  42) [sprint4] › tests\sprint4\process-step-logging.spec.ts:336:5 › Submit — server error on INSERT shows error message and keeps Submit enabled 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/log/process-step", waiting until "load"[22m
+
+
+      350 |   })
+      351 |
+    > 352 |   await page.goto('/log/process-step')
+          |              ^
+      353 |   await reachSubmit(page)
+      354 |   await page.getByRole('button', { name: /Submit Log/i }).click()
+      355 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\process-step-logging.spec.ts:352:14
+
+    Error Context: test-results\process-step-logging-Submi-1a97d-ge-and-keeps-Submit-enabled-sprint4\error-context.md
+
+  43) [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:37:7 › QR scan → machine deep-link › scanning a valid equipment code navigates to /machines?equipment=<code> 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/scan", waiting until "load"[22m
+
+
+      49 |     })
+      50 |
+    > 51 |     await page.goto('/scan')
+         |                ^
+      52 |     await page.getByPlaceholder(/MIXC-20260430-A01-03/i).fill(EQ_CODE)
+      53 |     await page.getByRole('button', { name: 'Go' }).click()
+      54 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\qr-machine-deep-link.spec.ts:51:16
+
+    Error Context: test-results\qr-machine-deep-link-QR-sc-f1418-to-machines-equipment-code--sprint4\error-context.md
+
+  44) [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:59:7 › QR scan → machine deep-link › scanning an unknown equipment code shows Machine Not Found with the code 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/scan", waiting until "load"[22m
+
+
+      73 |     })
+      74 |
+    > 75 |     await page.goto('/scan')
+         |                ^
+      76 |     await page.getByPlaceholder(/MIXC-20260430-A01-03/i).fill(UNKNOWN)
+      77 |     await page.getByRole('button', { name: 'Go' }).click()
+      78 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\qr-machine-deep-link.spec.ts:75:16
+
+    Error Context: test-results\qr-machine-deep-link-QR-sc-ccc8a-ine-Not-Found-with-the-code-sprint4\error-context.md
+
+  45) [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:83:7 › QR scan → machine deep-link › machines page auto-expands the row matching ?equipment= on load 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/machines?equipment=MA001", waiting until "load"[22m
+
+
+      93 |     )
+      94 |
+    > 95 |     await page.goto(`/machines?equipment=${EQ_CODE}`)
+         |                ^
+      96 |
+      97 |     // The expanded row shows the "Maintenance Log" section label
+      98 |     await expect(page.getByText('Maintenance Log')).toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\qr-machine-deep-link.spec.ts:95:16
+
+    Error Context: test-results\qr-machine-deep-link-QR-sc-701c5--matching-equipment-on-load-sprint4\error-context.md
+
+  46) [sprint4] › tests\sprint4\recipes-toggle.spec.ts:27:5 › toggling a recipe active state PATCHes Supabase 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/recipes", waiting until "load"[22m
+
+
+      28 |   const calls = { patched: false }
+      29 |   await setupMocks(page, calls)
+    > 30 |   await page.goto('/recipes')
+         |              ^
+      31 |
+      32 |   await expect(page.getByText('Cathode Mix A')).toBeVisible()
+      33 |   const row = page.getByRole('row', { name: /Cathode Mix A/ })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\recipes-toggle.spec.ts:30:14
+
+    Error Context: test-results\recipes-toggle-toggling-a--0217b-tive-state-PATCHes-Supabase-sprint4\error-context.md
+
+  47) [sprint4] › tests\sprint4\reports-compliance.spec.ts:35:5 › Compliance tab renders pass rate / fail / override from live QC results 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/reports", waiting until "load"[22m
+
+
+      35 | test('Compliance tab renders pass rate / fail / override from live QC results', async ({ page }) => {
+      36 |   await mocks(page);
+    > 37 |   await page.goto('/reports');
+         |              ^
+      38 |
+      39 |   await page.getByRole('button', { name: 'Compliance' }).click();
+      40 |
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\reports-compliance.spec.ts:37:14
+
+    Error Context: test-results\reports-compliance-Complia-217bf-erride-from-live-QC-results-sprint4\error-context.md
+
+  48) [sprint4] › tests\sprint4\split-integrity.spec.ts:75:5 › submitting a split deducts parent qty, writes audit row and process run 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/batches/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", waiting until "load"[22m
+
+
+      76 |   const calls = { patchedParent: false, auditRow: false, processRun: false }
+      77 |   await setupMocks(page, calls)
+    > 78 |   await page.goto(`/batches/${M.parentId}`)
+         |              ^
+      79 |
+      80 |   await page.getByRole('button', { name: /create sub-batch/i }).first().click()
+      81 |   const drawer = page.getByRole('dialog', { name: 'Create sub-batch' })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\split-integrity.spec.ts:78:14
+
+    Error Context: test-results\split-integrity-submitting-b03d5-s-audit-row-and-process-run-sprint4\error-context.md
+
+  49) [sprint4] › tests\sprint4\split-integrity.spec.ts:92:5 › over-allocation is blocked by the server guard before any write 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/batches/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", waiting until "load"[22m
+
+
+      135 |   })
+      136 |
+    > 137 |   await page.goto(`/batches/${M.parentId}`)
+          |              ^
+      138 |   await page.getByRole('button', { name: /create sub-batch/i }).first().click()
+      139 |   const drawer = page.getByRole('dialog', { name: 'Create sub-batch' })
+      140 |   await drawer.getByRole('button', { name: 'Select process step' }).click()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint4\split-integrity.spec.ts:137:14
+
+    Error Context: test-results\split-integrity-over-alloc-28e56-rver-guard-before-any-write-sprint4\error-context.md
+
+  50) [sprint5] › tests\sprint5\mixing-ratio-calculator.spec.ts:66:5 › ratio calculator computes per-material quantities from recipe ratios 
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('button', { name: /Mixing Ratio Calculator/i })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('button', { name: /Mixing Ratio Calculator/i })[22m
+
+
+      70 |
+      71 |   const header = page.getByRole('button', { name: /Mixing Ratio Calculator/i })
+    > 72 |   await expect(header).toBeVisible()
+         |                        ^
+      73 |
+      74 |   // Table not visible until expanded
+      75 |   await expect(page.getByText('Total Batch Size (kg)')).not.toBeVisible()
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\sprint5\mixing-ratio-calculator.spec.ts:72:24
+
+    Error Context: test-results\mixing-ratio-calculator-ra-feb19-antities-from-recipe-ratios-sprint5\error-context.md
+
+  51) [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:24:7 › J-3 — Passcode walkthrough › "Start walkthrough" button is visible on the profile page 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+  52) [sprint5] › tests\sprint5\profile.spec.ts:24:7 › J-2 — Profile page › renders user name and role badge 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+  53) [sprint5] › tests\sprint5\recipe-amounts.spec.ts:33:5 › new Mixing recipe — Amount defaults to 1 kg and the entered value is saved 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+  54) [sprint5] › tests\sprint5\subbatch-features.spec.ts:110:7 › E-3: Sub-batch ID Suffix › Sub-batch preview ID includes material code suffix 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+  55) [sprint6] › tests\sprint6\maintenance-reviewed-approved.spec.ts:29:5 › Log Maintenance shows single "Reviewed & Approved By" field and writes to both DB columns 
+
+    Error: worker process exited unexpectedly (code=3221225794, signal=null)
+
+  Slow test file: [sprint5] › tests\sprint5\mixing-ratio-calculator.spec.ts (23.3m)
+  Consider running tests from slow files in parallel. See: https://playwright.dev/docs/test-parallel
+  55 failed
+    [sprint3] › tests\sprint3\main-batch-detail.spec.ts:125:7 › Main batch detail — /batches/[id] › renders identity, info cards and sub-batch table from data 
+    [sprint3] › tests\sprint3\main-batch-detail.spec.ts:154:7 › Main batch detail — /batches/[id] › sub-batch link points to /batches/[parentId]/[subId] 
+    [sprint3] › tests\sprint3\main-batch-detail.spec.ts:162:7 › Main batch detail — /batches/[id] › Change status button is visible for the Engineer role 
+    [sprint3] › tests\sprint3\main-batch-detail.spec.ts:168:7 › Main batch detail — /batches/[id] › Create sub-batch drawer opens and ID preview uses the process code prefix 
+    [sprint3] › tests\sprint3\main-batch-detail.spec.ts:192:7 › Main batch detail — /batches/[id] › Create button is disabled until process step and quantity are filled 
+    [sprint3] › tests\sprint3\process-timeline.spec.ts:27:7 › Task 2 — Process Timeline › timeline loads with SGT timestamps, Live indicator, and QC PASSED/FAILED badges 
+    [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:145:7 › Sprint 3 End-to-End Workflows › 2. Main Batch / Sub-batch Navigation 
+    [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:159:7 › Sprint 3 End-to-End Workflows › 3. Process Timeline Rendering 
+    [sprint3] › tests\sprint3\sprint3-workflows.spec.ts:173:7 › Sprint 3 End-to-End Workflows › 4. Sub-Batch Log Process Step (Auto-fill Bypass) 
+    [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:105:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent segment links to the parent batch detail page 
+    [sprint3] › tests\sprint3\subbatch-breadcrumb.spec.ts:125:7 › Sub-batch detail breadcrumb — /batches/[id]/[subId] › parent number resolves via fallback when the parent_batch join is absent 
+    [sprint4] › tests\sprint4\genealogy.spec.ts:57:7 › Genealogy panel › renders ancestor, self and descendant nodes from the RPC 
+    [sprint4] › tests\sprint4\genealogy.spec.ts:79:7 › Genealogy panel › shows the empty state when the RPC returns only the self row 
+    [sprint4] › tests\sprint4\global-search.spec.ts:71:5 › palette searches and a batch result navigates to its detail route 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:109:5 › Hold button visible for Engineer on InProgress batch 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:115:5 › Quarantine button visible for Engineer on InProgress batch 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:121:5 › Scrap button opens confirmation dialog 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:131:5 › Confirm Scrap calls RPC and updates badge to Scrapped 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:156:5 › Hold RPC success updates badge to On Hold 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:173:5 › RPC error leaves badge unchanged and shows error text 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:191:5 › Scrapped batch shows "No further actions" instead of buttons 
+    [sprint4] › tests\sprint4\identity-header.spec.ts:198:5 › Release button visible when batch is OnHold 
+    [sprint4] › tests\sprint4\intake-completeness.spec.ts:153:5 › Done button on QR screen closes modal and adds batch to list 
+    [sprint4] › tests\sprint4\intake-completeness.spec.ts:167:5 › intake INSERT failure shows recovery message without silently losing the batch 
+    [sprint4] › tests\sprint4\machines-checklist.spec.ts:122:5 › Machines page: expanded log renders saved checklist_results 
+    [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:47:5 › toggling a machine active state PATCHes Supabase 
+    [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:59:5 › deleting a machine DELETEs and removes the row 
+    [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:72:5 › delete blocked by FK shows the in-use message and keeps the row 
+    [sprint4] › tests\sprint4\machines-toggle-delete.spec.ts:85:5 › a failed toggle PATCH rolls back and shows an error toast 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:166:5 › Step 1 — Continue disabled without batch number 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:173:5 › Step 1 — Batch not found shows error 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:191:5 › Step 2 — Calibration step shown for process with requires_calibration=true 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:200:5 › Step 3 — Calibration gate: Continue disabled until checkbox confirmed 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:212:5 › Step 2 — Calibration step skipped for process with requires_calibration=false 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:222:5 › Step 4 — Equipment and recipe selects are rendered 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:236:5 › Step 5 — Summary shows selected equipment and recipe 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:252:5 › Submit — process_runs INSERT contains equipment_id, recipe_id and status=InProgress 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:272:5 › Submit — PATCH stamps end_date, end_time and status=AwaitingQC 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:291:5 › Submit — success screen shows batch number with Return to Batch and Log Another buttons 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:305:5 › Submit — Log Another resets wizard to Scan Batch (step 1) 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:319:5 › Submit — process_run_inputs INSERT records the input batch id 
+    [sprint4] › tests\sprint4\process-step-logging.spec.ts:336:5 › Submit — server error on INSERT shows error message and keeps Submit enabled 
+    [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:37:7 › QR scan → machine deep-link › scanning a valid equipment code navigates to /machines?equipment=<code> 
+    [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:59:7 › QR scan → machine deep-link › scanning an unknown equipment code shows Machine Not Found with the code 
+    [sprint4] › tests\sprint4\qr-machine-deep-link.spec.ts:83:7 › QR scan → machine deep-link › machines page auto-expands the row matching ?equipment= on load 
+    [sprint4] › tests\sprint4\recipes-toggle.spec.ts:27:5 › toggling a recipe active state PATCHes Supabase 
+    [sprint4] › tests\sprint4\reports-compliance.spec.ts:35:5 › Compliance tab renders pass rate / fail / override from live QC results 
+    [sprint4] › tests\sprint4\split-integrity.spec.ts:75:5 › submitting a split deducts parent qty, writes audit row and process run 
+    [sprint4] › tests\sprint4\split-integrity.spec.ts:92:5 › over-allocation is blocked by the server guard before any write 
+    [sprint5] › tests\sprint5\mixing-ratio-calculator.spec.ts:66:5 › ratio calculator computes per-material quantities from recipe ratios 
+    [sprint5] › tests\sprint5\passcode-walkthrough.spec.ts:24:7 › J-3 — Passcode walkthrough › "Start walkthrough" button is visible on the profile page 
+    [sprint5] › tests\sprint5\profile.spec.ts:24:7 › J-2 — Profile page › renders user name and role badge 
+    [sprint5] › tests\sprint5\recipe-amounts.spec.ts:33:5 › new Mixing recipe — Amount defaults to 1 kg and the entered value is saved 
+    [sprint5] › tests\sprint5\subbatch-features.spec.ts:110:7 › E-3: Sub-batch ID Suffix › Sub-batch preview ID includes material code suffix 
+    [sprint6] › tests\sprint6\maintenance-reviewed-approved.spec.ts:29:5 › Log Maintenance shows single "Reviewed & Approved By" field and writes to both DB columns 
+  1 skipped
+  15 did not run
+  37 passed (51.3m)

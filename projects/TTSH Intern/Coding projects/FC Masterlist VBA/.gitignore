@@ -1,0 +1,13 @@
+# Excel lock/temp files
+~$*.xlsx
+~$*.xlsm
+*.tmp
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude Code local settings (machine-specific permission allowlist,
+# populated as you approve commands -- not something to version)
+.claude/settings.local.json

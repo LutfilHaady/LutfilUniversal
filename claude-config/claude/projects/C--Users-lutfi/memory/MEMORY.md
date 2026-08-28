@@ -1,0 +1,6 @@
+- [Process flow confirmed](fc-process-flow-confirmed.md) — Q1-Q8 all confirmed 2026-06-18, process flow doc is authoritative spec
+- [SW is law](fc-user-directive-sw-is-law.md) — user directive: process flow doc is settled, don't re-confirm its rules
+- [Invoice-PO Reconciler project](invoice-po-reconciler-project.md) — OCR portfolio project for OCBC veNTUre, Tasks 1-7/12 done
+- [Invoice-PO Reconciler decisions](invoice-po-reconciler-decisions.md) — standing design decisions: OCR primary, dual engines, Claude API, no DB
+- [Attendance VBA ideal state](attendance-vba-ideal-state.md) — TTSH-wide adoption vision approved 2026-07-08: verbatim-paste config, no VBA for managers, per-dept copies, Overview sheet
+- [Attendance VBA: no COM automation](attendance-vba-no-com-automation.md) — VBA trust access off + out-of-process COM isn't representative; diagnose from code, don't try to live-benchmark

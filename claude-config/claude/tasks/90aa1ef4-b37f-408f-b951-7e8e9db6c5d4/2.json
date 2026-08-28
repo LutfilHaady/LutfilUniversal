@@ -1,0 +1,8 @@
+{
+  "id": "2",
+  "subject": "Task 2: Add TryParseMDYDateTime to Helpers.bas",
+  "description": "Append Public Function TryParseMDYDateTime to Helpers.bas and mirror into FCCompletion_All_Modules.txt per plan Task 2.",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

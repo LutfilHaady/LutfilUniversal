@@ -1,0 +1,8 @@
+{
+  "id": "6",
+  "subject": "Task 6: Wire Chart 1 and Chart 2 into BuildOutputWorkbook",
+  "description": "Make AddSheet Public, capture chart anchor rows, add BuildSummaryCharts sub per plan Task 6.",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

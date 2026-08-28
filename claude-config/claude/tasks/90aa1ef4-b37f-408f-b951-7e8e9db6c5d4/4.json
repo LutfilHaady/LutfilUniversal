@@ -1,0 +1,8 @@
+{
+  "id": "4",
+  "subject": "Task 4: Extract band colours into BuildOutput.bas table fills",
+  "description": "Replace literal RGB band-fill lines in WriteSummaryBlock with ChartHelpers constants per plan Task 4.",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

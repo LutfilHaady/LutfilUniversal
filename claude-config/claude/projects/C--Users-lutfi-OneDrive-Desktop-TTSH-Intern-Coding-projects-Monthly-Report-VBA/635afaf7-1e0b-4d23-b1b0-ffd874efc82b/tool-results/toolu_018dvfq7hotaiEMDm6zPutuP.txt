@@ -1,0 +1,217 @@
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-49-| `FilterDischarge.bas` | Remove all rows where patient is discharged; captures them onto a hidden sheet for the Discharged output tab | New module |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-50-| `EpicLookup.bas` | Bulk dictionary lookup of Bed + Admit Status from Epic by Encounter No/CSN | Fork -- different inserted column names |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-51-| `FlagDuplicates.bas` | Highlights duplicate Encounter No + Patient Name rows red | Reuse as-is |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-52-| `BuildOutput.bas` | `BuildMFCOutput` -- orchestrates output sheet creation and file save, plus the optional "Discharged" tab | Fork -- 15-column output (A--O, not A--P) |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-53-| `OutputWriter.bas` | Writes/formats the A--O output cells, borders, font, freeze panes | Fork -- 15 columns |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md:54:| `Backlog.bas` | `BacklogSummary` -- carry-forward cols A--D + backlog counts | Reuse with minor column adjustments |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-55-| `SummaryTable.bas` | Writes the bottom summary table (Total Cases, Backlog, CCF, EL) | Reuse as-is |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-56-| `Dropdowns.bas` | Output dropdowns (Case Status, Inflight FC Status, Staff Follow Up) | Fork -- 20-item Inflight FC Status list |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-57-| `FilePickerForm.bas` | Dashboard-style file selection with live validation and folder memory | Reuse as-is |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-58-| `ProgressForm.bas` | Modeless progress-bar window shown during a run (UserForm) | Reuse as-is |
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\CLAUDE.md-59-| `MFC_All_Modules.txt` | Concatenated deliverable -- keep in sync with the `.bas` files | Generated from all `.bas` files |
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-2-Option Explicit
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-3-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-4-' ============================================================
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-5-' Backlog.bas
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-6-'
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas:7:' BacklogSummary (Public) -- compares the output against the previous MFC
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-8-' report, carries forward Staff Follow Up (col C) for still-open cases,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-9-' applies yellow fill to backlog rows, and computes Total/Backlog counts.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-10-'   LoadPreviousMFC   -- builds lookup dictionaries from the previous report
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-11-'   ApplyCarryForward -- copies col C (Staff Follow Up) for matching encounters,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-12-'                        highlights backlog rows yellow
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-15-' ============================================================
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-16-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-17-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-18-' Compares output against previous MFC, carries forward Staff Follow Up
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-19-' (col C), highlights backlog rows yellow, tags NCID rows, and writes counts.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas:20:Public Sub BacklogSummary(outWs As Worksheet, prevWs As Worksheet, _
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-21-                           ByRef outTotalCases As Long, ByRef outBacklogCount As Long)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-22-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-23-    Dim hdr() As String
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-24-    hdr = GetOutputHeaders()
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\Backlog.bas-25-
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-8-'   BuildMFCOutput  -- Creates the final .xlsx (cols A-O) on the main "MFC Report"
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-9-'                      sheet, plus an optional second "Discharged" sheet built from
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-10-'                      FilterDischarged's captured rows (dischargedWs; may be Nothing
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-11-'                      if nothing was discharged this run).
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-12-'                      Returns the new Workbook, or Nothing on cancel.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas:13:'   BacklogSummary  -- Compares against previous MFC, carries forward
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-14-'                      manual cols A-D, writes the summary table.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-15-'
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-16-' Output layout (cols A-O):
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-17-'   A  Inflight FC Status              Manual -- dropdown (20 values)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\BuildOutput.bas-18-'   B  Date Updated (DD/MM/YYYY)       Manual
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-112-        Else
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-113-            Set wsPrev = wbPrev.Sheets(1)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-114-        End If
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-115-    End If
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-116-    On Error GoTo 0
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas:117:    BacklogSummary wbOutput.Sheets(1), wsPrev, totalCases, backlogCount
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-118-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-119-    ' Close input workbooks before the success dialog so the output is already
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-120-    ' visible when the user clicks OK.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-121-    On Error Resume Next
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MainMacro.bas-122-    If Not wbMain   Is Nothing Then wbMain.Close   SaveChanges:=False
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2-Option Explicit
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-3-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-4-' ============================================================
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-5-' Backlog.bas
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-6-'
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt:7:' BacklogSummary (Public) -- compares the output against the previous MFC
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-8-' report, carries forward Staff Follow Up (col C) for still-open cases,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-9-' applies yellow fill to backlog rows, and computes Total/Backlog counts.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-10-'   LoadPreviousMFC   -- builds lookup dictionaries from the previous report
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-11-'   ApplyCarryForward -- copies col C (Staff Follow Up) for matching encounters,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-12-'                        highlights backlog rows yellow
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-15-' ============================================================
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-16-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-17-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-18-' Compares output against previous MFC, carries forward Staff Follow Up
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-19-' (col C), highlights backlog rows yellow, tags NCID rows, and writes counts.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt:20:Public Sub BacklogSummary(outWs As Worksheet, prevWs As Worksheet, _
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-21-                           ByRef outTotalCases As Long, ByRef outBacklogCount As Long)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-22-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-23-    Dim hdr() As String
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-24-    hdr = GetOutputHeaders()
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-25-
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-332-'   BuildMFCOutput  -- Creates the final .xlsx (cols A-O) on the main "MFC Report"
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-333-'                      sheet, plus an optional second "Discharged" sheet built from
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-334-'                      FilterDischarged's captured rows (dischargedWs; may be Nothing
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-335-'                      if nothing was discharged this run).
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-336-'                      Returns the new Workbook, or Nothing on cancel.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt:337:'   BacklogSummary  -- Compares against previous MFC, carries forward
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-338-'                      manual cols A-D, writes the summary table.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-339-'
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-340-' Output layout (cols A-O):
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-341-'   A  Inflight FC Status              Manual -- dropdown (20 values)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-342-'   B  Date Updated (DD/MM/YYYY)       Manual
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2802-        Else
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2803-            Set wsPrev = wbPrev.Sheets(1)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2804-        End If
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2805-    End If
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2806-    On Error GoTo 0
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt:2807:    BacklogSummary wbOutput.Sheets(1), wsPrev, totalCases, backlogCount
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2808-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2809-    ' Close input workbooks before the success dialog so the output is already
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2810-    ' visible when the user clicks OK.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2811-    On Error Resume Next
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\MFC_All_Modules.txt-2812-    If Not wbMain   Is Nothing Then wbMain.Close   SaveChanges:=False
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1199----
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1200-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1201-### Task 10: Wire Backlog.bas to Config (output header matching)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1202-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1203-**Files:**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md:1204:- Modify: `Backlog.bas:17-70` (`BacklogSummary`), `Backlog.bas:76-141` (`LoadPreviousMFC`)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1205-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1206-**Interfaces:**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1207-- Consumes: `GetOutputHeaders()`, `GetSetting()` from ConfigReader.bas
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1208-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md:1209:- [ ] **Step 1: Update BacklogSummary to resolve Case Status by Config header**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1210-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md:1211:In `BacklogSummary`, after the existing `Set carryFwd` line (line 27), add:
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1212-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1213-```vba
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1214-    Dim hdr() As String
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1215-    hdr = GetOutputHeaders()
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-18-config-driven-customization.md-1216-```
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-102-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-103-When a VBA range is exactly one cell, `.Value` returns a scalar (not a 2-D array). Code that then calls `UBound(arr, 1)` crashes with runtime error 13. Four locations need guarding:
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-104-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-105-1. `FlagDuplicates.bas:46-47` -- `encData` and `nameData`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-106-2. `FilterWard.bas:161-162` (inside `TagNCIDRows`) -- `bedData` and `resData`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:107:3. `Backlog.bas:42` (inside `BacklogSummary`) -- `outEncData`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-108-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-109-The pattern already exists in `ConfigReader.bas:50-58` (`ReadConfigList`). The fix for each: check `If lastRow = 2 Then` (single data row) and handle it inline.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-110-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-111-**Files:**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-112-- Modify: `FlagDuplicates.bas:37-48`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-113-- Modify: `FilterWard.bas:155-162` (TagNCIDRows)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:114:- Modify: `Backlog.bas:39-42` (BacklogSummary)
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-115-- Modify: `MFC_All_Modules.txt` at corresponding line ranges
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-116-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-117-**Interfaces:**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-118-- No interface changes -- all fixes are internal to existing subs
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-119-
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-154-        bedData = outWs.Range(outWs.Cells(2, bedCol), outWs.Cells(lastRow, bedCol)).Value
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-155-        resData = outWs.Range(outWs.Cells(2, resCol), outWs.Cells(lastRow, resCol)).Value
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-156-    End If
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-157-```
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-158-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:159:- [ ] **Step 3: Fix `BacklogSummary` in `Backlog.bas`**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-160-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-161-Replace lines 41-42 (the `outLastRow` and `outEncData` reads) with:
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-162-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-163-```vba
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-164-    Dim outLastRow As Long
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-193-git add FlagDuplicates.bas FilterWard.bas Backlog.bas MFC_All_Modules.txt
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-194-git commit -m "fix: guard single-row .Value reads against scalar return
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-195-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-196-When a range is one cell, .Value returns a scalar instead of a 2-D array,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-197-causing UBound() to crash. Added If lastRow = 2 guards in FlagDuplicateRows,
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:198:TagNCIDRows, and BacklogSummary following the pattern from ReadConfigList.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-199-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-200-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-201-```
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-202-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-203----
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-235-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-236----
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-237-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-238-### Task 4: Resolve Encounter Number by header in Backlog.bas
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-239-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:240:`BacklogSummary` hardcodes `Const ENC_COL As Long = 7` while resolving `resCol` by header right next to it. Replace with header-based lookup for consistency.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-241-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-242-**Files:**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-243-- Modify: `Backlog.bas:20-21, 40-42, 52`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-244-- Modify: `MFC_All_Modules.txt:1931-1932, 1950-1953, 1963`
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-245-
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-283-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-284-- [ ] **Step 4: Commit**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-285-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-286-```bash
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-287-git add Backlog.bas MFC_All_Modules.txt
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md:288:git commit -m "refactor: resolve Encounter Number by header in BacklogSummary
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-289-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-290-Replaces hardcoded ENC_COL = 7 with FindColByHeader lookup, consistent
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-291-with how resCol and all other modules resolve column positions.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-292-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-06-23-code-review-fixes.md-293-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-356-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-357-```
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-358-' Public entry points:
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-359-'   BuildMFCOutput  -- Creates the final .xlsx (cols A-O).
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-360-'                      Returns the new Workbook, or Nothing on cancel.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md:361:'   BacklogSummary  -- Compares against previous MFC, carries forward
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-362-'                      manual cols A-D, writes the summary table.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-363-```
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-364-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-365-with:
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-366-
+--
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-369-'   BuildMFCOutput  -- Creates the final .xlsx (cols A-O) on the main "MFC Report"
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-370-'                      sheet, plus an optional second "Discharged" sheet built from
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-371-'                      FilterDischarged's captured rows (dischargedWs; may be Nothing
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-372-'                      if nothing was discharged this run).
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-373-'                      Returns the new Workbook, or Nothing on cancel.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md:374:'   BacklogSummary  -- Compares against previous MFC, carries forward
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-375-'                      manual cols A-D, writes the summary table.
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-376-```
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-377-
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-378-- [ ] **Step 2: Change `BuildMFCOutput`'s signature and call the new sheet writer**
+C:\Users\lutfi\OneDrive\Desktop\TTSH Intern\Coding projects\MFC VBA Inflight\docs\superpowers\plans\2026-07-14-discharged-report.md-379-

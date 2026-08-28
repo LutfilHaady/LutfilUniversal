@@ -1,0 +1,46 @@
+{
+  "placeholderImages": [
+    {
+      "id": "avatar1",
+      "description": "User avatar",
+      "imageUrl": "https://picsum.photos/seed/avatar1/100/100",
+      "imageHint": "person face"
+    },
+    {
+      "id": "course1",
+      "description": "Course thumbnail 1",
+      "imageUrl": "https://picsum.photos/seed/course1/600/400",
+      "imageHint": "laptop code"
+    },
+    {
+      "id": "course2",
+      "description": "Course thumbnail 2",
+      "imageUrl": "https://picsum.photos/seed/course2/600/400",
+      "imageHint": "data analytics"
+    },
+    {
+      "id": "course3",
+      "description": "Course thumbnail 3",
+      "imageUrl": "https://picsum.photos/seed/course3/600/400",
+      "imageHint": "business meeting"
+    },
+    {
+      "id": "course4",
+      "description": "Course thumbnail 4",
+      "imageUrl": "https://picsum.photos/seed/course4/600/400",
+      "imageHint": "project management"
+    },
+    {
+      "id": "course5",
+      "description": "Course thumbnail 5",
+      "imageUrl": "https://picsum.photos/seed/course5/600/400",
+      "imageHint": "design process"
+    },
+    {
+      "id": "course6",
+      "description": "Course thumbnail 6",
+      "imageUrl": "https://picsum.photos/seed/course6/600/400",
+      "imageHint": "cloud computing"
+    }
+  ]
+}

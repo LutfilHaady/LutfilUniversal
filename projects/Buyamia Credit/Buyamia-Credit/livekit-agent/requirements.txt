@@ -1,0 +1,16 @@
+# Buyamia Credit - LiveKit Agent Dependencies
+
+# LiveKit Agents Framework (1.0 API)
+livekit>=1.0.0
+livekit-agents>=1.0.0
+livekit-plugins-openai>=1.0.0
+
+# Database (for future real queries)
+asyncpg>=0.29.0
+sqlalchemy>=2.0.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# Utilities
+aiohttp>=3.9.0

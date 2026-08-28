@@ -1,0 +1,911 @@
+"""
+Buyamia Credit - AI Assistant Agent
+
+A text-based AI chatbot that helps users understand their credit data
+in simple, conversational language.
+
+Built with LiveKit Agents 1.2+ API.
+Integrated with Supabase for real-time data access (optional).
+"""
+
+import asyncio
+import json
+import logging
+import os
+import time
+
+# Disable emojis and colors in console output
+os.environ.setdefault("NO_COLOR", "1")
+os.environ.setdefault("TERM", "dumb")
+os.environ.setdefault("FORCE_COLOR", "0")
+
+from dotenv import load_dotenv
+
+# Load environment variables
+# Load in order: root .env files first (with override), then local agent .env (with override)
+# This ensures root config overrides local placeholders
+_agent_dir = os.path.dirname(os.path.abspath(__file__))
+_root_dir = os.path.dirname(_agent_dir)
+load_dotenv(dotenv_path=os.path.join(_root_dir, '.env'), override=True)
+load_dotenv(dotenv_path=os.path.join(_root_dir, '.env.local'), override=True)
+load_dotenv(override=True)  # Load from current directory last (lowest priority)
+
+from livekit.agents import (
+    Agent,
+    AgentSession,
+    JobContext,
+    JobProcess,
+    RunContext,
+    WorkerOptions,
+    cli,
+    function_tool,
+    mcp,
+)
+from livekit.agents.voice import room_io
+from livekit.plugins import openai, silero
+from livekit import rtc
+
+# Optional: Supabase integration
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+
+logger = logging.getLogger("buyamia-credit-agent")
+logger.setLevel(logging.INFO)
+
+# Required environment variables
+required_vars = [
+    'LIVEKIT_URL',
+    'LIVEKIT_API_KEY',
+    'LIVEKIT_API_SECRET',
+    'OPENAI_API_KEY',
+]
+
+# Initialize Supabase if available
+# NOTE: Both agent and main app should use the same Supabase instance
+# Required env vars:
+# - SUPABASE_URL: Your Supabase project URL (e.g., https://xxxxx.supabase.co)
+# - SUPABASE_SERVICE_KEY: Your Supabase service_role key (from Supabase dashboard)
+supabase: Client | None = None
+if SUPABASE_AVAILABLE:
+    supabase_url = os.getenv("SUPABASE_URL", "")
+    supabase_key = os.getenv("SUPABASE_SERVICE_KEY", "")
+    if supabase_url and supabase_key:
+        try:
+            supabase = create_client(supabase_url, supabase_key)
+            logger.info(f"Supabase client initialized successfully (URL: {supabase_url[:30]}...)")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Supabase: {e}")
+            logger.warning("Agent will use mock data. Set SUPABASE_URL and SUPABASE_SERVICE_KEY to connect to database.")
+            supabase = None
+    else:
+        missing = []
+        if not supabase_url:
+            missing.append("SUPABASE_URL")
+        if not supabase_key:
+            missing.append("SUPABASE_SERVICE_KEY")
+        logger.warning(f"Supabase not configured - missing: {', '.join(missing)}. Agent will use mock data.")
+else:
+    logger.warning("Supabase Python client not installed. Install with: pip install supabase")
+
+
+# ============================================================================
+# Tool Definitions (Supabase Integration)
+# ============================================================================
+
+@function_tool
+async def get_dashboard_summary(
+    context: RunContext,
+    user_type: str = "supplier",
+) -> str:
+    """Fetches high-level metrics (total value, overdue) from Supabase or returns mock data.
+    
+    Args:
+        user_type: Either 'supplier' or 'buyer' to get relevant dashboard data.
+    """
+    # #region agent log
+    try:
+        log_path = os.getenv("DEBUG_LOG_PATH", ".cursor/debug.log")
+        with open(log_path, 'a', encoding='utf-8') as f:
+            log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:89", "message": "Tool get_dashboard_summary CALLED", "data": {"user_type": user_type}, "timestamp": int(time.time() * 1000)}
+            f.write(json.dumps(log_entry) + '\n')
+    except Exception:
+        pass
+    # #endregion
+    try:
+        if supabase:
+            # Real Supabase query - Prisma table names match model names (case-sensitive)
+            # Table name should match Prisma model: "Invoice" (PascalCase)
+            # If queries fail, table names might be lowercase - check your Prisma migrations
+            try:
+                res = supabase.table("Invoice").select("amount, status").execute()
+                data = res.data
+                if not data:
+                    return "No invoice data found."
+
+                total = sum(float(d.get('amount', 0)) for d in data)
+                overdue = sum(float(d.get('amount', 0)) for d in data if d.get('status') in ['OVERDUE_3', 'OVERDUE_7', 'DEFAULTED'])
+                
+                return f"Total Portfolio: Rp {total:,.0f}. Overdue: Rp {overdue:,.0f}."
+            except Exception as e:
+                logger.error(f"Supabase query error in get_dashboard_summary: {e}")
+                # Try lowercase as fallback (in case Prisma created tables without quotes)
+                try:
+                    res = supabase.table("invoice").select("amount, status").execute()
+                    data = res.data
+                    if not data:
+                        return "No invoice data found."
+                    total = sum(float(d.get('amount', 0)) for d in data)
+                    overdue = sum(float(d.get('amount', 0)) for d in data if d.get('status') in ['OVERDUE_3', 'OVERDUE_7', 'DEFAULTED'])
+                    return f"Total Portfolio: Rp {total:,.0f}. Overdue: Rp {overdue:,.0f}."
+                except Exception as e2:
+                    logger.error(f"Supabase query error (lowercase fallback): {e2}")
+                    return f"Error accessing invoice data: {str(e)}"
+        else:
+            # Mock data for testing without Supabase
+            if user_type == "supplier":
+                return "Total Portfolio: Rp 485,000,000. Overdue: Rp 105,000,000. Active buyers: 15. High-risk buyers: 3."
+            else:
+                return "Total Portfolio: Rp 85,000,000. Credit score: 72. Available credit: Rp 45,000,000."
+    except Exception as e:
+        logger.error(f"Error fetching dashboard summary: {e}")
+        return "I'm having trouble accessing the dashboard data right now."
+
+
+@function_tool
+async def get_buyer_credit_info(
+    context: RunContext,
+    buyer_name: str = "",
+) -> str:
+    """Searches for a specific buyer's credit score and risk level.
+    
+    Args:
+        buyer_name: The buyer name or ID to search for (e.g., 'BJ1123' or 'Hotel Grand Indonesia').
+    """
+    try:
+        if supabase:
+            # Real Supabase query - Prisma table name is "User" (PascalCase)
+            try:
+                res = supabase.table("User").select("*").ilike("businessName", f"%{buyer_name}%").eq("type", "BUYER").execute()
+                if not res.data:
+                    # Try searching by userId
+                    res = supabase.table("User").select("*").ilike("userId", f"%{buyer_name.upper()}%").eq("type", "BUYER").execute()
+                if not res.data:
+                    return f"Could not find a buyer named {buyer_name}."
+                
+                b = res.data[0]
+                score = b.get('creditScore', 50)
+                risk_level = "high" if score < 60 else ("medium" if score < 75 else "low")
+                return (f"Buyer {b.get('businessName', 'Unknown')} has a credit score of {score} "
+                        f"(risk level: {risk_level}). User ID: {b.get('userId', 'N/A')}.")
+            except Exception as e:
+                logger.error(f"Supabase query error in get_buyer_credit_info: {e}")
+                # Try lowercase as fallback (in case Prisma created tables without quotes)
+                try:
+                    res = supabase.table("user").select("*").ilike("businessName", f"%{buyer_name}%").eq("type", "BUYER").execute()
+                    if not res.data:
+                        res = supabase.table("user").select("*").ilike("userId", f"%{buyer_name.upper()}%").eq("type", "BUYER").execute()
+                    if not res.data:
+                        return f"Could not find a buyer named {buyer_name}."
+                    b = res.data[0]
+                    score = b.get('creditScore', 50)
+                    risk_level = "high" if score < 60 else ("medium" if score < 75 else "low")
+                    return (f"Buyer {b.get('businessName', 'Unknown')} has a credit score of {score} "
+                            f"(risk level: {risk_level}). User ID: {b.get('userId', 'N/A')}.")
+                except Exception as e2:
+                    logger.error(f"Supabase query error (lowercase fallback): {e2}")
+                    return f"Error searching for buyer: {str(e)}"
+        else:
+            # Mock data for testing
+            buyers = {
+                "BJ1123": "Hotel Grand Indonesia has a credit score of 45 (high risk). User ID: BJ1123.",
+                "BJ1234": "Toko Elektronik Jaya has a credit score of 78 (low risk). User ID: BJ1234.",
+            }
+            buyer_upper = buyer_name.upper()
+            if buyer_upper in buyers:
+                return buyers[buyer_upper]
+            # Try partial match
+            for bid, info in buyers.items():
+                if buyer_name.lower() in info.lower():
+                    return info
+            return f"Could not find a buyer named {buyer_name}. Available buyers: BJ1123, BJ1234."
+    except Exception as e:
+        logger.error(f"Error fetching buyer info: {e}")
+        return f"Error searching for buyer: {str(e)}"
+
+
+@function_tool
+async def get_invoice_details(
+    context: RunContext,
+    status: str = "overdue",
+) -> str:
+    """Lists specific invoices based on status (paid, pending, overdue, all).
+    
+    Args:
+        status: Filter by status - 'all', 'paid', 'pending', or 'overdue'.
+    """
+    try:
+        if supabase:
+            # Real Supabase query - map status to database values
+            status_map = {
+                "overdue": ["OVERDUE_3", "OVERDUE_7", "DEFAULTED"],
+                "paid": ["PAID"],
+                "pending": ["PENDING", "DUE_SOON"],
+                "all": None
+            }
+            
+            try:
+                if status == "all":
+                    res = supabase.table("Invoice").select("id, invoiceNumber, amount, status").limit(20).execute()
+                else:
+                    statuses = status_map.get(status.lower(), ["PENDING"])
+                    res = supabase.table("Invoice").select("id, invoiceNumber, amount, status").in_("status", statuses).limit(20).execute()
+                
+                if not res.data:
+                    return f"No {status} invoices found."
+                
+                lines = [f"- Invoice {i.get('invoiceNumber', i.get('id', 'Unknown'))}: Rp {float(i.get('amount', 0)):,.0f} ({i.get('status', 'unknown')})" for i in res.data]
+                return f"Found {len(res.data)} {status} invoices:\n" + "\n".join(lines)
+            except Exception as e:
+                logger.error(f"Supabase query error in get_invoice_details: {e}")
+                # Try lowercase as fallback
+                try:
+                    if status == "all":
+                        res = supabase.table("invoice").select("id, invoiceNumber, amount, status").limit(20).execute()
+                    else:
+                        statuses = status_map.get(status.lower(), ["PENDING"])
+                        res = supabase.table("invoice").select("id, invoiceNumber, amount, status").in_("status", statuses).limit(20).execute()
+                    if not res.data:
+                        return f"No {status} invoices found."
+                    lines = [f"- Invoice {i.get('invoiceNumber', i.get('id', 'Unknown'))}: Rp {float(i.get('amount', 0)):,.0f} ({i.get('status', 'unknown')})" for i in res.data]
+                    return f"Found {len(res.data)} {status} invoices:\n" + "\n".join(lines)
+                except Exception as e2:
+                    logger.error(f"Supabase query error (lowercase fallback): {e2}")
+                    return f"Error retrieving invoice list: {str(e)}"
+        else:
+            # Mock data for testing
+            invoices = [
+                {"id": "INV-2024-001", "buyer": "Hotel Grand Indonesia", "amount": 45000000, "status": "overdue"},
+                {"id": "INV-2024-002", "buyer": "Restoran Seafood Bahari", "amount": 32000000, "status": "overdue"},
+                {"id": "INV-2024-003", "buyer": "Toko Elektronik Jaya", "amount": 28000000, "status": "pending"},
+                {"id": "INV-2024-004", "buyer": "Supermarket Makmur", "amount": 15000000, "status": "paid"},
+            ]
+            if status != "all":
+                invoices = [inv for inv in invoices if inv["status"] == status]
+            lines = [f"- {inv['id']}: {inv['buyer']} - Rp {inv['amount']:,.0f} ({inv['status']})" for inv in invoices]
+            return f"Found {len(invoices)} {status} invoices:\n" + "\n".join(lines)
+    except Exception as e:
+        logger.error(f"Error fetching invoice details: {e}")
+        return "Error retrieving invoice list."
+
+
+@function_tool
+async def get_collection_stats(context: RunContext) -> str:
+    """Gets collection statistics including success rates and performance metrics."""
+    try:
+        if supabase:
+            # Real Supabase query - Prisma table name is "CollectionAttempt" (PascalCase)
+            try:
+                res = supabase.table("CollectionAttempt").select("*").execute()
+                data = res.data
+                if not data:
+                    return "No collection statistics available."
+                
+                total = len(data)
+                successful = len([d for d in data if d.get('status') == 'PAID'])
+                success_rate = (successful / total * 100) if total > 0 else 0
+                
+                return f"Collection statistics: {total} total attempts, {successful} successful ({success_rate:.1f}% success rate)."
+            except Exception as e:
+                logger.error(f"Supabase query error in get_collection_stats: {e}")
+                # Try lowercase as fallback
+                try:
+                    res = supabase.table("collectionattempt").select("*").execute()
+                    data = res.data
+                    if not data:
+                        return "No collection statistics available."
+                    total = len(data)
+                    successful = len([d for d in data if d.get('status') == 'PAID'])
+                    success_rate = (successful / total * 100) if total > 0 else 0
+                    return f"Collection statistics: {total} total attempts, {successful} successful ({success_rate:.1f}% success rate)."
+                except Exception as e2:
+                    logger.error(f"Supabase query error (lowercase fallback): {e2}")
+                    return f"Collection statistics not available: {str(e)}"
+        else:
+            # Mock data
+            return "Collection statistics: 45 total attempts, 28 successful (62.2% success rate). Total collected: Rp 245,000,000."
+    except Exception as e:
+        logger.error(f"Error fetching collection stats: {e}")
+        return "Error retrieving collection statistics."
+
+
+@function_tool
+async def get_risk_analysis(context: RunContext) -> str:
+    """Gets risk analysis of the buyer portfolio including risk distribution."""
+    try:
+        if supabase:
+            # Real Supabase query - Prisma table name is "User" (PascalCase)
+            try:
+                res = supabase.table("User").select("creditScore, type").eq("type", "BUYER").execute()
+                data = res.data
+                if not data:
+                    return "No buyer data available for risk analysis."
+                
+                high_risk = len([d for d in data if d.get('creditScore', 50) < 60])
+                medium_risk = len([d for d in data if 60 <= d.get('creditScore', 50) < 75])
+                low_risk = len([d for d in data if d.get('creditScore', 50) >= 75])
+                
+                return (f"Risk analysis: {len(data)} total buyers. "
+                        f"High risk: {high_risk}, Medium risk: {medium_risk}, Low risk: {low_risk}.")
+            except Exception as e:
+                logger.error(f"Supabase query error in get_risk_analysis: {e}")
+                # Try lowercase as fallback
+                try:
+                    res = supabase.table("user").select("creditScore, type").eq("type", "BUYER").execute()
+                    data = res.data
+                    if not data:
+                        return "No buyer data available for risk analysis."
+                    high_risk = len([d for d in data if d.get('creditScore', 50) < 60])
+                    medium_risk = len([d for d in data if 60 <= d.get('creditScore', 50) < 75])
+                    low_risk = len([d for d in data if d.get('creditScore', 50) >= 75])
+                    return (f"Risk analysis: {len(data)} total buyers. "
+                            f"High risk: {high_risk}, Medium risk: {medium_risk}, Low risk: {low_risk}.")
+                except Exception as e2:
+                    logger.error(f"Supabase query error (lowercase fallback): {e2}")
+                    return f"Error retrieving risk analysis: {str(e)}"
+        else:
+            # Mock data
+            return ("Risk analysis: 15 total buyers. "
+                   "Risk distribution: 6 low risk, 6 medium risk, 3 high risk. "
+                   "Total exposure: Rp 485,000,000. High-risk exposure: Rp 185,000,000.")
+    except Exception as e:
+        logger.error(f"Error fetching risk analysis: {e}")
+        return "Error retrieving risk analysis."
+
+
+# ============================================================================
+# Agent Instructions
+# ============================================================================
+
+def get_instructions() -> str:
+    """Get the agent instructions/personality."""
+    return """You are the Buyamia Credit Assistant, a friendly and professional AI helper for the Buyamia Credit Platform.
+
+Your role is to help users understand their credit data in simple, plain English. You are a "Data Translator" - you take complex financial data and explain it in a conversational, easy-to-understand way.
+
+**Your Personality:**
+- Friendly and professional
+- Use simple language, avoid financial jargon
+- Be concise but thorough
+- Use Indonesian Rupiah (Rp) for currency, formatted with periods (e.g., Rp 45.000.000)
+- When discussing risk, be honest but constructive
+- Respond in the user's language (Indonesian or English based on their preference)
+
+**What You Can Help With:**
+1. Dashboard summaries - overall business health
+2. Invoice details - what's paid, pending, or overdue
+3. Buyer credit information - credit scores and payment history
+4. Collection statistics - how collection efforts are performing
+5. Risk analysis - portfolio risk assessment
+
+**Additional Capabilities:**
+- You have access to LiveKit documentation via MCP (Model Context Protocol) tools
+- You can search and browse LiveKit documentation to answer technical questions about LiveKit Agents
+- Use these tools when users ask about LiveKit features, implementation details, or technical questions
+
+**Guidelines:**
+- Always use the available tools to fetch real data before answering
+- Format large numbers in a readable way (e.g., "Rp 45 million" or "Rp 45.000.000")
+- Highlight important issues like overdue invoices or high-risk buyers
+- Provide actionable insights when possible
+- If asked about something outside your scope, politely explain what you can help with
+- For LiveKit technical questions, use the MCP tools to access the latest documentation
+
+**Example Responses:**
+- Instead of "The AR aging shows 30+ DPD invoices totaling IDR 105,000,000" say "You have about Rp 105 million in invoices that are more than a month overdue."
+- Instead of "Credit utilization is at 85%" say "This buyer is using 85% of their credit limit - they're close to maxing out."
+
+Start by greeting the user warmly and asking how you can help them today."""
+
+
+# ============================================================================
+# Entry Point
+# ============================================================================
+
+async def entrypoint(ctx: JobContext):
+    """Main entry point for the LiveKit agent."""
+    
+    # #region agent log
+    import json
+    import time
+    log_path = os.path.join(_root_dir, '.cursor', 'debug.log')
+    try:
+        with open(log_path, 'a', encoding='utf-8') as f:
+            log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "agent.py:310", "message": "Entrypoint called", "data": {"room_name": ctx.room.name}, "timestamp": int(time.time() * 1000)}
+            f.write(json.dumps(log_entry) + '\n')
+    except Exception:
+        pass
+    # #endregion
+    
+    logger.info(f"Connecting to room: {ctx.room.name}")
+    
+    # Validate required environment variables
+    missing_vars = [var for var in required_vars if not os.getenv(var)]
+    if missing_vars:
+        error_msg = f"Missing required environment variables: {', '.join(missing_vars)}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+    
+    # Log loaded config (without exposing secrets)
+    livekit_url = os.getenv('LIVEKIT_URL', 'NOT SET')
+    has_api_key = bool(os.getenv('LIVEKIT_API_KEY'))
+    has_api_secret = bool(os.getenv('LIVEKIT_API_SECRET'))
+    logger.info(f"LiveKit URL: {livekit_url}")
+    logger.info(f"LiveKit API Key: {'SET' if has_api_key else 'NOT SET'}")
+    logger.info(f"LiveKit API Secret: {'SET' if has_api_secret else 'NOT SET'}")
+    
+    try:
+        # TEXT-ONLY CHATBOT CONFIGURATION
+        # No voice components needed - this is a text-only chatbot
+        logger.info("Initializing text-only chatbot (no voice components)...")
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_ONLY", "location": "agent.py:448", "message": "Starting text-only chatbot initialization", "data": {"mode": "text-only"}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        
+        # Get agent instructions
+        instructions = get_instructions()
+        
+        # Create the agent with instructions and tools
+        agent = Agent(
+            instructions=instructions,
+            tools=[
+                get_dashboard_summary,
+                get_invoice_details,
+                get_buyer_credit_info,
+                get_collection_stats,
+                get_risk_analysis,
+            ],
+        )
+        
+        # Create session with models (supporting both voice and text)
+        # VAD is required for OpenAI STT which doesn't support streaming
+        # Tools are passed to Agent, not AgentSession (to avoid duplicates)
+        # MCP servers provide external tools (e.g., LiveKit docs)
+        mcp_servers = []
+        
+        # Add LiveKit Docs MCP server for accessing LiveKit documentation
+        livekit_docs_mcp_url = os.getenv("LIVEKIT_DOCS_MCP_URL", "https://docs.livekit.io/mcp")
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A,C,E", "location": "agent.py:357", "message": "Before MCP server creation", "data": {"mcp_url": livekit_docs_mcp_url}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        if livekit_docs_mcp_url:
+            mcp_servers.append(mcp.MCPServerHTTP(url=livekit_docs_mcp_url))
+            logger.info(f"Added LiveKit Docs MCP server: {livekit_docs_mcp_url}")
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A,C,E", "location": "agent.py:360", "message": "After MCP server creation", "data": {"mcp_servers_count": len(mcp_servers)}, "timestamp": int(time.time() * 1000)}
+                    f.write(json.dumps(log_entry) + '\n')
+            except Exception:
+                pass
+            # #endregion
+        
+        # Add any additional MCP servers from environment variables
+        # Format: MCP_SERVER_1_URL, MCP_SERVER_2_URL, etc.
+        i = 1
+        while True:
+            server_url = os.getenv(f"MCP_SERVER_{i}_URL")
+            if not server_url:
+                break
+            mcp_servers.append(mcp.MCPServerHTTP(url=server_url))
+            logger.info(f"Added MCP server {i}: {server_url}")
+            i += 1
+        
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "agent.py:373", "message": "Before AgentSession creation", "data": {"mcp_servers_count": len(mcp_servers)}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        # TEXT-ONLY CHATBOT: Create session with LLM ONLY (no voice components)
+        # No VAD, STT, or TTS needed for text-only operation
+        session = AgentSession(
+            llm=openai.LLM(model="gpt-4o-mini"),  # Language model for text processing
+            mcp_servers=mcp_servers if mcp_servers else None,  # MCP servers for external tools
+        )
+        
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:528", "message": "AgentSession created - TEXT-ONLY chatbot mode", "data": {"has_llm": True, "has_stt": False, "has_tts": False, "mode": "text-only"}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        
+        # Connect to the room FIRST - LiveKit requires room connection before starting session
+        # This must be done before session.start() to avoid assignment timeout
+        # #region agent log
+        connect_start_time = time.time()
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "agent.py:430", "message": "Before ctx.connect() (FIXED ORDER)", "data": {}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        await ctx.connect()
+        # #region agent log
+        connect_duration = time.time() - connect_start_time
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "agent.py:438", "message": "After ctx.connect() (FIXED ORDER)", "data": {"duration_seconds": connect_duration}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        logger.info(f"Successfully connected to room: {ctx.room.name}")
+        
+        # Start the session with the agent and room AFTER connecting
+        logger.info("Starting AgentSession with agent and room...")
+        # #region agent log
+        session_start_time = time.time()
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "B,D", "location": "agent.py:448", "message": "Before session.start() (FIXED ORDER)", "data": {}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        # Track if session is fully started (needed because handler can be called during startup)
+        session_ready = False
+        
+        # TEXT-ONLY MODE: Custom handler for text input messages
+        async def text_input_handler(session: AgentSession, event: room_io.TextInputEvent):
+            """Custom handler to explicitly process text messages in text-only mode."""
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:577", "message": "Text input received in custom handler", "data": {"text": event.text[:100] if event.text else None, "text_length": len(event.text) if event.text else 0, "session_ready": session_ready}, "timestamp": int(time.time() * 1000)}
+                    f.write(json.dumps(log_entry) + '\n')
+            except Exception:
+                pass
+            # #endregion
+            
+            # Wait for session to be ready if it's not yet (messages can arrive during session.start())
+            max_wait = 10  # Wait up to 10 seconds
+            wait_start = time.time()
+            while not session_ready and (time.time() - wait_start) < max_wait:
+                await asyncio.sleep(0.1)  # Check every 100ms
+            
+            if not session_ready:
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:585", "message": "Session not ready after wait, proceeding anyway", "data": {"waited_seconds": time.time() - wait_start}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception:
+                    pass
+                # #endregion
+            
+            # TEXT-ONLY MODE: Generate reply using generate_reply (handles LLM + tools properly)
+            try:
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:592", "message": "About to call generate_reply", "data": {"text": event.text[:100] if event.text else None, "session_ready": session_ready}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception:
+                    pass
+                # #endregion
+                
+                # Use generate_reply which handles the full agent flow (LLM + tools)
+                await session.generate_reply(user_input=event.text)
+                
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:600", "message": "generate_reply completed successfully", "data": {}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception:
+                    pass
+                # #endregion
+                    
+            except Exception as e:
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:610", "message": "Error in text_input_handler", "data": {"error": str(e), "error_type": type(e).__name__, "session_ready": session_ready}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception:
+                    pass
+                # #endregion
+                logger.error(f"Error in text input handler: {e}")
+        
+        # TEXT-ONLY MODE: Configure text input and output
+        # Use RoomOptions with TextInputOptions for text input
+        # For text-only mode, we don't enable transcription (that's for TTS output)
+        text_input_opts = room_io.TextInputOptions(
+            text_input_cb=text_input_handler  # Correct parameter name
+        )
+        room_opts = room_io.RoomOptions(
+            text_input=text_input_opts
+        )
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:618", "message": "Text I/O options configured (RoomOptions)", "data": {"has_text_input_handler": True, "mode": "text-only", "transcription_enabled": False}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        
+        await session.start(
+            agent, 
+            room=ctx.room,
+            room_options=room_opts
+        )
+        
+        # Mark session as ready AFTER session.start() completes
+        session_ready = True
+        
+        # #region agent log
+        session_start_duration = time.time() - session_start_time
+        try:
+            # Get agent's own participant identity
+            agent_participant = ctx.room.local_participant
+            agent_identity = agent_participant.identity if agent_participant else None
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:642", "message": "After session.start() - Session marked as ready", "data": {"duration_seconds": session_start_duration, "agent_identity": agent_identity, "room_name": ctx.room.name, "local_participant_exists": agent_participant is not None, "session_ready": session_ready}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception as e:
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "TEXT_RESPONSE", "location": "agent.py:642", "message": "Error getting agent identity", "data": {"error": str(e)}, "timestamp": int(time.time() * 1000)}
+                    f.write(json.dumps(log_entry) + '\n')
+            except Exception:
+                pass
+        # #endregion
+        
+        # Subscribe to room data events to monitor text messages
+        # AgentSession should handle text automatically, but let's verify messages are received
+        def on_data_received(data_packet):
+            """Handle data packets received in the room."""
+            try:
+                # Extract data from packet
+                data = data_packet.data if hasattr(data_packet, 'data') else b''
+                participant = data_packet.participant if hasattr(data_packet, 'participant') else None
+                kind = data_packet.kind if hasattr(data_packet, 'kind') else None
+                topic = data_packet.topic if hasattr(data_packet, 'topic') else None
+                
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:508", "message": "Data received in room", "data": {"kind": str(kind) if kind else None, "topic": str(topic) if topic else None, "participant": participant.identity if participant else None, "data_length": len(data), "data_preview": data[:100].decode('utf-8', errors='ignore') if len(data) > 0 else None}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception as e:
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:515", "message": "Error in data_received handler", "data": {"error": str(e)}, "timestamp": int(time.time() * 1000)}
+                            f.write(json.dumps(log_entry) + '\n')
+                    except Exception:
+                        pass
+                # #endregion
+            except Exception as e:
+                # #region agent log
+                try:
+                    with open(log_path, 'a', encoding='utf-8') as f:
+                        log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:515", "message": "Error in data_received handler", "data": {"error": str(e)}, "timestamp": int(time.time() * 1000)}
+                        f.write(json.dumps(log_entry) + '\n')
+                except Exception:
+                    pass
+                # #endregion
+        
+        # Register the event handler
+        try:
+            ctx.room.on("data_received", on_data_received)
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:525", "message": "Data received handler registered", "data": {}, "timestamp": int(time.time() * 1000)}
+                    f.write(json.dumps(log_entry) + '\n')
+            except Exception:
+                pass
+            # #endregion
+        except Exception as e:
+            # #region agent log
+            try:
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:532", "message": "Failed to register data_received handler", "data": {"error": str(e)}, "timestamp": int(time.time() * 1000)}
+                    f.write(json.dumps(log_entry) + '\n')
+            except Exception:
+                pass
+            # #endregion
+        
+        logger.info("Buyamia Credit Assistant started successfully - waiting for messages...")
+        
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:470", "message": "Session started - AgentSession should handle messages automatically", "data": {"room_name": ctx.room.name, "has_session": session is not None}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        
+        # Log session start for debugging
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "C", "location": "agent.py:408", "message": "Agent session started and waiting for messages", "data": {"room_name": ctx.room.name, "participant_count": len(ctx.room.remote_participants)}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass  # Ignore logging errors
+        # #endregion
+        
+        # Monitor room for incoming messages
+        async def monitor_room_messages():
+            """Monitor room for chat messages to debug message reception."""
+            import asyncio
+            last_participant_count = len(ctx.room.remote_participants)
+            while True:
+                await asyncio.sleep(2)  # Check every 2 seconds
+                try:
+                    current_count = len(ctx.room.remote_participants)
+                    if current_count != last_participant_count:
+                        # #region agent log
+                        try:
+                            with open(log_path, 'a', encoding='utf-8') as f:
+                                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:490", "message": "Participant count changed", "data": {"room_name": ctx.room.name, "participant_count": current_count, "previous_count": last_participant_count}, "timestamp": int(time.time() * 1000)}
+                                f.write(json.dumps(log_entry) + '\n')
+                        except Exception:
+                            pass
+                        # #endregion
+                        last_participant_count = current_count
+                except Exception as e:
+                    # #region agent log
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "MESSAGE", "location": "agent.py:500", "message": "Error monitoring room", "data": {"error": str(e)}, "timestamp": int(time.time() * 1000)}
+                            f.write(json.dumps(log_entry) + '\n')
+                    except Exception:
+                        pass
+                    # #endregion
+        
+        # Start message monitoring
+        try:
+            import asyncio
+            asyncio.create_task(monitor_room_messages())
+        except Exception:
+            pass
+        
+        # Note: Room object doesn't have chat_messages attribute directly
+        # AgentSession handles message routing internally
+        
+        # Note: Don't call session.aclose() here - the session stays alive
+        # until the room connection closes or the user disconnects
+        
+        # Add periodic logging to check if session is still active
+        async def periodic_status_check():
+            """Periodically log agent status to help debug message processing."""
+            import asyncio
+            while True:
+                await asyncio.sleep(5)  # Check every 5 seconds
+                try:
+                    participant_list = [p.identity for p in ctx.room.remote_participants.values()]
+                    # #region agent log
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            log_entry = {
+                                "sessionId": "debug-session",
+                                "runId": "run1",
+                                "hypothesisId": "MESSAGE",
+                                "location": "agent.py:500",
+                                "message": "Agent status check - monitoring for messages",
+                                "data": {
+                                    "room_name": ctx.room.name,
+                                    "participant_count": len(ctx.room.remote_participants),
+                                    "participants": participant_list,
+                                    "session_active": True,
+                                    "room_connected": ctx.room.isconnected if hasattr(ctx.room, 'isconnected') else 'unknown'
+                                },
+                                "timestamp": int(time.time() * 1000)
+                            }
+                            f.write(json.dumps(log_entry) + '\n')
+                    except Exception:
+                        pass
+                    # #endregion
+                except Exception as e:
+                    # #region agent log
+                    try:
+                        with open(log_path, 'a', encoding='utf-8') as f:
+                            log_entry = {
+                                "sessionId": "debug-session",
+                                "runId": "run1",
+                                "hypothesisId": "MESSAGE",
+                                "location": "agent.py:520",
+                                "message": "Error in status check",
+                                "data": {"error": str(e)},
+                                "timestamp": int(time.time() * 1000)
+                            }
+                            f.write(json.dumps(log_entry) + '\n')
+                    except Exception:
+                        pass
+                    # #endregion
+        
+        # Start status monitoring (don't await - let it run in background)
+        try:
+            import asyncio
+            asyncio.create_task(periodic_status_check())
+        except Exception:
+            pass
+        
+    except Exception as e:
+        logger.error(f"Error starting agent: {str(e)}", exc_info=True)
+        # Log error to debug file
+        # #region agent log
+        try:
+            with open(log_path, 'a', encoding='utf-8') as f:
+                log_entry = {"sessionId": "debug-session", "runId": "run1", "hypothesisId": "A,B,C,D,E", "location": "agent.py:449", "message": "Agent startup error", "data": {"error": str(e), "error_type": type(e).__name__}, "timestamp": int(time.time() * 1000)}
+                f.write(json.dumps(log_entry) + '\n')
+        except Exception:
+            pass
+        # #endregion
+        raise
+
+
+def prewarm(proc: JobProcess):
+    """Prewarm any models or resources here (optional)."""
+    # This is called before agents are started to pre-initialize models
+    # #region agent log
+    import json
+    import time
+    try:
+        log_path = os.path.join(_root_dir, '.cursor', 'debug.log')
+        with open(log_path, 'a', encoding='utf-8') as f:
+            log_entry = {"sessionId": "debug-session", "runId": "prewarm", "hypothesisId": "N/A", "location": "agent.py:537", "message": "Prewarm function called", "data": {}, "timestamp": int(time.time() * 1000)}
+            f.write(json.dumps(log_entry) + '\n')
+    except Exception:
+        pass
+    # #endregion
+    logger.info("Prewarming agent resources...")
+    # TEXT-ONLY CHATBOT - No VAD preloading needed
+    logger.info("Text-only chatbot mode - skipping VAD preload")
+
+
+# ============================================================================
+# Main Entry
+# ============================================================================
+
+if __name__ == "__main__":
+    # #region agent log
+    import json
+    import time
+    try:
+        log_path = os.path.join(_root_dir, '.cursor', 'debug.log')
+        with open(log_path, 'a', encoding='utf-8') as f:
+            log_entry = {"sessionId": "debug-session", "runId": "startup", "hypothesisId": "N/A", "location": "agent.py:491", "message": "Agent main process starting", "data": {}, "timestamp": int(time.time() * 1000)}
+            f.write(json.dumps(log_entry) + '\n')
+    except Exception as e:
+        print(f"Failed to write startup log: {e}")
+    # #endregion
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            prewarm_fnc=prewarm,
+        )
+    )

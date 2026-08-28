@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Coming soon</title>
+    <meta name="description" content="">
+    <meta name="robots" content="noindex, nofollow">
+    <meta property="og:title" content="Coming soon">
+    <meta property="og:description" content="">
+    <meta property="og:image" content="">
+    <link rel="icon" href="data:,">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Chewy&family=Gochi+Hand&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+    <!-- Floating background hearts/dots -->
+    <div class="bg-petals" aria-hidden="true"></div>
+
+    <!-- Music toggle -->
+    <button class="music-toggle" id="musicToggle" aria-label="Play music" title="Play music">
+        <span class="music-icon" id="musicIcon">♪</span>
+    </button>
+    <audio id="bgMusic" src="./music/bg-music.mp3" loop preload="auto"></audio>
+
+    <!-- ============ BEAT 1: COUNTDOWN ============ -->
+    <section class="beat countdown" id="countdown">
+        <!-- Jellycat plush corners -->
+        <div class="plush-corner plush-tl" aria-hidden="true"></div>
+        <div class="plush-corner plush-br" aria-hidden="true"></div>
+
+        <div class="countdown-inner">
+            <p class="kicker">a little something for</p>
+            <h1 class="countdown-name">Natasha</h1>
+            <p class="countdown-sub">counting down to your day…</p>
+
+            <div class="clock" id="clock">
+                <div class="clock-unit"><span class="num" id="days">00</span><span class="lbl">days</span></div>
+                <div class="clock-sep">:</div>
+                <div class="clock-unit"><span class="num" id="hours">00</span><span class="lbl">hours</span></div>
+                <div class="clock-sep">:</div>
+                <div class="clock-unit"><span class="num" id="mins">00</span><span class="lbl">mins</span></div>
+                <div class="clock-sep">:</div>
+                <div class="clock-unit"><span class="num" id="secs">00</span><span class="lbl">secs</span></div>
+            </div>
+
+            <p class="countdown-target">30 May 2026 · 00:00 SGT</p>
+        </div>
+    </section>
+
+    <!-- ============ BEAT 2: MESSAGE REVEAL ============ -->
+    <section class="beat message" id="message">
+        <div class="message-inner">
+            <h2 class="typewriter" id="typewriter"></h2>
+            <div class="scroll-cue" id="scrollCue">
+                <span>scroll down</span>
+                <span class="arrow">↓</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ BEAT 3: STINKY ============ -->
+    <section class="beat gallery stinky-bg" id="stinky">
+        <div class="divider"><span class="divider-motif paw"></span></div>
+        <h2 class="section-title">Sometimes you're stinky <span class="title-emoji">🦨</span></h2>
+        <p class="section-note">(tap a card to reveal it)</p>
+        <div class="polaroid-wall" id="stinkyWall"></div>
+    </section>
+
+    <!-- ============ BEAT 4: NOT STINKY ============ -->
+    <section class="beat gallery nice-bg" id="nice">
+        <div class="divider"><span class="divider-motif ears"></span></div>
+        <h2 class="section-title">Sometimes you're not <span class="title-emoji">✨</span></h2>
+        <p class="section-note">(tap a card to reveal it)</p>
+        <div class="polaroid-wall" id="niceWall"></div>
+    </section>
+
+    <!-- ============ BEAT 5: CLOSING ============ -->
+    <section class="beat closing" id="closing">
+        <div class="closing-inner">
+            <div class="us-frame">
+                <img src="./image/us.jpg" alt="" class="us-photo"
+                    onerror="this.classList.add('ph');this.removeAttribute('src');this.removeAttribute('alt');">
+            </div>
+            <h2 class="closing-line">no matter how stinky you are,<br>I still love you</h2>
+            <p class="closing-sub">happy birthday, my favourite person 💕</p>
+        </div>
+        <!-- Jellycat bunny-with-cake peeking in -->
+        <div class="closing-bunny" id="closingBunny" aria-hidden="true"></div>
+    </section>
+
+    <!-- ============ MEDIA LIGHTBOX ============ -->
+    <div class="lightbox" id="lightbox" aria-hidden="true">
+        <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+        <div class="lightbox-content">
+            <button class="lightbox-close" id="lightboxClose" aria-label="Close">×</button>
+            <div class="lightbox-media" id="lightboxMedia"></div>
+            <p class="lightbox-caption" id="lightboxCaption"></p>
+        </div>
+    </div>
+
+    <script src="./js/app.js"></script>
+</body>
+
+</html>

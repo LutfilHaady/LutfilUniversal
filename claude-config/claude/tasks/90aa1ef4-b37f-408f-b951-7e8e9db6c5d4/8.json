@@ -1,0 +1,8 @@
+{
+  "id": "8",
+  "subject": "Task 8: Wire Analytics.BuildAnalyticsSheet into BuildOutputWorkbook",
+  "description": "Resolve 3 new columns, capture priArr() during main pass, create Analytics sheet per plan Task 8.",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

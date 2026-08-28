@@ -1,0 +1,55 @@
+
+> flint@0.1.0 test
+> playwright test
+
+
+Running 108 tests using 1 worker
+
+  ✘    1 [setup] › tests\global.setup.ts:8:6 › authenticate as dev engineer (30.0s)
+  ✘    2 [setup] › tests\global.setup.ts:22:6 › authenticate as dev admin (30.1s)
+
+
+  1) [setup] › tests\global.setup.ts:8:6 › authenticate as dev engineer ────────────────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.waitForURL: Test timeout of 30000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "http://localhost:3000/dashboard" until "load"
+    ============================================================
+
+      15 |
+      16 |   // Wait for redirect to the dashboard after successful login
+    > 17 |   await page.waitForURL('http://localhost:3000/dashboard', { timeout: 15_000 })
+         |              ^
+      18 |
+      19 |   await page.context().storageState({ path: authFile })
+      20 | })
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\global.setup.ts:17:14
+
+    Error Context: test-results\global.setup.ts-authenticate-as-dev-engineer-setup\error-context.md
+
+  2) [setup] › tests\global.setup.ts:22:6 › authenticate as dev admin ──────────────────────────────
+
+    [31mTest timeout of 30000ms exceeded.[39m
+
+    Error: page.goto: Test timeout of 30000ms exceeded.
+    Call log:
+    [2m  - navigating to "http://localhost:3000/login", waiting until "load"[22m
+
+
+      23 |   fs.mkdirSync(path.dirname(adminAuthFile), { recursive: true })
+      24 |
+    > 25 |   await page.goto('/login')
+         |              ^
+      26 |   await page.fill('#email', 'dev.admin@flintlabs.com')
+      27 |   await page.fill('#password', 'Test1234')
+      28 |   await page.click('button[type="submit"]')
+        at C:\Users\lutfi\OneDrive\Desktop\Coding\FlintDeploy\tests\global.setup.ts:25:14
+
+    Error Context: test-results\global.setup.ts-authenticate-as-dev-admin-setup\error-context.md
+
+  2 failed
+    [setup] › tests\global.setup.ts:8:6 › authenticate as dev engineer ─────────────────────────────
+    [setup] › tests\global.setup.ts:22:6 › authenticate as dev admin ───────────────────────────────
+  106 did not run

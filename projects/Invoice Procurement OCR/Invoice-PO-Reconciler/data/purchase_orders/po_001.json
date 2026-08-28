@@ -1,0 +1,22 @@
+{
+  "po_number": "PO-2024-001",
+  "date": "2024-01-10",
+  "vendor_name": "Industrial Supply Co",
+  "line_items": [
+    {
+      "description": "Safety Gloves (Box of 50)",
+      "quantity": 4.0,
+      "unit_price": 45.00,
+      "total": 180.00
+    },
+    {
+      "description": "Hard Hat - Standard",
+      "quantity": 10.0,
+      "unit_price": 25.00,
+      "total": 250.00
+    }
+  ],
+  "subtotal": 430.00,
+  "tax": 30.10,
+  "total": 460.10
+}

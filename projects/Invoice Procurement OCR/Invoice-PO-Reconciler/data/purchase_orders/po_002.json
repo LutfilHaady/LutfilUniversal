@@ -1,0 +1,22 @@
+{
+  "po_number": "PO-2024-002",
+  "date": "2024-01-12",
+  "vendor_name": "Tech Components Ltd",
+  "line_items": [
+    {
+      "description": "USB-C Cable 2m",
+      "quantity": 100.0,
+      "unit_price": 8.50,
+      "total": 850.00
+    },
+    {
+      "description": "Wireless Mouse",
+      "quantity": 25.0,
+      "unit_price": 22.00,
+      "total": 550.00
+    }
+  ],
+  "subtotal": 1400.00,
+  "tax": 98.00,
+  "total": 1498.00
+}

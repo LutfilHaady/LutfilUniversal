@@ -1,0 +1,4 @@
+Purchase order JSON files go here.
+
+Each file follows the PurchaseOrderData schema from backend/app/models/schemas.py.
+Name files as po_001.json, po_002.json, etc. to match the ground_truth.json manifest.

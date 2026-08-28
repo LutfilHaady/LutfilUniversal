@@ -1,0 +1,226 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 380px;
+  max-width: 420px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #350D36;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.vox-popup {
+  padding: 12px 14px;
+}
+
+.vox-popup__header {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vox-popup__title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.vox-popup__subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.vox-popup__section {
+  margin-bottom: 10px;
+}
+
+.vox-popup__section--idle .vox-popup__hint {
+  margin-bottom: 10px;
+}
+
+.vox-popup__hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.vox-popup__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vox-popup__row--main {
+  margin-bottom: 10px;
+}
+
+.vox-popup__row--actions {
+  margin-top: 10px;
+  gap: 16px;
+}
+
+.vox-popup__timer {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.vox-popup__timer-label {
+  display: block;
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 1px;
+}
+
+.vox-popup__timer-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.vox-popup__stats--inline {
+  flex: 1;
+  margin: 0;
+  padding: 6px 10px;
+  display: flex;
+  gap: 16px;
+}
+
+.vox-popup__stats--inline .vox-popup__stat {
+  text-align: left;
+}
+
+.vox-popup__stats--inline .vox-popup__stat-value {
+  font-size: 16px;
+}
+
+.vox-popup__stat-label {
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vox-popup__stat--alert .vox-popup__stat-value {
+  color: #f87171;
+}
+
+.vox-popup__stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+}
+
+.vox-popup__bar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.vox-popup__bar-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.vox-popup__bar-pct {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-variant-numeric: tabular-nums;
+}
+
+.vox-popup__bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vox-popup__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  border-radius: 4px;
+  transition: width 0.15s ease-out;
+}
+
+.vox-popup__btn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.vox-popup__btn--primary {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.vox-popup__btn--primary:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.vox-popup__btn--secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.vox-popup__btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.vox-popup__footer {
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.vox-popup__footer--inline {
+  padding-top: 0;
+  border-top: none;
+  flex: 1;
+}
+
+.vox-popup__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+}
+
+.vox-popup__link:hover {
+  text-decoration: underline;
+  color: #fff;
+}
+
+.vox-popup__link--muted {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.vox-popup__link--muted:hover {
+  color: rgba(255, 255, 255, 0.75);
+}

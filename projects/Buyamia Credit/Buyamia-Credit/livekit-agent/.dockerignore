@@ -1,0 +1,43 @@
+# .dockerignore for LiveKit Agent
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+ENV/
+
+# Environment files
+.env
+.env*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+
+# Test files
+test_*.py
+*_test.py
+
+# Scripts (not needed in container)
+run-console.*
+*.bat
+*.ps1

@@ -1,0 +1,253 @@
+CHURN REPORT FROM EPIC 
+Step 1
+Log into epic. Click the Epic icon and navigate to Report > ADT report > Census reports > census snapshot report. You may pin the report for easier use next time.
+ 
+Step 2
+ 
+
+
+Step 3
+Click the “Display” tab and select the required columns. Click “Run”.
+ 
+Step 4
+Click on the 3 dots “…” and Export the results. Ensure the file path leads to a valid location. Save to a local drive/ K drive. You will not be able to export to onedrive directly.
+ 
+ 
+**Save into K:\Inpatient Ops Financial Counselling\Inflight FC\INFLIGHT-REPORT\INFC 2025 FOLDER
+Set the password as “123”
+  
+ 
+
+
+
+
+
+
+
+CHURN 2 REPORTS FROM EFC 
+1ST REPORT (WITH MISSED FC)
+1.	Go to Reports  Inflight Financial Counselling Report
+2.	Under Admission Type  Select “Emergency” and “Elective Inpa” (for NCID)
+3.	Under Visit/Admission Date  Flip to previous month, select 1 day after present date till present date 
+(E.G. Present date is 05.03.2026, select 06.02.2026 – 05.03.2026)
+4.	Tick “Missed FC”
+5.	Submit request
+ 
+2ND REPORT (WITHOUT MISSED FC)
+1.	Untick “Missed FC” 
+2.	Submit request again
+ 
+
+
+
+CHURN MFC REPORT
+
+1.	Open both reports
+Without Missed FC (with FC IC):
+ 
+With Missed FC (no FC ID):
+ 
+
+2.	Go to the excel with missed fc (no FC ID)
+•	Copy entire page except the header (ctrl + shift + down from row 2)
+•	Go to the excel without missed fc (with FC ID), scroll to the bottom
+•	On the first empty cell of column A, paste (values) to combine the data together
+•	You can close the excel with missed fc (no FC ID) now
+(You will be working on the excel without missed fc/with FC ID)
+      
+
+3.	Save and rename the file “MFC Present Date TO 1 day after Present Date” with the correct dates 
+•	E.G. “MFC 05.03.2026 TO 06.02.2026” 
+
+4.	Create a copy to work on
+•	Right click the current “InFlightFCReportResponse” tab at the bottom left 
+•	Right click and select “Move or Copy”
+•	Choose the correct MFC excel under “To Book” Under “Before Sheet” select “(move to end)”  Tick “Create a copy”  Click “OK”
+•	You will be working on InFlightFCReportResponse (2) tab
+     
+
+5.	Open MFC UPDATED VERSION
+* MFC UPDATED VERISION may be found in K:\Inpatient Ops Financial Counselling\NCID FC\NCID FC Cases\NCID MFC
+
+6.	Copy both tabs “MFC” & “List” to the MFC excel
+•	Shift + select both MFC & List tabs
+•	Right click  “Move or Copy”  Select the correct MFC excel under “To Book” Under “Before Sheet” select “(move to end)”  Tick “Create a copy”  Click “OK”
+•	You can close the MFC UPDATED VERSION excel now
+  
+
+
+7.	In the MFC excel under the 2nd tab “InFlightFCReportResponse (2)”, insert new column at column D 
+  
+In the second cell of the new column D, insert the formula =C2*1, enter
+ 
+Copy the formula to the entire column ‘D’ (double click on the tiny square at the bottom right corner of the cell).
+ 
+Copy all the data in column ‘D’ (without header). Select cell in column C row 2, paste (values) all copied data.
+ 
+Delete column ‘D’
+
+
+
+
+
+
+8.	Select whole of column C (encounter no. column)
+•	Right Click  Format Cells  Numbers  Decimal place “0”  OK
+           
+
+9.	Insert new column in column I
+•	Copy the formula “=TEXT(DATE(RIGHT(LEFT(H2, FIND(" ", H2)-1), 4), LEFT(LEFT(H2, FIND(" ", H2)-1), FIND("/", LEFT(H2, FIND(" ", H2)-1))-1), MID(LEFT(H2, FIND(" ", H2)-1), FIND("/", LEFT(H2, FIND(" ", H2)-1))+1, FIND("/", LEFT(H2, FIND(" ", H2)-1), FIND("/", LEFT(H2, FIND(" ", H2)-1))+1)-FIND("/", LEFT(H2, FIND(" ", H2)-1))-1)), "dd/mm/yyyy")”
+o	May also be found under “List” tab named as “Value”.  Just copy and paste the value from the bar 
+•	Select cell 2 at column I and paste the formula
+o	*It may jump back to the MFC UPDATED VERSION if the formula is copied from “Value”, just go back to the correct MFC excel and insert the formula again
+•	Copy the formula to the entire column (double click the tiny square at the cell corner)
+•	Rename column as “Adm Date for MFC”
+ 
+10.	Open EPIC report
+•	*Epic Report may be found under  K:\Inpatient Ops Financial Counselling\Inflight FC\INFLIGHT-REPORT\INFC 2026 FOLDER\1.EPIC REPORT JAN 2026
+
+11.	Insert new column at column L
+•	In the MFC excel: Insert formula at row 2 =XLOOKUP(C2,
+  
+•	Go to EPIC report: Click on the alphabet for CSN column  Comma  Click on the alphabet for Bed column  Close formula with bracket )  Enter
+o	*The columns for CSN and Bed may not always be A and G, just make sure to select the correct column for CSN and Bed
+ 
+           
+•	Copy to the entire column (double click the tiny square at the cell corner)
+•	Rename column as “Bed Point Of Care”
+
+12.	Insert new column at column AT
+•	In the MFC excel: Insert formula at row 2 =XLOOKUP(C2,
+  
+•	Go to EPIC report: Click on the alphabet for CSN column (A)  Comma  Click on the alphabet for Admit Status column (E)  Close formula with )  Enter
+o	*The columns for CSN and Admit Status may not always be A and E, just make sure to select the correct column for CSN and Admit Status
+          
+•	Copy to the entire column (double click the tiny square at the cell corner)
+•	Rename column as” Epic Admission Status/Discharged”
+•	You may close the EPIC report excel now
+
+13.	Highlight row 1 (header), column A, C, D, F, I, J, L to N, AS, AT
+
+14.	Filter column AS “FC Status”
+•	Click on row 1  Go to control panel  Select Sort & Filter on the home tab  Select Filter
+ 
+•	Go to column AS, click on the arrow down
+•	Untick “Drafts” (ALL DRAFTS) and “Blanks”  OK
+          
+•	Select the entire row 2 from the left  Ctrl + Shift + Down  Right click and select delete row
+•	Filter and re-select all “Draft” and “Blanks”
+
+15.	Filter column L “Bed Point Of Care”
+•	Go to column L, click on the arrow down
+•	Untick all NCID wards. (NCID wards are E and F only)
+•	Select row 2  Ctrl + Shift + Down  Right click and select delete row
+•	Filter and re-select all beds (Excluding (blanks) )
+       
+Ward Type	Ward	Medical discipline 	Ward Class 	Remarks 
+NCID BAU	14F	RTB	B1, B2, C	Derm and ID patients allowed to overflow to W14F during bed crunch
+ 	12E	DERM, IDS	B1, B2, C	 
+ 	11E	IDS	A, B1, B2, C	RTB patients allowed to overflow to W11E when in need of Isolation room
+ 	8E	IDS	A, B1, B2, C	COVID-19 
+TTSH@NCID 	9F	GMD, GRM, ORT	B1, B2, C	 
+ 	8F	GMD, IDS, DER	A 	Mixed discipline A-Class ward at NCID, predominantly GMD admissions
+ 	7F	GMD, GRM 	B1, B2, C	For CPO 
+ 	7E	GMD, GRM 	B1, B2, C	For MRSA
+ 	6F	GMD, GRM 	B1, B2, C	For MRSA
+ 	11F	Vascular Surgery	B1, B2, C	Currently non-operational; Upcoming plans to open for Vascular Surgery 5 Jan 2026
+OICU/HD	3E	IDS, GMD, GRM etc. 	A, B1, B2, C	Mixed discipline 
+
+  5F, 6E, 6F, 7E, 7F, 8E, 8F, 9E, 9F, 11E, 11F, 12E, 14F
+
+16.	Refer to the highlighted columns in the “InFlightReportResponse (2)” tab, copy the corresponding data for columns E to O in the “MFC” tab
+•	E.G. For FC ID: Copy the entire column A from 2nd cell in “InFlightReportResponse (2)” tab, paste at column E 2nd cell in “MFC” tab
+ 
+ 
+
+17.	Under “Inflight FC Status” (column A in MFC tab)
+•	Select 2nd cell  Data tab at the control panel  Select data validation
+ 
+ 
+•	Allow (list)  Source (click on arrow up)  Go to list tab at the bottom  Drag and select the blue column (row 2 to 12)  Enter X2  Copy to the entire column
+  
+
+
+
+
+
+
+18.	Under “Staff Follow Up (if any)” (column C)
+•	Select 2nd cell  Data tab at the control panel  Select data validation
+•	Allow (list)  Source (click on arrow up)  Go to list tab at the bottom  Drag and select the orange column (all staff names)  Enter X2  Copy to the entire column
+  
+
+
+HOW TO FIND OUT BACKLOG NUMBERS FOR DAILY UPDATE:
+1.	Open previous day’s MFC excel
+2.	Copy all names
+3.	Go to present date MFC excel, select the cell below the last name, paste to combine
+               
+     
+
+
+
+4.	Highlight all the names  Head to home tab at control panel  Conditional Formatting  Highlight cells rules  Duplicate values  OK
+ 
+5.	Backlog cases are highlighted in red. Delete the pasted names after noting the backlog no.
+
+CASE UPDATE TEMPLATE:
+TOTAL CASES:
+BACKLOG:
+TODAY’S CASES:
+EL ADMISSION:
+
+(TOTAL CASES: As per the completed MFC excel
+BACKLOG: Highlighted in red
+TODAY’S CASES: Total cases minus backlog
+EL ADMISSION: Find out from email)
+
+
+
+
+
+_____________________________end of report churn__________________________________
+ 
+If eFC reports are totally not available (30 oct)
+1. Use Epic ward manager to view the screen the FC completion status.
+-	Only FC completed in eFC eForms with “Completed” or “Acknowledged by other means” will be reflected as FC completed in Epic.
+-	Go ward by ward to check on those with incomplete FC
+
+ 
+
+2. For those in progress, use eFC dashboard to search for patient MRN. CSN to see FC status in eFC. Complete FC with patient. If FC in eFC was done via eform, the FC completion status will flow automatically to Epic to reflect as FC completed.
+ 
+3. If downtime FC module or manual hardcopy was done with patient and scanned in, manually amend the FC completion status in Epic to mark patient’s FC as completed.
+
+Downtime FC module – will not reflect automatically in Epic if FC was uploaded via this module
+ 
+
+If eFC reports are partially available from 3 nov
+Inflight FC report
+To obtain inflight cases FC status
+1.	Leave admission type blank
+2.	Indicate the date range up to 1month
+3.	Click submit request
+
+ 
+
+4.	The report will have all admission type. Filter out the irrelevant ones, leaving EM and EL
+ 
+
+5.	Combine with Epic Census report as per normal
+
+The above extraction will not include CSN with no FC ID. “Missed FC”. To obtain list of CSN with no FC ID (totally missed FC):
+
+1.	Use the eFC dashboard search to filter by
+a.	Admission type
+b.	Admission date range
+c.	Admission status = actualised (this status will be accurate from Epic)
+ 
+2.	 Based on the search findings, export the file to excel
+ 
+3.	Filter to the CSNs without FC ID. These are the missed FC that need to be followed up on. Repeat for elective admissions if required.
+ 
+

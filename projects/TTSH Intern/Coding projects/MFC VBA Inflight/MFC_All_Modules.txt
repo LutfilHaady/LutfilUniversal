@@ -1,0 +1,3050 @@
+Attribute VB_Name = "Backlog"
+Option Explicit
+
+' ============================================================
+' Backlog.bas
+'
+' BacklogSummary (Public) -- compares the output against the previous MFC
+' report, carries forward Staff Follow Up (col C) for still-open cases,
+' applies yellow fill to backlog rows, and computes Total/Backlog counts.
+'   LoadPreviousMFC   -- builds lookup dictionaries from the previous report
+'   ApplyCarryForward -- copies col C (Staff Follow Up) for matching encounters,
+'                        highlights backlog rows yellow
+'   TagAndGroupNCID   -- tags NCID ward rows with Case Status = "NCID"
+'                        and sorts them to the bottom of the report
+' ============================================================
+
+
+' Compares output against previous MFC, carries forward Staff Follow Up
+' (col C), highlights backlog rows yellow, tags NCID rows, and writes counts.
+Public Sub BacklogSummary(outWs As Worksheet, prevWs As Worksheet, _
+                           ByRef outTotalCases As Long, ByRef outBacklogCount As Long)
+
+    Dim hdr() As String
+    hdr = GetOutputHeaders()
+
+    Dim encCol As Long
+    encCol = FindColByHeader(outWs, hdr(7))
+    If encCol = 0 Then encCol = FindColByHeader(outWs, "Encounter Number")
+    If encCol = 0 Then encCol = 7
+
+    ' Build lookup dictionaries from the previous MFC report
+    Dim prevEncs As Object
+    Dim carryFwd As Object
+    Set prevEncs = CreateObject("Scripting.Dictionary")
+    Set carryFwd = CreateObject("Scripting.Dictionary")
+    LoadPreviousMFC prevWs, prevEncs, carryFwd
+
+    ' Load output Encounter Number column into memory
+    Dim outLastRow As Long
+    outLastRow = outWs.Cells(outWs.Rows.Count, encCol).End(xlUp).Row
+    Dim outEncData As Variant
+    If outLastRow = 2 Then
+        ReDim outEncData(1 To 1, 1 To 1)
+        outEncData(1, 1) = outWs.Cells(2, encCol).Value
+    Else
+        outEncData = outWs.Range(outWs.Cells(2, encCol), outWs.Cells(outLastRow, encCol)).Value
+    End If
+
+    ' Write carry-forward values and yellow backlog fill, receive case counts
+    Dim totalCases   As Long
+    Dim backlogCount As Long
+    ApplyCarryForward outWs, outLastRow, outEncData, prevEncs, carryFwd, totalCases, backlogCount
+
+    ' Tag NCID ward rows and group them at the bottom of the report
+    TagAndGroupNCID outWs, prevEncs
+
+    outWs.Parent.Save
+
+    outTotalCases   = totalCases
+    outBacklogCount = backlogCount
+
+End Sub
+
+
+' Loads the previous MFC sheet into two dictionaries.
+' prevEncs:  Encounter Number -> True  (non-Resolved rows only)
+' carryFwd:  Encounter Number -> Array(inflight, dateUpdated, staffFollowUp, remarks)
+Private Sub LoadPreviousMFC(prevWs As Worksheet, prevEncs As Object, carryFwd As Object)
+
+    Dim prevEncCol      As Long
+    Dim prevStatusCol   As Long
+    Dim prevInflightCol As Long
+    Dim prevDateCol     As Long
+    Dim prevStaffCol    As Long
+    Dim prevRemarksCol  As Long
+
+    Dim hdr() As String
+    hdr = GetOutputHeaders()
+
+    prevEncCol = FindColByHeader(prevWs, hdr(7))
+    If prevEncCol = 0 Then prevEncCol = FindColByHeader(prevWs, "Encounter Number")
+    If prevEncCol = 0 Then prevEncCol = FindColByHeader(prevWs, "Encounter No")
+    If prevEncCol = 0 Then
+        MsgBox "Previous report missing 'Encounter Number'." & vbNewLine & _
+               "All cases treated as new.", _
+               vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    prevStatusCol = FindColByHeader(prevWs, hdr(5))
+    If prevStatusCol = 0 Then prevStatusCol = FindColByHeader(prevWs, "Case Status")
+    If prevStatusCol = 0 Then prevStatusCol = FindColByHeader(prevWs, "Resolution Status")
+
+    prevInflightCol = FindColByHeader(prevWs, hdr(1))
+    If prevInflightCol = 0 Then prevInflightCol = FindColByHeader(prevWs, "Inflight FC Status")
+
+    prevDateCol = FindColByHeader(prevWs, hdr(2))
+    If prevDateCol = 0 Then prevDateCol = FindColByHeader(prevWs, "Date Updated (DD/MM/YYYY)")
+    If prevDateCol = 0 Then prevDateCol = FindColByHeader(prevWs, "Date Updated")
+
+    prevStaffCol = FindColByHeader(prevWs, hdr(3))
+    If prevStaffCol = 0 Then prevStaffCol = FindColByHeader(prevWs, "Staff Follow Up (if any)")
+    If prevStaffCol = 0 Then prevStaffCol = FindColByHeader(prevWs, "Staff Follow Up")
+
+    prevRemarksCol = FindColByHeader(prevWs, hdr(4))
+    If prevRemarksCol = 0 Then prevRemarksCol = FindColByHeader(prevWs, "Remarks")
+
+    Dim prevLastRow As Long
+    prevLastRow = prevWs.Cells(prevWs.Rows.Count, prevEncCol).End(xlUp).Row
+    If prevLastRow < 2 Then Exit Sub
+
+    ' IIf() is safe here: all arguments are Long values, not array subscripts
+    Dim prevLastCol As Long
+    prevLastCol = Application.WorksheetFunction.Max(prevEncCol, _
+        IIf(prevStatusCol > 0, prevStatusCol, 1), _
+        IIf(prevInflightCol > 0, prevInflightCol, 1), _
+        IIf(prevDateCol > 0, prevDateCol, 1), _
+        IIf(prevStaffCol > 0, prevStaffCol, 1), _
+        IIf(prevRemarksCol > 0, prevRemarksCol, 1))
+    Dim prevData As Variant
+    prevData = prevWs.Range(prevWs.Cells(2, 1), prevWs.Cells(prevLastRow, prevLastCol)).Value
+
+    Dim i As Long
+    Dim pEnc As String
+    Dim prevStat As String
+    For i = 1 To UBound(prevData, 1)
+        pEnc = Trim(CStr(prevData(i, prevEncCol)))
+        If pEnc <> "" And Not prevEncs.Exists(pEnc) Then
+            prevStat = ""
+            If prevStatusCol > 0 Then prevStat = UCase(Trim(CStr(prevData(i, prevStatusCol))))
+            If prevStat <> "RESOLVED" Then
+                prevEncs(pEnc) = True
+                ' Use explicit If guards, not IIf() -- IIf() is NOT short-circuit in VBA.
+                Dim cfInflight As Variant, cfDate As Variant
+                Dim cfStaff As Variant, cfRemarks As Variant
+                cfInflight = "" : cfDate = "" : cfStaff = "" : cfRemarks = ""
+                If prevInflightCol > 0 Then cfInflight = prevData(i, prevInflightCol)
+                If prevDateCol     > 0 Then cfDate     = prevData(i, prevDateCol)
+                If prevStaffCol    > 0 Then cfStaff    = prevData(i, prevStaffCol)
+                If prevRemarksCol  > 0 Then cfRemarks  = prevData(i, prevRemarksCol)
+                carryFwd(pEnc) = Array(cfInflight, cfDate, cfStaff, cfRemarks)
+            End If
+        End If
+    Next i
+
+End Sub
+
+
+' Scans the output Encounter Number column, counts total and backlog cases,
+' then bulk-writes Staff Follow Up (col C) and applies yellow fill to
+' backlog rows (cases that appeared in the previous report).
+Private Sub ApplyCarryForward(outWs As Worksheet, outLastRow As Long, outEncData As Variant, _
+                               prevEncs As Object, carryFwd As Object, _
+                               ByRef totalCases As Long, ByRef backlogCount As Long)
+
+    Dim rowCount As Long : rowCount = UBound(outEncData, 1)
+
+    Dim cfWrite()  As Variant
+    ReDim cfWrite(1 To rowCount, 1 To 4)
+
+    Dim i As Long
+    Dim curEnc As String
+    Dim cf As Variant
+    Dim backlogRange As Range
+    For i = 1 To rowCount
+        curEnc = Trim(CStr(outEncData(i, 1)))
+        If curEnc <> "" Then
+            totalCases = totalCases + 1
+            If prevEncs.Exists(curEnc) Then
+                backlogCount = backlogCount + 1
+                If backlogRange Is Nothing Then
+                    Set backlogRange = outWs.Range(outWs.Cells(i + 1, 1), outWs.Cells(i + 1, 15))
+                Else
+                    Set backlogRange = Union(backlogRange, outWs.Range(outWs.Cells(i + 1, 1), outWs.Cells(i + 1, 15)))
+                End If
+            End If
+            If carryFwd.Exists(curEnc) Then
+                cf = carryFwd(curEnc)
+                cfWrite(i, 3) = cf(2)  ' Staff Follow Up (only col C carried forward)
+            End If
+        End If
+    Next i
+
+    Application.ScreenUpdating = False
+    outWs.Range(outWs.Cells(2, 1), outWs.Cells(outLastRow, 4)).Value = cfWrite
+    If Not backlogRange Is Nothing Then
+        backlogRange.Interior.Color = RGB(255, 255, 0)
+    End If
+    Application.ScreenUpdating = True
+
+End Sub
+
+
+' Tags NCID ward rows and sorts the report into three groups:
+'   0 = backlog (in prevEncs)   -- top
+'   1 = new cases               -- middle
+'   2 = NCID wards              -- bottom
+' Uses a temporary helper column so cell formatting moves with the rows.
+Private Sub TagAndGroupNCID(outWs As Worksheet, prevEncs As Object)
+    Dim hdr() As String
+    hdr = GetOutputHeaders()
+
+    Dim bedCol As Long
+    bedCol = FindColByHeader(outWs, hdr(13))
+    If bedCol = 0 Then bedCol = FindColByHeader(outWs, "Final Bed")
+    If bedCol = 0 Then Exit Sub
+
+    Dim resCol As Long
+    resCol = FindColByHeader(outWs, hdr(5))
+    If resCol = 0 Then resCol = FindColByHeader(outWs, "Case Status")
+    If resCol = 0 Then resCol = 5
+
+    Dim encCol As Long
+    encCol = FindColByHeader(outWs, hdr(7))
+    If encCol = 0 Then encCol = FindColByHeader(outWs, "Encounter Number")
+    If encCol = 0 Then encCol = 7
+
+    Dim lastRow As Long
+    lastRow = outWs.Cells(outWs.Rows.Count, encCol).End(xlUp).Row
+    If lastRow < 2 Then Exit Sub
+
+    ' Build NCID tag set: wards in All NCID Wards minus Included NCID Wards
+    Dim allWards As Variant
+    allWards = GetAllNCIDWards()
+    Dim includedWards As Variant
+    includedWards = GetIncludedNCIDWards()
+
+    Dim includedSet As Object
+    Set includedSet = CreateObject("Scripting.Dictionary")
+    Dim w As Long
+    For w = LBound(includedWards) To UBound(includedWards)
+        includedSet(UCase(Trim(CStr(includedWards(w))))) = True
+    Next w
+
+    Dim ncidSet As Object
+    Set ncidSet = CreateObject("Scripting.Dictionary")
+    For w = LBound(allWards) To UBound(allWards)
+        Dim wc As String
+        wc = UCase(Trim(CStr(allWards(w))))
+        If Not includedSet.Exists(wc) Then ncidSet(wc) = True
+    Next w
+
+    Dim dataRows As Long
+    dataRows = lastRow - 1
+
+    ' Read bed + encounter columns in bulk
+    Dim bedData As Variant
+    Dim encData As Variant
+    If dataRows = 1 Then
+        ReDim bedData(1 To 1, 1 To 1)
+        ReDim encData(1 To 1, 1 To 1)
+        bedData(1, 1) = outWs.Cells(2, bedCol).Value
+        encData(1, 1) = outWs.Cells(2, encCol).Value
+    Else
+        bedData = outWs.Range(outWs.Cells(2, bedCol), outWs.Cells(lastRow, bedCol)).Value
+        encData = outWs.Range(outWs.Cells(2, encCol), outWs.Cells(lastRow, encCol)).Value
+    End If
+
+    ' Build sort key (0=backlog, 1=new, 2=NCID) and NCID status arrays
+    Dim sortKeys() As Variant
+    Dim ncidFlags() As Variant
+    ReDim sortKeys(1 To dataRows, 1 To 1)
+    ReDim ncidFlags(1 To dataRows, 1 To 1)
+
+    Dim hasNCID As Boolean
+    Dim i As Long
+    Dim bedVal As String
+    Dim curEnc As String
+    For i = 1 To dataRows
+        bedVal = UCase(Trim(CStr(bedData(i, 1))))
+
+        ' Check NCID first (takes priority over backlog)
+        If Len(bedVal) >= 4 Then
+            If ncidSet.Exists(Mid(bedVal, 2, 3)) Then
+                sortKeys(i, 1) = 2
+                ncidFlags(i, 1) = "NCID"
+                hasNCID = True
+                GoTo NextRow
+            End If
+        End If
+
+        ' Backlog vs new
+        curEnc = Trim(CStr(encData(i, 1)))
+        If curEnc <> "" And prevEncs.Exists(curEnc) Then
+            sortKeys(i, 1) = 0
+        Else
+            sortKeys(i, 1) = 1
+        End If
+NextRow:
+    Next i
+
+    Application.ScreenUpdating = False
+
+    ' Write NCID Case Status (only NCID rows get a value; others stay empty)
+    If hasNCID Then
+        outWs.Range(outWs.Cells(2, resCol), outWs.Cells(lastRow, resCol)).Value = ncidFlags
+    End If
+
+    ' Write sort key to temporary helper column and sort
+    Const SORT_COL As Long = 16
+    outWs.Range(outWs.Cells(2, SORT_COL), outWs.Cells(lastRow, SORT_COL)).Value = sortKeys
+
+    Dim dataRange As Range
+    Set dataRange = outWs.Range(outWs.Cells(2, 1), outWs.Cells(lastRow, SORT_COL))
+
+    outWs.Sort.SortFields.Clear
+    outWs.Sort.SortFields.Add Key:=outWs.Range(outWs.Cells(2, SORT_COL), outWs.Cells(lastRow, SORT_COL)), _
+        SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:=xlSortNormal
+
+    With outWs.Sort
+        .SetRange dataRange
+        .Header = xlNo
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .Apply
+    End With
+
+    ' Remove temporary helper column
+    outWs.Columns(SORT_COL).Delete
+
+    Application.ScreenUpdating = True
+
+End Sub
+
+Attribute VB_Name = "BuildOutput"
+Option Explicit
+
+' ============================================================
+' BuildOutput.bas
+'
+' Public entry points:
+'   BuildMFCOutput  -- Creates the final .xlsx (cols A-O) on the main "MFC Report"
+'                      sheet, plus an optional second "Discharged" sheet built from
+'                      FilterDischarged's captured rows (dischargedWs; may be Nothing
+'                      if nothing was discharged this run).
+'                      Returns the new Workbook, or Nothing on cancel.
+'   BacklogSummary  -- Compares against previous MFC, carries forward
+'                      manual cols A-D, writes the summary table.
+'
+' Output layout (cols A-O):
+'   A  Inflight FC Status              Manual -- dropdown (20 values)
+'   B  Date Updated (DD/MM/YYYY)       Manual
+'   C  Staff Follow Up (if any)        Manual -- dropdown
+'   D  Remarks                         Manual
+'   E  Case Status                      Manual -- Resolved / U-turn / NCID (auto)
+'   F  FC ID
+'   G  Encounter Number
+'   H  MRN
+'   I  Patient Name
+'   J  Adm Date for MFC
+'   K  FC Status
+'   L  Point of Care
+'   M  Final Bed
+'   N  Admission Level Of Care
+'   O  Epic Admission Status
+' ============================================================
+
+
+' ===========================================================
+' PUBLIC: BuildMFCOutput
+' Orchestrates steps 1-7 to create the output workbook.
+' ===========================================================
+Public Function BuildMFCOutput(ws As Worksheet, dischargedWs As Worksheet) As Workbook
+
+    On Error GoTo CleanExit
+
+    ' --- Resolve source columns by header ---
+    Dim srcFCID     As Long : srcFCID     = FindColByHeader(ws, "FC ID")
+    Dim srcEncNo    As Long : srcEncNo    = FindColByHeader(ws, "Encounter No")
+    Dim srcMRN      As Long : srcMRN      = FindColByHeader(ws, "MRN")
+    Dim srcPatName  As Long : srcPatName  = FindColByHeader(ws, "Patient Name")
+    Dim srcAdmDate  As Long : srcAdmDate  = FindColByHeader(ws, "Adm Date for MFC")
+    Dim srcFCStat   As Long : srcFCStat   = FindColByHeader(ws, "FC Status")
+    Dim srcPOC      As Long : srcPOC      = FindColByHeader(ws, "Point Of Care")
+    Dim srcBed      As Long : srcBed      = FindColByHeader(ws, "Final Bed")
+    Dim srcAdmLevel As Long : srcAdmLevel = FindColByHeader(ws, "Admission Level Of Care")
+    Dim srcEpicStat As Long : srcEpicStat = FindColByHeader(ws, "Epic Admission Status")
+
+    If Not ValidateSourceColumns(srcFCID, srcEncNo, srcMRN, srcPatName, srcAdmDate, _
+                                  srcFCStat, srcPOC, srcBed, srcAdmLevel, srcEpicStat) Then
+        Set BuildMFCOutput = Nothing
+        Exit Function
+    End If
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, srcEncNo).End(xlUp).Row
+    If lastRow < 2 Then
+        MsgBox "No data to output -- all rows were filtered out.", vbExclamation, "No Data"
+        Set BuildMFCOutput = Nothing
+        Exit Function
+    End If
+    Dim dataRows As Long : dataRows = lastRow - 1
+
+    ' Load working sheet into memory (one read covers all needed columns)
+    Dim wsLastCol As Long
+    wsLastCol = Application.WorksheetFunction.Max( _
+        srcFCID, srcEncNo, srcMRN, srcPatName, srcAdmDate, _
+        srcFCStat, srcPOC, srcBed, srcAdmLevel, srcEpicStat)
+    Dim wsData As Variant
+    wsData = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, wsLastCol)).Value
+
+    ' Capture red duplicate-row flags before switching to the output workbook
+    Dim rowIsRed() As Boolean
+    CaptureRedFlags ws, dataRows, rowIsRed
+
+    ' Build filename and prompt for save folder
+    Dim filePrefix As String
+    filePrefix = GetSetting("Filename Prefix", "MFC")
+    Dim sheetName As String
+    sheetName = GetSetting("Sheet Name", "MFC Report")
+    Dim currentDateStr As String : currentDateStr = Format(Date, "DD.MM.YYYY")
+    Dim oneMonthAgoStr As String : oneMonthAgoStr = Format(DateAdd("m", -1, Date), "DD.MM.YYYY")
+    Dim savePath As String
+    With Application.FileDialog(msoFileDialogFolderPicker)
+        .Title = "Select folder to save MFC Report"
+        If .Show = False Then
+            Set BuildMFCOutput = Nothing
+            Exit Function
+        End If
+        savePath = .SelectedItems(1)
+    End With
+    Dim fullPath As String
+    fullPath = savePath & "\" & filePrefix & " " & currentDateStr & " TO " & oneMonthAgoStr & ".xlsx"
+
+    Application.ScreenUpdating = False
+
+    ' Create output workbook -- strip to one sheet named "MFC Report"
+    Dim outWb As Workbook
+    Dim outWs As Worksheet
+    Set outWb = Workbooks.Add
+    Application.DisplayAlerts = False
+    Do While outWb.Sheets.Count > 1
+        outWb.Sheets(outWb.Sheets.Count).Delete
+    Loop
+    Application.DisplayAlerts = True
+    Set outWs = outWb.Sheets(1)
+    outWs.Name = sheetName
+
+    ' colMap(1..10) maps output cols F-O to their source column numbers in wsData.
+    ' F=1(FC ID)  G=2(Enc No)  H=3(MRN)  I=4(Name)  J=5(Adm Date)
+    ' K=6(FC Stat)  L=7(POC)  M=8(Bed)  N=9(Adm Level)  O=10(Epic Stat)
+    Dim colMap(1 To 10) As Long
+    colMap(1)  = srcFCID      ' F
+    colMap(2)  = srcEncNo     ' G
+    colMap(3)  = srcMRN       ' H
+    colMap(4)  = srcPatName   ' I
+    colMap(5)  = srcAdmDate   ' J
+    colMap(6)  = srcFCStat    ' K
+    colMap(7)  = srcPOC       ' L
+    colMap(8)  = srcBed       ' M
+    colMap(9)  = srcAdmLevel  ' N
+    colMap(10) = srcEpicStat  ' O
+
+    WriteOutputHeaders outWs
+    WriteOutputData outWs, wsData, dataRows, lastRow, colMap, rowIsRed
+    AddDropdowns outWs, lastRow
+    FormatOutputSheet outWs, lastRow
+
+    If Not dischargedWs Is Nothing Then
+        WriteDischargedSheet outWb, dischargedWs
+    End If
+
+    SaveOutputFile outWb, fullPath, savePath, currentDateStr, oneMonthAgoStr
+
+    Application.ScreenUpdating = True
+    Set BuildMFCOutput = outWb
+    Exit Function
+
+CleanExit:
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    Dim errMsg As String
+    If Err.Number <> 0 Then errMsg = "BuildMFCOutput: Error " & Err.Number & " - " & Err.Description
+    On Error Resume Next
+    If Not outWb Is Nothing Then outWb.Close SaveChanges:=False
+    On Error GoTo 0
+    Set BuildMFCOutput = Nothing
+    If Len(errMsg) > 0 Then MsgBox errMsg, vbCritical
+
+End Function
+
+
+' Checks all 10 required source columns are present.
+' Shows a MsgBox listing any that are missing. Returns True only if all are found.
+Private Function ValidateSourceColumns(srcFCID As Long, srcEncNo As Long, srcMRN As Long, _
+                                        srcPatName As Long, srcAdmDate As Long, _
+                                        srcFCStat As Long, srcPOC As Long, srcBed As Long, _
+                                        srcAdmLevel As Long, srcEpicStat As Long) As Boolean
+    If srcFCID > 0 And srcEncNo > 0 And srcMRN > 0 And srcPatName > 0 And _
+       srcAdmDate > 0 And srcFCStat > 0 And srcPOC > 0 And srcBed > 0 And _
+       srcAdmLevel > 0 And srcEpicStat > 0 Then
+        ValidateSourceColumns = True
+        Exit Function
+    End If
+    ' Use explicit If guards, not IIf() -- IIf() is NOT short-circuit in VBA.
+    Dim msg As String
+    msg = "Error: Output cannot be built -- missing columns:" & vbNewLine
+    If srcFCID = 0     Then msg = msg & "  - FC ID" & vbNewLine
+    If srcEncNo = 0    Then msg = msg & "  - Encounter No" & vbNewLine
+    If srcMRN = 0      Then msg = msg & "  - MRN" & vbNewLine
+    If srcPatName = 0  Then msg = msg & "  - Patient Name" & vbNewLine
+    If srcAdmDate = 0  Then msg = msg & "  - Adm Date for MFC" & vbNewLine
+    If srcFCStat = 0   Then msg = msg & "  - FC Status" & vbNewLine
+    If srcPOC = 0      Then msg = msg & "  - Point Of Care" & vbNewLine
+    If srcBed = 0      Then msg = msg & "  - Final Bed" & vbNewLine
+    If srcAdmLevel = 0 Then msg = msg & "  - Admission Level Of Care" & vbNewLine
+    If srcEpicStat = 0 Then msg = msg & "  - Epic Admission Status" & vbNewLine
+    MsgBox msg, vbExclamation, "Missing Column"
+    ValidateSourceColumns = False
+End Function
+
+
+' Reads the Interior.Color of each data row in ws into rowIsRed.
+' Must run before switching to the output workbook.
+' FlagDuplicateRows coloured duplicate rows red; we carry that forward.
+Private Sub CaptureRedFlags(ws As Worksheet, dataRows As Long, ByRef rowIsRed() As Boolean)
+    ReDim rowIsRed(1 To dataRows)
+    Dim dupColor As Long
+    dupColor = GetSettingColor("Duplicate Color", 255, 0, 0)
+    Dim r As Long
+    For r = 1 To dataRows
+        rowIsRed(r) = (ws.Cells(r + 1, 1).Interior.Color = dupColor)
+    Next r
+End Sub
+
+
+' Adds a second "Discharged" sheet to the output workbook, containing the rows
+' FilterDischarged captured before deleting them from the main pipeline. Reuses
+' the same column layout, dropdowns, and formatting as the main "MFC Report" sheet.
+' Silently returns if the required source columns are missing -- this should never
+' happen in practice since dischargedWs is a snapshot of the same working sheet
+' whose columns BuildMFCOutput's own column resolution already validated.
+Private Sub WriteDischargedSheet(outWb As Workbook, dischargedWs As Worksheet)
+
+    Dim srcFCID     As Long : srcFCID     = FindColByHeader(dischargedWs, "FC ID")
+    Dim srcEncNo    As Long : srcEncNo    = FindColByHeader(dischargedWs, "Encounter No")
+    Dim srcMRN      As Long : srcMRN      = FindColByHeader(dischargedWs, "MRN")
+    Dim srcPatName  As Long : srcPatName  = FindColByHeader(dischargedWs, "Patient Name")
+    Dim srcAdmDate  As Long : srcAdmDate  = FindColByHeader(dischargedWs, "Adm Date for MFC")
+    Dim srcFCStat   As Long : srcFCStat   = FindColByHeader(dischargedWs, "FC Status")
+    Dim srcPOC      As Long : srcPOC      = FindColByHeader(dischargedWs, "Point Of Care")
+    Dim srcBed      As Long : srcBed      = FindColByHeader(dischargedWs, "Final Bed")
+    Dim srcAdmLevel As Long : srcAdmLevel = FindColByHeader(dischargedWs, "Admission Level Of Care")
+    Dim srcEpicStat As Long : srcEpicStat = FindColByHeader(dischargedWs, "Epic Admission Status")
+
+    If Not ValidateSourceColumns(srcFCID, srcEncNo, srcMRN, srcPatName, srcAdmDate, _
+                                  srcFCStat, srcPOC, srcBed, srcAdmLevel, srcEpicStat) Then
+        Exit Sub
+    End If
+
+    Dim lastRow As Long
+    lastRow = dischargedWs.Cells(dischargedWs.Rows.Count, srcEncNo).End(xlUp).Row
+    If lastRow < 2 Then Exit Sub
+    Dim dataRows As Long : dataRows = lastRow - 1
+
+    Dim wsLastCol As Long
+    wsLastCol = Application.WorksheetFunction.Max( _
+        srcFCID, srcEncNo, srcMRN, srcPatName, srcAdmDate, _
+        srcFCStat, srcPOC, srcBed, srcAdmLevel, srcEpicStat)
+    Dim wsData As Variant
+    wsData = dischargedWs.Range(dischargedWs.Cells(1, 1), dischargedWs.Cells(lastRow, wsLastCol)).Value
+
+    Dim rowIsRed() As Boolean
+    CaptureRedFlags dischargedWs, dataRows, rowIsRed
+
+    Dim outWs As Worksheet
+    Set outWs = outWb.Sheets.Add(After:=outWb.Sheets(outWb.Sheets.Count))
+    outWs.Name = "Discharged"
+
+    ' colMap(1..10) maps output cols F-O to their source column numbers in wsData.
+    Dim colMap(1 To 10) As Long
+    colMap(1)  = srcFCID      ' F
+    colMap(2)  = srcEncNo     ' G
+    colMap(3)  = srcMRN       ' H
+    colMap(4)  = srcPatName   ' I
+    colMap(5)  = srcAdmDate   ' J
+    colMap(6)  = srcFCStat    ' K
+    colMap(7)  = srcPOC       ' L
+    colMap(8)  = srcBed       ' M
+    colMap(9)  = srcAdmLevel  ' N
+    colMap(10) = srcEpicStat  ' O
+
+    WriteOutputHeaders outWs
+    WriteOutputData outWs, wsData, dataRows, lastRow, colMap, rowIsRed
+    AddDropdowns outWs, lastRow
+    FormatOutputSheet outWs, lastRow
+
+End Sub
+
+
+' Saves the workbook to fullPath. If the file is locked (already open),
+' lets the user choose to retry or auto-save under a new numbered name.
+Private Sub SaveOutputFile(outWb As Workbook, ByVal fullPath As String, _
+                            savePath As String, currentDateStr As String, oneMonthAgoStr As String)
+    Dim saveErr As Long
+    Dim answer  As VbMsgBoxResult
+    Dim baseName As String
+    Dim counter  As Long
+    Dim fileName As String
+    Dim filePrefix As String
+    filePrefix = GetSetting("Filename Prefix", "MFC")
+    fileName = filePrefix & " " & currentDateStr & " TO " & oneMonthAgoStr & ".xlsx"
+
+    Do
+        Application.DisplayAlerts = False
+        On Error Resume Next
+        outWb.SaveAs Filename:=fullPath, FileFormat:=xlOpenXMLWorkbook
+        saveErr = Err.Number
+        Err.Clear
+        On Error GoTo 0
+        Application.DisplayAlerts = True
+
+        If saveErr = 0 Then Exit Do
+
+        answer = MsgBox("Cannot save -- file is open:" & vbNewLine & _
+                        fileName & vbNewLine & vbNewLine & _
+                        "Close it and click Retry, or click Cancel to save a copy.", _
+                        vbRetryCancel + vbExclamation, "File Already Open")
+
+        If answer = vbCancel Then
+            baseName = savePath & "\" & filePrefix & " " & currentDateStr & " TO " & oneMonthAgoStr
+            counter = 1
+            Do
+                fullPath = baseName & " (" & counter & ").xlsx"
+                fileName = filePrefix & " " & currentDateStr & " TO " & oneMonthAgoStr & " (" & counter & ").xlsx"
+                counter = counter + 1
+            Loop While Dir(fullPath) <> ""
+        End If
+    Loop
+End Sub
+
+Attribute VB_Name = "CombineEFC"
+Option Explicit
+
+' Appends all data rows from the missed-FC EFC file below the last row
+' of the main EFC file, using paste-values to avoid carrying over formats or formulas.
+Sub CombineEFCFiles(wsMainEFC As Worksheet, wsMissedEFC As Worksheet)
+
+    Dim lastRowMain As Long
+    Dim lastRowMissed As Long
+
+    ' Use Encounter No for lastRow -- FC ID (col 1) is blank in missed FC rows
+    Dim encColMain As Long
+    encColMain = FindColByHeader(wsMainEFC, "Encounter No")
+    If encColMain > 0 Then
+        lastRowMain = wsMainEFC.Cells(wsMainEFC.Rows.Count, encColMain).End(xlUp).Row
+    Else
+        lastRowMain = wsMainEFC.Cells(wsMainEFC.Rows.Count, 1).End(xlUp).Row
+    End If
+
+    Dim encColMissed As Long
+    encColMissed = FindColByHeader(wsMissedEFC, "Encounter No")
+    If encColMissed > 0 Then
+        lastRowMissed = wsMissedEFC.Cells(wsMissedEFC.Rows.Count, encColMissed).End(xlUp).Row
+    Else
+        lastRowMissed = wsMissedEFC.Cells(wsMissedEFC.Rows.Count, 1).End(xlUp).Row
+    End If
+    If lastRowMissed < 2 Then Exit Sub  ' Missed FC file has no data rows -- nothing to append
+
+    Dim lastColMissed As Long
+    lastColMissed = wsMissedEFC.Cells(1, wsMissedEFC.Columns.Count).End(xlToLeft).Column
+
+    Dim srcData As Variant
+    srcData = wsMissedEFC.Range(wsMissedEFC.Cells(2, 1), wsMissedEFC.Cells(lastRowMissed, lastColMissed)).Value
+
+    Dim missedRows As Long
+    missedRows = lastRowMissed - 1
+    wsMainEFC.Range(wsMainEFC.Cells(lastRowMain + 1, 1), _
+        wsMainEFC.Cells(lastRowMain + missedRows, lastColMissed)).Value = srcData
+
+End Sub
+
+Attribute VB_Name = "ConfigReader"
+Option Explicit
+
+' ============================================================
+' ConfigReader.bas
+'
+' Central reader for the Config sheet. Every function falls back
+' to hardcoded defaults when the Config sheet or column is absent,
+' so the macro works identically with no Config sheet at all.
+' ============================================================
+
+
+' Returns the Config worksheet, or Nothing if it doesn't exist.
+Public Function GetConfigSheet() As Worksheet
+    On Error Resume Next
+    Set GetConfigSheet = ThisWorkbook.Sheets("Config")
+    On Error GoTo 0
+End Function
+
+
+' Reads non-blank values from a Config column identified by header name.
+' Returns a 1-based String array; count is set to the number of values found.
+' Stops at the first blank cell. Uses a single bulk range read.
+Public Function ReadConfigList(headerName As String, ByRef count As Long) As String()
+    Dim items() As String
+    ReDim items(1 To 1)
+    count = 0
+
+    Dim ws As Worksheet
+    Set ws = GetConfigSheet()
+    If ws Is Nothing Then
+        ReadConfigList = items
+        Exit Function
+    End If
+
+    Dim colIdx As Long
+    colIdx = FindColByHeader(ws, headerName)
+    If colIdx = 0 Then
+        ReadConfigList = items
+        Exit Function
+    End If
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, colIdx).End(xlUp).Row
+    If lastRow < 2 Then
+        ReadConfigList = items
+        Exit Function
+    End If
+
+    If lastRow = 2 Then
+        Dim singleVal As String
+        singleVal = Trim(CStr(ws.Cells(2, colIdx).Value))
+        If singleVal <> "" Then
+            count = 1
+            items(1) = singleVal
+        End If
+        ReadConfigList = items
+        Exit Function
+    End If
+
+    Dim colData As Variant
+    colData = ws.Range(ws.Cells(2, colIdx), ws.Cells(lastRow, colIdx)).Value
+
+    ReDim items(1 To lastRow - 1)
+    Dim r As Long
+    Dim cellVal As String
+    For r = 1 To UBound(colData, 1)
+        cellVal = Trim(CStr(colData(r, 1)))
+        If cellVal = "" Then Exit For
+        count = count + 1
+        items(count) = cellVal
+    Next r
+    If count > 0 Then ReDim Preserve items(1 To count)
+
+    ReadConfigList = items
+End Function
+
+
+' Returns 15 output header names (indices 1-15 map to cols A-O).
+' Reads from Config "Output Headers"; falls back to hardcoded defaults.
+Public Function GetOutputHeaders() As String()
+    Dim h(1 To 15) As String
+    h(1) = "Inflight FC Status"
+    h(2) = "Date Updated (DD/MM/YYYY)"
+    h(3) = "Staff Follow Up (if any)"
+    h(4) = "Remarks"
+    h(5) = "Case Status"
+    h(6) = "FC ID"
+    h(7) = "Encounter Number"
+    h(8) = "MRN"
+    h(9) = "Patient Name"
+    h(10) = "Adm Date for MFC"
+    h(11) = "FC Status"
+    h(12) = "Point of Care"
+    h(13) = "Final Bed"
+    h(14) = "Admission Level Of Care"
+    h(15) = "Epic Admission Status"
+
+    Dim cfgCount As Long
+    Dim cfgVals() As String
+    cfgVals = ReadConfigList("Output Headers", cfgCount)
+
+    If cfgCount >= 15 Then
+        Dim i As Long
+        For i = 1 To 15
+            If Trim(cfgVals(i)) <> "" Then h(i) = cfgVals(i)
+        Next i
+    End If
+
+    GetOutputHeaders = h
+End Function
+
+
+' Returns bed code prefixes to exclude as a Variant array (0-based, uppercased).
+' Reads from Config "Excluded Bed Prefixes"; falls back to hardcoded defaults.
+Public Function GetExcludedBedPrefixes() As Variant
+    Dim cfgCount As Long
+    Dim cfgVals() As String
+    cfgVals = ReadConfigList("Excluded Bed Prefixes", cfgCount)
+
+    If cfgCount > 0 Then
+        Dim arr() As String
+        ReDim arr(0 To cfgCount - 1)
+        Dim i As Long
+        For i = 1 To cfgCount
+            arr(i - 1) = UCase(Trim(cfgVals(i)))
+        Next i
+        GetExcludedBedPrefixes = arr
+        Exit Function
+    End If
+
+    GetExcludedBedPrefixes = Array("AUC", "EDC", "EDTC", "EDX", "EDXO", _
+                                   "O14", "O15", "RES", "TWAS", "TWDS")
+End Function
+
+
+' Returns Inflight-covered ward codes in the NCID building via Mid(bed,2,3).
+' These wards pass through the bed filter but are NOT tagged Case Status = "NCID".
+' Reads from Config "Included NCID Wards"; falls back to hardcoded default.
+Public Function GetIncludedNCIDWards() As Variant
+    Dim cfgCount As Long
+    Dim cfgVals() As String
+    cfgVals = ReadConfigList("Included NCID Wards", cfgCount)
+
+    If cfgCount > 0 Then
+        Dim arr() As String
+        ReDim arr(0 To cfgCount - 1)
+        Dim i As Long
+        For i = 1 To cfgCount
+            arr(i - 1) = UCase(Trim(cfgVals(i)))
+        Next i
+        GetIncludedNCIDWards = arr
+        Exit Function
+    End If
+
+    GetIncludedNCIDWards = Array("08F")
+End Function
+
+
+' Returns every ward code in the NCID building via Mid(bed,2,3).
+' All wards here pass through the bed filter. Wards here but NOT in
+' GetIncludedNCIDWards are tagged Case Status = "NCID".
+' Reads from Config "All NCID Wards"; falls back to hardcoded defaults.
+Public Function GetAllNCIDWards() As Variant
+    Dim cfgCount As Long
+    Dim cfgVals() As String
+    cfgVals = ReadConfigList("All NCID Wards", cfgCount)
+
+    If cfgCount > 0 Then
+        Dim arr() As String
+        ReDim arr(0 To cfgCount - 1)
+        Dim i As Long
+        For i = 1 To cfgCount
+            arr(i - 1) = UCase(Trim(cfgVals(i)))
+        Next i
+        GetAllNCIDWards = arr
+        Exit Function
+    End If
+
+    GetAllNCIDWards = Array("03E", "05F", "06F", "07E", "07F", _
+                             "08E", "08F", "09F", "11E", "11F", "12E", "14F")
+End Function
+
+
+' Returns Case Status names and their RGB fill colors.
+' Reads from Config "Case Status" + "Case Status Color" columns.
+' Falls back to the 3 hardcoded statuses (Resolved / U-turn / Clear).
+Public Sub GetCaseStatuses(ByRef statusNames() As String, ByRef statusColors() As Long, ByRef count As Long)
+    count = 0
+
+    Dim nameCount As Long
+    Dim colorCount As Long
+    Dim names() As String
+    Dim colors() As String
+    names = ReadConfigList("Case Status", nameCount)
+    colors = ReadConfigList("Case Status Color", colorCount)
+
+    If nameCount > 0 Then
+        count = nameCount
+        ReDim statusNames(1 To count)
+        ReDim statusColors(1 To count)
+        Dim i As Long
+        For i = 1 To count
+            statusNames(i) = names(i)
+            If i <= colorCount Then
+                statusColors(i) = ParseRGB(colors(i), 255, 255, 255)
+            Else
+                statusColors(i) = RGB(255, 255, 255)
+            End If
+        Next i
+        Exit Sub
+    End If
+
+    count = 3
+    ReDim statusNames(1 To 3)
+    ReDim statusColors(1 To 3)
+    statusNames(1) = "Resolved"  : statusColors(1) = RGB(169, 209, 142)
+    statusNames(2) = "U-turn"    : statusColors(2) = RGB(255, 255, 0)
+    statusNames(3) = "Clear"     : statusColors(3) = RGB(255, 255, 255)
+End Sub
+
+
+' Returns FC Status "keep" values (Draft variants) as a 1-based String array.
+' Reads from Config "FC Status Keep Values"; falls back to 3 hardcoded defaults.
+Public Function GetFCStatusKeepValues() As String()
+    Dim cfgCount As Long
+    Dim cfgVals() As String
+    cfgVals = ReadConfigList("FC Status Keep Values", cfgCount)
+
+    If cfgCount > 0 Then
+        GetFCStatusKeepValues = cfgVals
+        Exit Function
+    End If
+
+    Dim d(1 To 3) As String
+    d(1) = "Draft"
+    d(2) = "Draft (ETBS Generated)"
+    d(3) = "Draft (CCF Generated)"
+    GetFCStatusKeepValues = d
+End Function
+
+
+' Reads a single key-value setting from the Config "Settings" column.
+' Keys are matched case-insensitively. Returns defaultVal if not found.
+Public Function GetSetting(key As String, defaultVal As String) As String
+    GetSetting = defaultVal
+
+    Dim ws As Worksheet
+    Set ws = GetConfigSheet()
+    If ws Is Nothing Then Exit Function
+
+    Dim colIdx As Long
+    colIdx = FindColByHeader(ws, "Settings")
+    If colIdx = 0 Then Exit Function
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, colIdx).End(xlUp).Row
+    If lastRow < 2 Then Exit Function
+
+    Dim targetKey As String
+    targetKey = UCase(Trim(key))
+
+    If lastRow = 2 Then
+        If UCase(Trim(CStr(ws.Cells(2, colIdx).Value))) = targetKey Then
+            GetSetting = Trim(CStr(ws.Cells(2, colIdx + 1).Value))
+        End If
+        Exit Function
+    End If
+
+    Dim keyData As Variant
+    keyData = ws.Range(ws.Cells(2, colIdx), ws.Cells(lastRow, colIdx)).Value
+
+    Dim r As Long
+    For r = 1 To UBound(keyData, 1)
+        If UCase(Trim(CStr(keyData(r, 1)))) = targetKey Then
+            GetSetting = Trim(CStr(ws.Cells(r + 1, colIdx + 1).Value))
+            Exit Function
+        End If
+    Next r
+End Function
+
+
+' Reads a numeric setting. Returns defaultVal if missing or non-numeric.
+Public Function GetSettingLong(key As String, defaultVal As Long) As Long
+    Dim s As String
+    s = GetSetting(key, CStr(defaultVal))
+    If IsNumericStr(s) Then
+        GetSettingLong = CLng(s)
+    Else
+        GetSettingLong = defaultVal
+    End If
+End Function
+
+
+' Reads an RGB color setting (stored as "R,G,B"). Returns RGB(defaults) if missing/invalid.
+Public Function GetSettingColor(key As String, defaultR As Long, defaultG As Long, defaultB As Long) As Long
+    Dim s As String
+    s = GetSetting(key, defaultR & "," & defaultG & "," & defaultB)
+    GetSettingColor = ParseRGB(s, defaultR, defaultG, defaultB)
+End Function
+
+
+' Parses an "R,G,B" string into a Long RGB value.
+Public Function ParseRGB(rgbStr As String, defaultR As Long, defaultG As Long, defaultB As Long) As Long
+    On Error GoTo UseDefault
+    Dim parts() As String
+    parts = Split(Trim(rgbStr), ",")
+    If UBound(parts) < 2 Then GoTo UseDefault
+    Dim r As Long, g As Long, b As Long
+    r = CLng(Trim(parts(0)))
+    g = CLng(Trim(parts(1)))
+    b = CLng(Trim(parts(2)))
+    If r < 0 Or r > 255 Or g < 0 Or g > 255 Or b < 0 Or b > 255 Then GoTo UseDefault
+    ParseRGB = RGB(r, g, b)
+    Exit Function
+UseDefault:
+    ParseRGB = RGB(defaultR, defaultG, defaultB)
+End Function
+
+
+' Private helper: checks if a string represents a numeric value.
+' Named to avoid shadowing VBA.IsNumeric.
+Private Function IsNumericStr(s As String) As Boolean
+    On Error GoTo NotNumeric
+    Dim dummy As Double
+    dummy = CDbl(s)
+    IsNumericStr = True
+    Exit Function
+NotNumeric:
+    IsNumericStr = False
+End Function
+
+Attribute VB_Name = "Dropdowns"
+Option Explicit
+
+' ============================================================
+' Dropdowns.bas
+'
+' AddDropdowns (Public entry) -- adds the Case Status dropdown (col E)
+' and the Config-driven dropdowns (cols A, C) to the output sheet, backed by a
+' hidden "Lists" sheet copied from the macro workbook's Config sheet.
+' ============================================================
+
+
+' Applies all dropdowns and conditional formatting to the output sheet.
+' Split into three focused subs so each can be understood and debugged independently.
+Public Sub AddDropdowns(outWs As Worksheet, lastRow As Long)
+    If lastRow < 2 Then Exit Sub
+    SetupResolutionDropdown outWs, lastRow
+    Dim listsWs As Worksheet
+    Set listsWs = CreateListsSheet(outWs, lastRow)
+    ApplyConfigDropdowns outWs, listsWs, lastRow
+End Sub
+
+
+' Sets the DD/MM/YYYY date format on col B, applies the Case Status dropdown
+' on col E (Resolved / U-turn / Clear), and adds row conditional formatting
+' across A:O (Resolved = green, U-turn = yellow, Clear = white).
+' Backlog rows receive direct yellow fill from ApplyCarryForward;
+' conditional formatting takes visual priority over direct fill.
+Private Sub SetupResolutionDropdown(outWs As Worksheet, lastRow As Long)
+    Const RES_COL  As Long = 5
+    Const DATE_COL As Long = 2
+    Const LAST_COL As Long = 15
+
+    outWs.Range(outWs.Cells(2, DATE_COL), outWs.Cells(lastRow, DATE_COL)).NumberFormat = "DD/MM/YYYY"
+
+    Dim statusNames() As String
+    Dim statusColors() As Long
+    Dim statusCount As Long
+    GetCaseStatuses statusNames, statusColors, statusCount
+
+    Dim formula As String
+    Dim i As Long
+    For i = 1 To statusCount
+        If i > 1 Then formula = formula & ","
+        formula = formula & statusNames(i)
+    Next i
+
+    With outWs.Range(outWs.Cells(2, RES_COL), outWs.Cells(lastRow, RES_COL)).Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertInformation, _
+             Operator:=xlBetween, Formula1:=formula
+        .IgnoreBlank = True
+        .InCellDropdown = True
+        .ShowError = False
+    End With
+
+    Dim cf As FormatCondition
+    With outWs.Range(outWs.Cells(2, 1), outWs.Cells(lastRow, LAST_COL)).FormatConditions
+        .Delete
+        For i = 1 To statusCount
+            Set cf = .Add(Type:=xlExpression, Formula1:="=$E2=""" & statusNames(i) & """")
+            cf.Interior.Color = statusColors(i)
+            cf.Font.Color = RGB(0, 0, 0)
+            cf.StopIfTrue = True
+        Next i
+    End With
+End Sub
+
+
+' Creates (or reuses) the hidden Lists sheet in the output workbook.
+' Writes the last 31 dates into Lists!C (most recent first) and applies
+' the date picker dropdown to col B. Returns the Lists sheet so the caller
+' can write additional dropdown lists into cols A and B.
+' Reused across multiple output sheets in the same workbook (e.g. the main
+' report and the Discharged tab): Lists!C is only ever built once per run,
+' but the date-dropdown validation on col B is (re)applied for every caller,
+' since each output sheet needs its own validation pointing at the shared sheet.
+Private Function CreateListsSheet(outWs As Worksheet, lastRow As Long) As Worksheet
+    Dim DATE_DAYS As Long
+    DATE_DAYS = GetSettingLong("Date Dropdown Days", 30)
+    Const DATE_COL  As Long = 2
+
+    Dim outWb As Workbook
+    Set outWb = outWs.Parent
+
+    Dim listsWs As Worksheet
+    On Error Resume Next
+    Set listsWs = outWb.Sheets("Lists")
+    On Error GoTo 0
+
+    If listsWs Is Nothing Then
+        Set listsWs = outWb.Sheets.Add(After:=outWb.Sheets(outWb.Sheets.Count))
+        listsWs.Name = "Lists"
+        listsWs.Visible = xlSheetVeryHidden
+
+        ' Write last 31 dates into Lists!C, most recent first so today is top of dropdown
+        Dim d As Long
+        For d = 0 To DATE_DAYS
+            listsWs.Cells(d + 2, 3).Value = Date - d
+        Next d
+        listsWs.Range(listsWs.Cells(2, 3), listsWs.Cells(DATE_DAYS + 2, 3)).NumberFormat = "DD/MM/YYYY"
+    End If
+
+    ' Apply date picker dropdown to col B; source is the range written to Lists!C.
+    With outWs.Range(outWs.Cells(2, DATE_COL), outWs.Cells(lastRow, DATE_COL)).Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertInformation, _
+             Operator:=xlBetween, Formula1:="=Lists!$C$2:$C$" & (DATE_DAYS + 2)
+        .IgnoreBlank = True
+        .InCellDropdown = True
+        .ShowError = False
+    End With
+
+    Set CreateListsSheet = listsWs
+End Function
+
+
+' Reads Inflight FC Status and Staff Follow Up lists from the Config sheet,
+' writes them into the hidden Lists sheet (cols A and B), and applies
+' in-cell dropdowns to output cols A (Inflight FC Status) and C (Staff Follow Up).
+Private Sub ApplyConfigDropdowns(outWs As Worksheet, listsWs As Worksheet, lastRow As Long)
+    Dim inflightCount As Long
+    Dim staffCount    As Long
+    Dim inflightList() As String
+    Dim staffList()   As String
+    inflightList = ReadConfigList("Inflight FC Status", inflightCount)
+    staffList    = ReadConfigList("Staff Follow Up", staffCount)
+
+    If inflightCount = 0 And staffCount = 0 Then
+        MsgBox "Config sheet lists are empty." & vbNewLine & _
+               "Add values under Config tab.", _
+               vbExclamation, "Config Lists Empty"
+        Exit Sub
+    End If
+
+    Dim r As Long
+    For r = 1 To inflightCount
+        listsWs.Cells(r + 1, 1).Value = inflightList(r)
+    Next r
+    For r = 1 To staffCount
+        listsWs.Cells(r + 1, 2).Value = staffList(r)
+    Next r
+
+    If inflightCount > 0 Then
+        With outWs.Range(outWs.Cells(2, 1), outWs.Cells(lastRow, 1)).Validation
+            .Delete
+            .Add Type:=xlValidateList, AlertStyle:=xlValidAlertInformation, _
+                 Operator:=xlBetween, Formula1:="=Lists!$A$2:$A$" & (inflightCount + 1)
+            .IgnoreBlank = True
+            .InCellDropdown = True
+            .ShowError = False
+        End With
+    End If
+
+    If staffCount > 0 Then
+        With outWs.Range(outWs.Cells(2, 3), outWs.Cells(lastRow, 3)).Validation
+            .Delete
+            .Add Type:=xlValidateList, AlertStyle:=xlValidAlertInformation, _
+                 Operator:=xlBetween, Formula1:="=Lists!$B$2:$B$" & (staffCount + 1)
+            .IgnoreBlank = True
+            .InCellDropdown = True
+            .ShowError = False
+        End With
+    End If
+End Sub
+
+
+' Processes all rows with Case Status = "Clear" in the active sheet:
+' applies permanent white fill to the row and empties the Case Status cell.
+' Staff run this from Alt+F8 after marking rows as "Clear" in the output file.
+Public Sub ClearMarkedRows()
+    Dim ws As Worksheet
+    Set ws = ActiveSheet
+
+    Dim hdr() As String
+    hdr = GetOutputHeaders()
+
+    Dim resCol As Long
+    resCol = FindColByHeader(ws, hdr(5))
+    If resCol = 0 Then resCol = FindColByHeader(ws, "Case Status")
+    If resCol = 0 Then resCol = 5
+
+    Dim encCol As Long
+    encCol = FindColByHeader(ws, hdr(7))
+    If encCol = 0 Then encCol = FindColByHeader(ws, "Encounter Number")
+    If encCol = 0 Then encCol = 7
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, encCol).End(xlUp).Row
+    If lastRow < 2 Then
+        MsgBox "No data rows found.", vbInformation, "Nothing to Clear"
+        Exit Sub
+    End If
+
+    Dim cleared As Long
+    Dim i As Long
+    For i = 2 To lastRow
+        If UCase(Trim(CStr(ws.Cells(i, resCol).Value))) = "CLEAR" Then
+            ws.Range(ws.Cells(i, 1), ws.Cells(i, 15)).Interior.Color = RGB(255, 255, 255)
+            ws.Range(ws.Cells(i, 1), ws.Cells(i, 15)).Font.Color = RGB(0, 0, 0)
+            ws.Cells(i, resCol).ClearContents
+            cleared = cleared + 1
+        End If
+    Next i
+
+    If cleared > 0 Then
+        ws.Parent.Save
+        MsgBox cleared & " row(s) cleared and saved.", vbInformation, "Clear Complete"
+    Else
+        MsgBox "No rows with 'Clear' status found.", vbInformation, "Nothing to Clear"
+    End If
+End Sub
+
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} FilePickerForm
+   Caption         =   "MFC Report — Select Input Files"
+   ClientHeight    =   5500
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   7500
+   StartUpPosition =   1  'CenterOwner
+End
+
+Attribute VB_Name = "EpicLookup"
+Option Explicit
+
+' Inserts two new columns into wsMainEFC, then bulk-loads Epic into
+' Scripting.Dictionary objects (keyed by CSN) and resolves each EFC Encounter No
+' in one pass -- avoiding per-row worksheet reads for ~20,000 Epic rows.
+'
+' All column positions are resolved by header name so neither report
+' breaks if extra columns are added.
+'
+' Column inserts (run AFTER ExtractAdmissionDate):
+'   "Final Bed"              -- inserted after "Point Of Care"
+'   "Epic Admission Status"  -- appended after the last EFC column
+Sub LookupEpicData(wsMainEFC As Worksheet, wsEpic As Worksheet)
+
+    Dim lastRowEFC  As Long
+    Dim lastRowEpic As Long
+    Dim i As Long
+    Dim csn As String
+    Dim encounterNo As String
+
+    Dim dictBed   As Object
+    Dim dictAdmit As Object
+    Set dictBed   = CreateObject("Scripting.Dictionary")
+    Set dictAdmit = CreateObject("Scripting.Dictionary")
+
+    ' --- Locate Epic columns by header ---
+    Dim epicCSNCol   As Long
+    Dim epicBedCol   As Long
+    Dim epicAdmitCol As Long
+    epicCSNCol   = FindColByHeader(wsEpic, "CSN")
+    epicBedCol   = FindColByHeader(wsEpic, "Bed")
+    epicAdmitCol = FindColByHeader(wsEpic, "Admit Status")
+
+    If epicCSNCol = 0 Or epicBedCol = 0 Or epicAdmitCol = 0 Then
+        MsgBox "Error: Epic file is missing required columns:" & vbNewLine & _
+               IIf(epicCSNCol = 0, "  - CSN" & vbNewLine, "") & _
+               IIf(epicBedCol = 0, "  - Bed" & vbNewLine, "") & _
+               IIf(epicAdmitCol = 0, "  - Admit Status" & vbNewLine, "") & _
+               "Check your Epic export.", _
+               vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    ' --- Locate EFC columns by header (before any insertions) ---
+    Dim efcEncNoCol As Long
+    Dim pocCol      As Long
+    efcEncNoCol = FindColByHeader(wsMainEFC, "Encounter No")
+    pocCol      = FindColByHeader(wsMainEFC, "Point Of Care")
+
+    If efcEncNoCol = 0 Or pocCol = 0 Then
+        MsgBox "Error: EFC file is missing columns needed for Epic lookup:" & vbNewLine & _
+               IIf(efcEncNoCol = 0, "  - Encounter No" & vbNewLine, "") & _
+               IIf(pocCol = 0, "  - Point Of Care" & vbNewLine, ""), _
+               vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    lastRowEFC  = wsMainEFC.Cells(wsMainEFC.Rows.Count, efcEncNoCol).End(xlUp).Row
+    lastRowEpic = wsEpic.Cells(wsEpic.Rows.Count, 1).End(xlUp).Row
+
+    ' --- Insert "Final Bed" immediately after "Point Of Care" ---
+    ' pocCol + 1 is the insert position; columns after POC shift right.
+    Dim lastColEFC As Long
+    lastColEFC = wsMainEFC.Cells(1, wsMainEFC.Columns.Count).End(xlToLeft).Column
+    Dim bedInsertCol As Long
+    bedInsertCol = pocCol + 1
+    wsMainEFC.Columns(bedInsertCol).Insert Shift:=xlToRight
+    wsMainEFC.Cells(1, bedInsertCol).Value = "Final Bed"
+    lastColEFC = lastColEFC + 1  ' shifted by insert above
+
+    ' Re-resolve Encounter No after insert -- column may have shifted right
+    efcEncNoCol = FindColByHeader(wsMainEFC, "Encounter No")
+
+    ' --- Append "Epic Admission Status" after the last column ---
+    Dim epicStatCol As Long
+    epicStatCol = lastColEFC + 1
+    wsMainEFC.Cells(1, epicStatCol).Value = "Epic Admission Status"
+
+    ' --- Load Epic data into memory (only up to the rightmost needed column) ---
+    Dim epicLastCol As Long
+    epicLastCol = Application.WorksheetFunction.Max(epicCSNCol, epicBedCol, epicAdmitCol)
+    Dim epicData As Variant
+    epicData = wsEpic.Range(wsEpic.Cells(1, 1), wsEpic.Cells(lastRowEpic, epicLastCol)).Value
+
+    ' --- Pre-load Epic CSN, Bed and Admit Status into dictionaries ---
+    For i = 2 To lastRowEpic
+        csn = CStr(epicData(i, epicCSNCol))
+        dictBed(csn)   = epicData(i, epicBedCol)
+        dictAdmit(csn) = epicData(i, epicAdmitCol)
+    Next i
+
+    ' --- Load EFC data into memory after both insertions ---
+    Dim efcData As Variant
+    efcData = wsMainEFC.Range(wsMainEFC.Cells(1, 1), wsMainEFC.Cells(lastRowEFC, epicStatCol)).Value
+
+    ' --- Prepare output arrays -- sized to data rows only (excludes header) ---
+    Dim bedOut()   As Variant
+    Dim admitOut() As Variant
+    ReDim bedOut(1 To lastRowEFC - 1, 1 To 1)
+    ReDim admitOut(1 To lastRowEFC - 1, 1 To 1)
+
+    ' --- Lookup and store results in output arrays ---
+    ' i - 1 maps sheet row i (starting at 2) to array index starting at 1.
+    For i = 2 To lastRowEFC
+        encounterNo = CStr(efcData(i, efcEncNoCol))
+        If dictBed.exists(encounterNo) Then
+            bedOut(i - 1, 1)   = dictBed(encounterNo)
+            admitOut(i - 1, 1) = dictAdmit(encounterNo)
+        Else
+            bedOut(i - 1, 1)   = ""
+            admitOut(i - 1, 1) = ""
+        End If
+    Next i
+
+    ' --- Write results back to sheet in one go ---
+    wsMainEFC.Range(wsMainEFC.Cells(2, bedInsertCol), wsMainEFC.Cells(lastRowEFC, bedInsertCol)).Value = bedOut
+    wsMainEFC.Range(wsMainEFC.Cells(2, epicStatCol), wsMainEFC.Cells(lastRowEFC, epicStatCol)).Value   = admitOut
+
+End Sub
+
+Attribute VB_Name = "ExtractDate"
+Option Explicit
+
+' ============================================================
+' ExtractDate.bas
+'
+' Reads EFC "Admission Date" column (found by header name).
+' Format in source: MM/DD/YYYY HH:MM:SS AM/PM
+'
+' Inserts a new column immediately after "Admission Date" containing
+' the date reformatted as a DD/MM/YYYY text string, header "Adm Date for MFC".
+'
+' This shifts "Admission Status" and everything to its right by +1.
+' EpicLookup also finds its insert positions by header, so call order
+' between ExtractAdmissionDate and LookupEpicData still matters only
+' insofar as EpicLookup looks for "Point Of Care" after this insert.
+' ============================================================
+
+' Finds "Admission Date" by header, reformats all values,
+' inserts new column immediately after it, then writes back in one bulk operation.
+Public Sub ExtractAdmissionDate(ws As Worksheet)
+
+    Dim admDateCol As Long
+    admDateCol = FindColByHeader(ws, "Admission Date")
+    If admDateCol = 0 Then
+        MsgBox "Error: EFC file is missing 'Admission Date'." & vbNewLine & _
+               "Check your EFC export.", vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    ' Use "Encounter No" for lastRow: always filled for both main EFC and missed FC rows.
+    ' FC ID (col 1) is blank for missed FC rows and would silently truncate the scan.
+    Dim encNoCol As Long
+    encNoCol = FindColByHeader(ws, "Encounter No")
+    Dim lastRow As Long
+    If encNoCol > 0 Then
+        lastRow = ws.Cells(ws.Rows.Count, encNoCol).End(xlUp).Row
+    Else
+        lastRow = ws.Cells(ws.Rows.Count, admDateCol).End(xlUp).Row
+    End If
+    If lastRow < 2 Then Exit Sub
+
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+
+    ' --- Step 1: Read entire Admission Date column into a memory array ---
+    Dim rawDates As Variant
+    rawDates = ws.Range(ws.Cells(1, admDateCol), ws.Cells(lastRow, admDateCol)).Value
+
+    ' --- Step 2: Build output array with reformatted dates ---
+    Dim outDates() As Variant
+    ReDim outDates(1 To lastRow, 1 To 1)
+    outDates(1, 1) = "Adm Date for MFC"
+
+    Dim i As Long
+    For i = 2 To lastRow
+        outDates(i, 1) = FormatAdmDate(rawDates(i, 1))
+    Next i
+
+    ' --- Step 3: Insert blank column immediately after "Admission Date" ---
+    Dim insertCol As Long
+    insertCol = admDateCol + 1
+    ws.Columns(insertCol).Insert Shift:=xlToRight
+
+    ' --- Step 4: Format new column as text BEFORE writing ---
+    ' Prevents Excel from re-interpreting "18/12/2025" as a date serial
+    ws.Columns(insertCol).NumberFormat = "@"
+
+    ' --- Step 5: Write header + all dates in one bulk write ---
+    ws.Range(ws.Cells(1, insertCol), ws.Cells(lastRow, insertCol)).Value = outDates
+
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+
+End Sub
+
+' Converts one Admission Date cell value to a DD/MM/YYYY string.
+'
+' Handles two cases depending on the user's Windows locale:
+'   - Numeric / vbDate: Excel auto-parsed the cell as a date serial on open
+'     (happens when locale is MM/DD, e.g. US settings).
+'   - String: cell was stored as text "MM/DD/YYYY HH:MM:SS AM/PM"
+'     (happens when locale is DD/MM, e.g. Singapore settings -- Excel cannot
+'     recognise MM/DD format and leaves the value as plain text).
+Private Function FormatAdmDate(cellVal As Variant) As String
+
+    ' Return empty string for blank cells
+    If IsEmpty(cellVal) Or CStr(cellVal) = "" Then
+        FormatAdmDate = ""
+        Exit Function
+    End If
+
+    ' Case 1: Excel date serial (VarType vbDouble or vbDate) -- convert via CDate
+    If VarType(cellVal) = vbDouble Or VarType(cellVal) = vbDate Then
+        FormatAdmDate = Format(CDate(cellVal), "DD/MM/YYYY")
+        Exit Function
+    End If
+
+    ' Case 2: Text string -- parse "MM/DD/YYYY HH:MM:SS AM/PM" manually
+    Dim strVal As String
+    strVal = Trim(CStr(cellVal))
+
+    ' Isolate the date portion before the first space
+    Dim spacePos As Long
+    spacePos = InStr(strVal, " ")
+    If spacePos > 0 Then strVal = Left(strVal, spacePos - 1)
+
+    ' Split into parts: (0)=MM, (1)=DD, (2)=YYYY
+    Dim parts() As String
+    parts = Split(strVal, "/")
+    If UBound(parts) < 2 Then
+        FormatAdmDate = CStr(cellVal)   ' Unexpected format -- pass through unchanged
+        Exit Function
+    End If
+
+    ' Pad to 2 digits and reassemble as DD/MM/YYYY
+    Dim mm As String, dd As String, yyyy As String
+    mm   = Right("0" & Trim(parts(0)), 2)
+    dd   = Right("0" & Trim(parts(1)), 2)
+    yyyy = Trim(parts(2))
+
+    FormatAdmDate = dd & "/" & mm & "/" & yyyy
+
+End Function
+
+Attribute VB_Name = "FilePickerForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+' ============================================================
+' IMPORT NOTE (staff): This module is an Excel UserForm, NOT a
+' standard module -- it cannot be pasted into a normal module.
+' To install it from MFC_All_Modules.txt:
+'   1. In the VBA Editor: Insert > UserForm.
+'   2. In the Properties window (F4), set (Name) = FilePickerForm.
+'   3. Open the form's code window (F7) and paste everything from
+'      the "Option Explicit" line above down to the end of this
+'      section (skip the VERSION / Begin / Attribute lines).
+' All controls are built automatically when the form opens, so you
+' never need to draw anything on the form by hand.
+' ============================================================
+
+' Public properties to return the selected workbooks
+Public SelectedMain As Workbook
+Public SelectedMissed As Workbook
+Public SelectedEpic As Workbook
+Public SelectedPrev As Workbook
+Public Cancelled As Boolean
+
+' Module-level folder tracking
+Private m_lastFolder As String
+
+' Event-enabled controls
+Private WithEvents m_btnMain As MSForms.CommandButton
+Private WithEvents m_btnMissed As MSForms.CommandButton
+Private WithEvents m_btnEpic As MSForms.CommandButton
+Private WithEvents m_btnPrev As MSForms.CommandButton
+Private WithEvents m_btnGenerate As MSForms.CommandButton
+Private WithEvents m_btnCancel As MSForms.CommandButton
+
+' Label controls (to update status/filenames)
+Private m_lblMainFile As MSForms.Label
+Private m_lblMainStatus As MSForms.Label
+
+Private m_lblMissedFile As MSForms.Label
+Private m_lblMissedStatus As MSForms.Label
+
+Private m_lblEpicFile As MSForms.Label
+Private m_lblEpicStatus As MSForms.Label
+
+Private m_lblPrevFile As MSForms.Label
+Private m_lblPrevStatus As MSForms.Label
+
+Private m_lblWarning As MSForms.Label
+
+' Status flags
+Private m_validMain As Boolean
+Private m_validMissed As Boolean
+Private m_validEpic As Boolean
+Private m_validPrev As Boolean
+
+Public Function ShowFilePicker() As Boolean
+    Cancelled = True
+    Set SelectedMain = Nothing
+    Set SelectedMissed = Nothing
+    Set SelectedEpic = Nothing
+    Set SelectedPrev = Nothing
+    m_lastFolder = ""
+
+    m_validMain = False
+    m_validMissed = False
+    m_validEpic = False
+    m_validPrev = False
+
+    Me.Show vbModal
+
+    ShowFilePicker = Not Cancelled
+End Function
+
+Private Sub UserForm_Initialize()
+    ' Set up form size and styling
+    Me.Caption = "MFC Report — Select Input Files"
+    Me.Width = 510
+    Me.Height = 370
+    Me.Font.Name = "Tahoma"
+    Me.Font.Size = 9.5
+
+    ' Row 1: EFC Main
+    CreateLabel "lblEFCMain", "EFC Report (without Missed FC)", 20, 15, 460, 15, True
+    Set m_btnMain = CreateButton("btnMain", "Browse...", 20, 32, 70, 22)
+    Set m_lblMainFile = CreateLabel("lblEFCMainFile", "(not selected)", 100, 35, 280, 15, False)
+    Set m_lblMainStatus = CreateLabel("lblEFCMainStatus", "○", 390, 35, 90, 15, False)
+    m_lblMainStatus.Font.Bold = True
+
+    ' Row 2: EFC Missed
+    CreateLabel "lblEFCMissed", "EFC Report (with Missed FC)", 20, 70, 460, 15, True
+    Set m_btnMissed = CreateButton("btnMissed", "Browse...", 20, 87, 70, 22)
+    Set m_lblMissedFile = CreateLabel("lblEFCMissedFile", "(not selected)", 100, 90, 280, 15, False)
+    Set m_lblMissedStatus = CreateLabel("lblEFCMissedStatus", "○", 390, 90, 90, 15, False)
+    m_lblMissedStatus.Font.Bold = True
+
+    ' Row count warning label
+    Set m_lblWarning = CreateLabel("lblWarning", "", 20, 122, 460, 25, False)
+    m_lblWarning.ForeColor = RGB(180, 80, 0) ' Dark Orange
+    m_lblWarning.Font.Bold = True
+    m_lblWarning.Visible = False
+
+    ' Row 3: Epic Census
+    CreateLabel "lblEpic", "Epic Census Report", 20, 155, 460, 15, True
+    Set m_btnEpic = CreateButton("btnEpic", "Browse...", 20, 172, 70, 22)
+    Set m_lblEpicFile = CreateLabel("lblEpicFile", "(not selected)", 100, 175, 280, 15, False)
+    Set m_lblEpicStatus = CreateLabel("lblEpicStatus", "○", 390, 175, 90, 15, False)
+    m_lblEpicStatus.Font.Bold = True
+
+    ' Row 4: Previous MFC
+    CreateLabel "lblPrev", "Previous MFC Report", 20, 210, 460, 15, True
+    Set m_btnPrev = CreateButton("btnPrev", "Browse...", 20, 227, 70, 22)
+    Set m_lblPrevFile = CreateLabel("lblPrevFile", "(not selected)", 100, 230, 280, 15, False)
+    Set m_lblPrevStatus = CreateLabel("lblPrevStatus", "○", 390, 230, 90, 15, False)
+    m_lblPrevStatus.Font.Bold = True
+
+    ' Bottom Buttons
+    Set m_btnGenerate = CreateButton("btnGenerate", "Generate Report", 240, 285, 110, 26)
+    m_btnGenerate.Enabled = False
+    Set m_btnCancel = CreateButton("btnCancel", "Cancel", 365, 285, 110, 26)
+End Sub
+
+Private Function CreateLabel(name As String, caption As String, left As Single, top As Single, width As Single, height As Single, bold As Boolean) As MSForms.Label
+    Dim lbl As MSForms.Label
+    Set lbl = Me.Controls.Add("Forms.Label.1", name, True)
+    lbl.left = left
+    lbl.top = top
+    lbl.width = width
+    lbl.height = height
+    lbl.caption = caption
+    If bold Then lbl.Font.Bold = True
+    Set CreateLabel = lbl
+End Function
+
+Private Function CreateButton(name As String, caption As String, left As Single, top As Single, width As Single, height As Single) As MSForms.CommandButton
+    Dim btn As MSForms.CommandButton
+    Set btn = Me.Controls.Add("Forms.CommandButton.1", name, True)
+    btn.left = left
+    btn.top = top
+    btn.width = width
+    btn.height = height
+    btn.caption = caption
+    Set CreateButton = btn
+End Function
+
+Private Function PickFileWithFolder(title As String) As Workbook
+    Dim fd As FileDialog
+    Set fd = Application.FileDialog(msoFileDialogFilePicker)
+    fd.title = title
+    fd.Filters.Clear
+    fd.Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls"
+
+    If m_lastFolder <> "" Then fd.InitialFileName = m_lastFolder & "\"
+
+    If fd.Show = -1 Then
+        Dim filePath As String
+        filePath = fd.SelectedItems(1)
+        m_lastFolder = Left(filePath, InStrRev(filePath, "\") - 1)
+        Set PickFileWithFolder = Workbooks.Open(filePath)
+    Else
+        Set PickFileWithFolder = Nothing
+    End If
+    AppActivate Me.Caption  ' return focus to the form after the file dialog closes
+End Function
+
+' Recomputes all cross-slot state (duplicate-EFC conflict, row-count warning, and the
+' Generate button) from the current selections. The m_validX flags hold ONLY header
+' validity (set by HandleSlotPick); the duplicate conflict is tracked locally here so it
+' can never leave a slot stuck invalid after the conflict is resolved on the other slot.
+Private Sub UpdateValidationStatus()
+    Dim isDuplicate As Boolean
+    isDuplicate = False
+
+    ' Clear warning
+    m_lblWarning.caption = ""
+    m_lblWarning.Visible = False
+
+    ' Duplicate EFC check
+    If Not SelectedMain Is Nothing And Not SelectedMissed Is Nothing Then
+        If UCase(SelectedMain.FullName) = UCase(SelectedMissed.FullName) Then isDuplicate = True
+    End If
+
+    If isDuplicate Then
+        m_lblWarning.caption = "⚠ Same file selected for both EFC reports!"
+        m_lblWarning.Visible = True
+        ' Reflect the conflict on the Missed slot WITHOUT clobbering its header-validity flag.
+        m_lblMissedStatus.caption = "✗ Same file"
+        m_lblMissedStatus.ForeColor = RGB(255, 0, 0)
+    ElseIf m_validMissed And Not SelectedMissed Is Nothing Then
+        ' No conflict: restore the Missed slot's true status (it may have shown "✗ Same file").
+        m_lblMissedStatus.caption = "✓ Valid"
+        m_lblMissedStatus.ForeColor = RGB(0, 128, 0)
+    End If
+
+    ' Row-count sanity warning (only when both EFC files are present and distinct)
+    If Not isDuplicate And Not SelectedMain Is Nothing And Not SelectedMissed Is Nothing Then
+        Dim mainRows As Long, missedRows As Long
+        mainRows = CountDataRows(SelectedMain.Sheets(1))
+        missedRows = CountDataRows(SelectedMissed.Sheets(1))
+        If mainRows > 0 And missedRows > 0 Then
+            If mainRows = missedRows Then
+                m_lblWarning.caption = "⚠ Both EFC files have the same row count (" & mainRows & "). Verify exports."
+                m_lblWarning.Visible = True
+            ElseIf missedRows > mainRows Then
+                m_lblWarning.caption = "⚠ Missed FC file has MORE rows than main file. Verify order."
+                m_lblWarning.Visible = True
+            End If
+        End If
+    End If
+
+    ' Enable Generate only when all four slots are header-valid AND the two EFC files differ.
+    m_btnGenerate.Enabled = (m_validMain And m_validMissed And m_validEpic And m_validPrev And Not isDuplicate)
+End Sub
+
+' Counts data rows (excluding the header) via the "Encounter No" column, which is reliably
+' populated for every EFC row -- FC ID and other columns can be blank in missed-FC rows, so
+' a hardcoded column index would miscount. Returns 0 if the header is absent.
+Private Function CountDataRows(ws As Worksheet) As Long
+    Dim col As Long
+    col = FindColByHeader(ws, "Encounter No")
+    If col = 0 Then
+        CountDataRows = 0
+    Else
+        CountDataRows = ws.Cells(ws.Rows.Count, col).End(xlUp).Row - 1
+    End If
+End Function
+
+Private Sub m_btnMain_Click()
+    HandleSlotPick SelectedMain, "Select EFC Report WITHOUT Missed FC", "EFC", _
+                   m_lblMainFile, m_lblMainStatus, m_validMain
+End Sub
+
+Private Sub m_btnMissed_Click()
+    HandleSlotPick SelectedMissed, "Select EFC Report WITH Missed FC", "EFC", _
+                   m_lblMissedFile, m_lblMissedStatus, m_validMissed
+End Sub
+
+Private Sub m_btnEpic_Click()
+    HandleSlotPick SelectedEpic, "Select Epic Census Report", "EPIC", _
+                   m_lblEpicFile, m_lblEpicStatus, m_validEpic
+End Sub
+
+Private Sub m_btnPrev_Click()
+    HandleSlotPick SelectedPrev, "Select Previous MFC Report", "PREV_MFC", _
+                   m_lblPrevFile, m_lblPrevStatus, m_validPrev
+End Sub
+
+' Shared Browse handler for all four slots. Picks a file, closes the slot's previous
+' workbook (UNLESS the user re-picked the same file -- Workbooks.Open returns the already-
+' open instance, so closing it would invalidate the new reference and crash on wb.Name),
+' validates headers, updates the file/status labels, then recomputes cross-slot state.
+Private Sub HandleSlotPick(ByRef slotWb As Workbook, title As String, fileType As String, _
+                           lblFile As MSForms.Label, lblStatus As MSForms.Label, _
+                           ByRef validFlag As Boolean)
+    Dim wb As Workbook
+    Set wb = PickFileWithFolder(title)
+    If wb Is Nothing Then Exit Sub      ' user cancelled the dialog -- keep current selection
+
+    ' Release the slot's previous workbook, unless the user re-picked the same file
+    ' (Workbooks.Open returns the already-open instance, so closing it would invalidate wb).
+    If Not (slotWb Is wb) Then CloseSlotWorkbook slotWb
+
+    Set slotWb = wb
+    lblFile.caption = wb.Name
+    If ValidateFileHeaders(wb, fileType) Then
+        validFlag = True
+        lblStatus.caption = "✓ Valid"
+        lblStatus.ForeColor = RGB(0, 128, 0)
+    Else
+        validFlag = False
+        lblStatus.caption = "✗ Invalid"
+        lblStatus.ForeColor = RGB(255, 0, 0)
+    End If
+
+    UpdateValidationStatus
+End Sub
+
+' Closes a slot's workbook only if no OTHER slot still references the same workbook object.
+' (When the same file is chosen for two slots, Workbooks.Open hands back one shared instance;
+' closing it for one slot would otherwise invalidate the other and crash on later access.)
+Private Sub CloseSlotWorkbook(wbToClose As Workbook)
+    If wbToClose Is Nothing Then Exit Sub
+    Dim refs As Long
+    If SelectedMain Is wbToClose Then refs = refs + 1
+    If SelectedMissed Is wbToClose Then refs = refs + 1
+    If SelectedEpic Is wbToClose Then refs = refs + 1
+    If SelectedPrev Is wbToClose Then refs = refs + 1
+    If refs <= 1 Then
+        On Error Resume Next
+        wbToClose.Close SaveChanges:=False
+        On Error GoTo 0
+    End If
+End Sub
+
+Private Sub m_btnGenerate_Click()
+    Cancelled = False
+    Me.Hide
+End Sub
+
+Private Sub m_btnCancel_Click()
+    Cancelled = True
+    ' Close opened files
+    On Error Resume Next
+    If Not SelectedMain Is Nothing Then SelectedMain.Close SaveChanges:=False
+    If Not SelectedMissed Is Nothing Then SelectedMissed.Close SaveChanges:=False
+    If Not SelectedEpic Is Nothing Then SelectedEpic.Close SaveChanges:=False
+    If Not SelectedPrev Is Nothing Then SelectedPrev.Close SaveChanges:=False
+    On Error GoTo 0
+    Me.Hide
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then
+        Cancel = 1
+        m_btnCancel_Click
+    End If
+End Sub
+
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ProgressForm
+   Caption         =   "MFC Report -- Generating"
+   ClientHeight    =   1500
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   4200
+   StartUpPosition =   1  'CenterOwner
+End
+
+Attribute VB_Name = "FilterDischarge"
+Option Explicit
+
+' ============================================================
+' FilterDischarge.bas
+'
+' FilterDischarged -- removes ALL rows where the patient has been discharged,
+' capturing them first onto a hidden "DischargedTemp" sheet (the dischargedWs
+' out-parameter) so BuildMFCOutput can turn them into a "Discharged" output tab
+' instead of losing them outright.
+' Runs AFTER LookupEpicData (needs Epic Admission Status column) and
+' AFTER FilterByBedCode -- this way non-Inflight-ward rows are already gone
+' before discharged rows get captured, so the Discharged tab only ever
+' contains the same Inflight wards as the main report.
+'
+' Key difference from NCID: NCID's FilterFCStatus preserves Missed FC rows
+' even when discharged. Inflight removes ALL discharged rows unconditionally.
+'
+' Checks "Epic Admission Status" first (preferred, from Epic lookup).
+' Falls back to "Admission Status" (from eFC) if Epic column is absent.
+'
+' Load-filter-write strategy: one read + one write + one delete.
+' ============================================================
+
+Public Sub FilterDischarged(ws As Worksheet, ByRef dischargedWs As Worksheet)
+
+    On Error GoTo ErrHandler
+
+    Set dischargedWs = Nothing
+
+    ' Prefer Epic Admission Status; fall back to eFC Admission Status
+    Dim statCol As Long
+    statCol = FindColByHeader(ws, "Epic Admission Status")
+    If statCol = 0 Then statCol = FindColByHeader(ws, "Admission Status")
+    If statCol = 0 Then
+        MsgBox "Error: No admission status column found." & vbNewLine & _
+               "The Epic lookup may have failed.", vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    ' Use "Encounter No" for lastRow
+    Dim encNoCol As Long
+    encNoCol = FindColByHeader(ws, "Encounter No")
+
+    Dim lastRow As Long
+    Dim lastCol As Long
+    If encNoCol > 0 Then
+        lastRow = ws.Cells(ws.Rows.Count, encNoCol).End(xlUp).Row
+    Else
+        lastRow = ws.Cells(ws.Rows.Count, statCol).End(xlUp).Row
+    End If
+    If lastRow < 2 Then Exit Sub
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+
+    ' --- Step 1: Load entire working sheet into memory (one read) ---
+    Dim allData As Variant
+    allData = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)).Value
+
+    ' --- Step 2: Count rows that are NOT discharged, and rows that ARE ---
+    Dim keepCount As Long
+    Dim dischargeCount As Long
+    Dim i As Long
+    Dim statVal As String
+    For i = 2 To lastRow
+        statVal = UCase(Trim(CStr(allData(i, statCol))))
+        If statVal <> "DISCHARGED" Then
+            keepCount = keepCount + 1
+        Else
+            dischargeCount = dischargeCount + 1
+        End If
+    Next i
+
+    ' --- Step 3: Capture discharged rows onto a hidden temp sheet before they're
+    ' lost. BuildMFCOutput reads this sheet later to build the "Discharged" tab. ---
+    If dischargeCount > 0 Then
+        Dim discardData() As Variant
+        ReDim discardData(1 To dischargeCount, 1 To lastCol)
+        Dim dOutRow As Long
+        Dim k As Long
+        For i = 2 To lastRow
+            statVal = UCase(Trim(CStr(allData(i, statCol))))
+            If statVal = "DISCHARGED" Then
+                dOutRow = dOutRow + 1
+                For k = 1 To lastCol
+                    discardData(dOutRow, k) = allData(i, k)
+                Next k
+            End If
+        Next i
+
+        Set dischargedWs = ws.Parent.Sheets.Add(After:=ws.Parent.Sheets(ws.Parent.Sheets.Count))
+        dischargedWs.Name = "DischargedTemp"
+        dischargedWs.Range(dischargedWs.Cells(1, 1), dischargedWs.Cells(1, lastCol)).Value = _
+            ws.Range(ws.Cells(1, 1), ws.Cells(1, lastCol)).Value
+        dischargedWs.Range(dischargedWs.Cells(2, 1), dischargedWs.Cells(1 + dischargeCount, lastCol)).Value = discardData
+        FlagDuplicateRows dischargedWs
+        dischargedWs.Visible = xlSheetVeryHidden
+    End If
+
+    ' --- Step 4: Build compacted array of kept rows ---
+    If keepCount = 0 Then
+        ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, lastCol)).ClearContents
+        Application.Calculation = xlCalculationAutomatic
+        Application.ScreenUpdating = True
+        MsgBox "All cases are discharged -- no active cases remain." & vbNewLine & _
+               "Check your Epic Census date range.", vbExclamation, "No Data"
+        Exit Sub
+    End If
+
+    Dim filtData() As Variant
+    ReDim filtData(1 To keepCount, 1 To lastCol)
+
+    Dim outRow As Long
+    Dim j As Long
+    For i = 2 To lastRow
+        statVal = UCase(Trim(CStr(allData(i, statCol))))
+        If statVal <> "DISCHARGED" Then
+            outRow = outRow + 1
+            For j = 1 To lastCol
+                filtData(outRow, j) = allData(i, j)
+            Next j
+        End If
+    Next i
+
+    ' --- Step 5: Write filtered rows back (one write) ---
+    ws.Range(ws.Cells(2, 1), ws.Cells(1 + keepCount, lastCol)).Value = filtData
+
+    ' --- Step 6: Delete tail rows (one delete) ---
+    Dim newLastRow As Long
+    newLastRow = 1 + keepCount
+    If newLastRow < lastRow Then
+        ws.Rows((newLastRow + 1) & ":" & lastRow).Delete
+    End If
+
+    Application.StatusBar = "Discharge filter complete: kept " & keepCount & _
+        " rows, captured " & dischargeCount & " discharged rows."
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    Exit Sub
+
+ErrHandler:
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    MsgBox "Unexpected error during discharge filter:" & vbNewLine & _
+           Err.Description & " (code " & Err.Number & ")", vbCritical, "Error"
+
+End Sub
+
+Attribute VB_Name = "FilterFCStatus"
+Option Explicit
+
+' ============================================================
+' FilterFCStatus.bas
+'
+' FilterFCStatus -- keeps only rows that are Missed FC = "Yes", OR one of the
+' three allowed Draft FC statuses. Runs BEFORE LookupEpicData so the Epic
+' lookup only processes relevant rows.
+'
+' Unlike NCID, Inflight does NOT check Admission Status here. Discharge
+' filtering is handled separately in FilterDischarge.bas after Epic lookup.
+'
+' Load-filter-write strategy: reads the sheet once into a Variant array,
+' compacts matching rows in memory, writes back in one bulk operation.
+' ============================================================
+
+
+' Keeps rows where:
+'   - Missed FC = "Yes" (always kept), OR
+'   - FC Status is one of the three Draft values
+' Runs BEFORE LookupEpicData so the Epic lookup only processes relevant rows.
+Public Function FilterFCStatus(ws As Worksheet) As Boolean
+
+    On Error GoTo ErrHandler
+
+    Dim fcCol As Long
+    fcCol = FindColByHeader(ws, "FC Status")
+    If fcCol = 0 Then
+        MsgBox "Error: EFC file is missing the 'FC Status' column." & vbNewLine & _
+               "Check your EFC export.", vbExclamation, "Missing Column"
+        FilterFCStatus = False
+        Exit Function
+    End If
+    FilterFCStatus = True
+
+    ' Missed FC column -- rows marked "Yes" pass through unconditionally.
+    Dim missedFCCol As Long
+    missedFCCol = FindColByHeader(ws, "Missed FC")
+
+    ' Use Encounter No for lastRow -- it is filled in both the main EFC and the
+    ' missed-FC file, unlike FC Status which is blank in missed-FC rows.
+    Dim encNoCol As Long
+    encNoCol = FindColByHeader(ws, "Encounter No")
+
+    Dim lastRow As Long
+    Dim lastCol As Long
+    If encNoCol > 0 Then
+        lastRow = ws.Cells(ws.Rows.Count, encNoCol).End(xlUp).Row
+    Else
+        lastRow = ws.Cells(ws.Rows.Count, fcCol).End(xlUp).Row
+    End If
+    If lastRow < 2 Then Exit Function
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+
+    ' Load keep values from Config into a dictionary for O(1) lookup
+    Dim keepVals() As String
+    keepVals = GetFCStatusKeepValues()
+    Dim keepSet As Object
+    Set keepSet = CreateObject("Scripting.Dictionary")
+    Dim k As Long
+    For k = 1 To UBound(keepVals)
+        keepSet(UCase(Trim(keepVals(k)))) = True
+    Next k
+
+    ' --- Step 1: Load entire working sheet into memory (one read) ---
+    Dim allData As Variant
+    allData = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)).Value
+
+    ' --- Step 2: Count matching rows (needed to size the output array) ---
+    Dim keepCount As Long
+    Dim i As Long
+    Dim fcVal As String
+    Dim missedVal As String
+    For i = 2 To lastRow
+        fcVal     = UCase(Trim(CStr(allData(i, fcCol))))
+        missedVal = ""
+        If missedFCCol > 0 Then missedVal = UCase(Trim(CStr(allData(i, missedFCCol))))
+        If missedVal = "YES" Or keepSet.Exists(fcVal) Then
+            keepCount = keepCount + 1
+        End If
+    Next i
+
+    If keepCount = 0 Then
+        ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, lastCol)).ClearContents
+        Application.Calculation = xlCalculationAutomatic
+        Application.ScreenUpdating = True
+        MsgBox "No active cases found. All rows were filtered out" & vbNewLine & _
+               "-- check your EFC date range.", vbExclamation, "No Data"
+        FilterFCStatus = False
+        Exit Function
+    End If
+
+    ' --- Step 3: Build a compacted array of only the matching rows ---
+    Dim filtData() As Variant
+    ReDim filtData(1 To keepCount, 1 To lastCol)
+
+    Dim outRow As Long
+    Dim j As Long
+    For i = 2 To lastRow
+        fcVal     = UCase(Trim(CStr(allData(i, fcCol))))
+        missedVal = ""
+        If missedFCCol > 0 Then missedVal = UCase(Trim(CStr(allData(i, missedFCCol))))
+        If missedVal = "YES" Or keepSet.Exists(fcVal) Then
+            outRow = outRow + 1
+            For j = 1 To lastCol
+                filtData(outRow, j) = allData(i, j)
+            Next j
+        End If
+    Next i
+
+    ' --- Step 4: Write filtered rows back starting at row 2 (one write) ---
+    ws.Range(ws.Cells(2, 1), ws.Cells(1 + keepCount, lastCol)).Value = filtData
+
+    ' --- Step 5: Delete the now-empty tail rows below the new last data row ---
+    Dim newLastRow As Long
+    newLastRow = 1 + keepCount
+    If newLastRow < lastRow Then
+        ws.Rows((newLastRow + 1) & ":" & lastRow).Delete
+    End If
+
+    Application.StatusBar = "FC Status filter complete: kept " & keepCount & " rows."
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    Exit Function
+
+ErrHandler:
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    MsgBox "Unexpected error during FC Status filter:" & vbNewLine & _
+           Err.Description & " (code " & Err.Number & ")", vbCritical, "Error"
+    FilterFCStatus = False
+
+End Function
+
+Attribute VB_Name = "FilterWard"
+Option Explicit
+
+' ============================================================
+' FilterWard.bas
+'
+' FilterByBedCode -- removes rows whose Final Bed matches the
+' Inflight excludelist. Runs AFTER LookupEpicData, BEFORE FilterDischarge
+' (so the Discharged tab only ever contains Inflight-ward beds).
+'
+' Exclude rules:
+'   1. Blank or "NONE"
+'   2. Prefix match: AUC, EDC, EDTC, EDX, EDXO, O14, O15, RES, TWAS, TWDS
+'
+' NCID building wards (Config "All NCID Wards") always pass through.
+' TagAndGroupNCID in Backlog.bas later tags the NCID-only ones.
+'
+' Load-filter-write strategy: one read + one write + one delete.
+' ============================================================
+
+Public Sub FilterByBedCode(ws As Worksheet)
+
+    On Error GoTo ErrHandler
+
+    Dim bedCol As Long
+    bedCol = FindColByHeader(ws, "Final Bed")
+    If bedCol = 0 Then
+        MsgBox "Error: 'Final Bed' column missing." & vbNewLine & _
+               "Check that Epic lookup has run.", vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    Dim prefixes As Variant
+    prefixes = GetExcludedBedPrefixes()
+
+    ' All NCID building wards -- these always pass through the filter
+    Dim allNCIDSet As Object
+    Set allNCIDSet = CreateObject("Scripting.Dictionary")
+    Dim allWards As Variant
+    allWards = GetAllNCIDWards()
+    Dim w As Long
+    For w = LBound(allWards) To UBound(allWards)
+        allNCIDSet(UCase(Trim(CStr(allWards(w))))) = True
+    Next w
+
+    Dim encNoCol As Long
+    encNoCol = FindColByHeader(ws, "Encounter No")
+
+    Dim lastRow As Long
+    Dim lastCol As Long
+    If encNoCol > 0 Then
+        lastRow = ws.Cells(ws.Rows.Count, encNoCol).End(xlUp).Row
+    Else
+        lastRow = ws.Cells(ws.Rows.Count, bedCol).End(xlUp).Row
+    End If
+    If lastRow < 2 Then Exit Sub
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+
+    Dim allData As Variant
+    allData = ws.Range(ws.Cells(1, 1), ws.Cells(lastRow, lastCol)).Value
+
+    Dim keepCount As Long
+    Dim i As Long
+    Dim bedVal As String
+    For i = 2 To lastRow
+        bedVal = UCase(Trim(CStr(allData(i, bedCol))))
+        If Not ShouldExcludeBed(bedVal, prefixes, allNCIDSet) Then
+            keepCount = keepCount + 1
+        End If
+    Next i
+
+    If keepCount = 0 Then
+        ws.Range(ws.Cells(2, 1), ws.Cells(lastRow, lastCol)).ClearContents
+        Application.Calculation = xlCalculationAutomatic
+        Application.ScreenUpdating = True
+        MsgBox "No Inflight ward matches found." & vbNewLine & _
+               "All rows were excluded by the bed filter.", vbExclamation, "No Data"
+        Exit Sub
+    End If
+
+    Dim filtData() As Variant
+    ReDim filtData(1 To keepCount, 1 To lastCol)
+
+    Dim outRow As Long
+    Dim j As Long
+    For i = 2 To lastRow
+        bedVal = UCase(Trim(CStr(allData(i, bedCol))))
+        If Not ShouldExcludeBed(bedVal, prefixes, allNCIDSet) Then
+            outRow = outRow + 1
+            For j = 1 To lastCol
+                filtData(outRow, j) = allData(i, j)
+            Next j
+        End If
+    Next i
+
+    ws.Range(ws.Cells(2, 1), ws.Cells(1 + keepCount, lastCol)).Value = filtData
+
+    Dim newLastRow As Long
+    newLastRow = 1 + keepCount
+    If newLastRow < lastRow Then
+        ws.Rows((newLastRow + 1) & ":" & lastRow).Delete
+    End If
+
+    Application.StatusBar = "Bed code filter complete: kept " & keepCount & " rows."
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    Exit Sub
+
+ErrHandler:
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    MsgBox "Unexpected error during bed filter:" & vbNewLine & _
+           Err.Description & " (code " & Err.Number & ")", vbCritical, "Error"
+
+End Sub
+
+
+Private Function ShouldExcludeBed(bedVal As String, prefixes As Variant, _
+                                   allNCIDSet As Object) As Boolean
+    ShouldExcludeBed = True
+
+    If bedVal = "" Then Exit Function
+    If bedVal = "NONE" Then Exit Function
+
+    Dim p As Long
+    For p = LBound(prefixes) To UBound(prefixes)
+        If Left(bedVal, Len(prefixes(p))) = prefixes(p) Then Exit Function
+    Next p
+
+    ' NCID building ward -> always keep (tagging happens later)
+    If Len(bedVal) >= 4 Then
+        If allNCIDSet.Exists(Mid(bedVal, 2, 3)) Then
+            ShouldExcludeBed = False
+            Exit Function
+        End If
+    End If
+
+    ShouldExcludeBed = False
+End Function
+
+Attribute VB_Name = "FlagDuplicates"
+Option Explicit
+
+' ============================================================
+' FlagDuplicates.bas
+'
+' Highlights in red every row (including the first occurrence)
+' where the combination of Encounter No + Patient Name appears
+' more than once in the working sheet.
+' Staff review and decide manually which duplicate to delete.
+'
+' Encounter No and Patient Name are located by header name so the sub
+' remains correct if columns are added to the EFC report.
+'
+' Strategy:
+'   1. Load both columns into memory arrays (two reads).
+'   2. Count composite key occurrences using a Dictionary (O(n) in memory).
+'   3. Collect duplicate rows into a Union range (O(n) in memory).
+'   4. Apply red fill + white font to the Union in one operation.
+' ============================================================
+
+Public Sub FlagDuplicateRows(ws As Worksheet)
+
+    Dim encCol  As Long
+    Dim nameCol As Long
+    encCol  = FindColByHeader(ws, "Encounter No")
+    nameCol = FindColByHeader(ws, "Patient Name")
+
+    If encCol = 0 Or nameCol = 0 Then
+        MsgBox "Error: Missing columns for duplicate check:" & vbNewLine & _
+               IIf(encCol = 0, "  - Encounter No" & vbNewLine, "") & _
+               IIf(nameCol = 0, "  - Patient Name" & vbNewLine, ""), _
+               vbExclamation, "Missing Column"
+        Exit Sub
+    End If
+
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, encCol).End(xlUp).Row
+    If lastRow < 2 Then Exit Sub
+
+    Application.ScreenUpdating = False
+
+    ' --- Step 1: Load Encounter No and Patient Name columns into memory ---
+    ' Guard: single-cell .Value returns a scalar, not a 2-D array
+    Dim encData  As Variant
+    Dim nameData As Variant
+    If lastRow = 2 Then
+        ReDim encData(1 To 1, 1 To 1)
+        ReDim nameData(1 To 1, 1 To 1)
+        encData(1, 1) = ws.Cells(2, encCol).Value
+        nameData(1, 1) = ws.Cells(2, nameCol).Value
+    Else
+        encData  = ws.Range(ws.Cells(2, encCol),  ws.Cells(lastRow, encCol)).Value
+        nameData = ws.Range(ws.Cells(2, nameCol), ws.Cells(lastRow, nameCol)).Value
+    End If
+
+    ' --- Step 2: Count occurrences of each composite key ---
+    Dim keyCounts As Object
+    Set keyCounts = CreateObject("Scripting.Dictionary")
+    keyCounts.CompareMode = vbTextCompare  ' Case-insensitive matching
+
+    Dim i As Long
+    Dim key As String
+
+    For i = 1 To UBound(encData, 1)
+        ' Pipe separator prevents accidental collisions across fields
+        key = Trim(CStr(encData(i, 1))) & "|" & UCase(Trim(CStr(nameData(i, 1))))
+        If keyCounts.Exists(key) Then
+            keyCounts(key) = keyCounts(key) + 1
+        Else
+            keyCounts(key) = 1
+        End If
+    Next i
+
+    ' --- Step 3: Collect all duplicate rows into a single Union range ---
+    Dim dupRange As Range
+
+    For i = 1 To UBound(encData, 1)
+        key = Trim(CStr(encData(i, 1))) & "|" & UCase(Trim(CStr(nameData(i, 1))))
+        If keyCounts(key) > 1 Then
+            ' Array index i -> sheet row i + 1 (data starts at row 2)
+            If dupRange Is Nothing Then
+                Set dupRange = ws.Rows(i + 1)
+            Else
+                Set dupRange = Union(dupRange, ws.Rows(i + 1))
+            End If
+        End If
+    Next i
+
+    ' --- Step 4: Apply formatting to all duplicate rows in one operation ---
+    If Not dupRange Is Nothing Then
+        dupRange.Interior.Color = GetSettingColor("Duplicate Color", 255, 0, 0)
+        dupRange.Font.Color     = RGB(255, 255, 255)
+    End If
+
+    Application.ScreenUpdating = True
+
+End Sub
+
+Attribute VB_Name = "Helpers"
+Option Explicit
+
+' Validates that the selected workbook sheet 1 has specific columns matching the target report type.
+Public Function ValidateFileHeaders(wb As Workbook, fileType As String) As Boolean
+    Dim ws As Worksheet
+    Set ws = wb.Sheets(1)
+
+    Dim isValid As Boolean
+    isValid = False
+
+    Select Case UCase(fileType)
+        Case "EFC"
+            ' Check for critical unique EFC columns: "FC ID", "Encounter No", "Missed FC", "FC Status"
+            If FindColByHeader(ws, "FC ID") > 0 And _
+               FindColByHeader(ws, "Encounter No") > 0 And _
+               FindColByHeader(ws, "FC Status") > 0 And _
+               FindColByHeader(ws, "Missed FC") > 0 Then
+                isValid = True
+            End If
+
+        Case "EPIC"
+            ' Check for critical unique Epic columns: "CSN", "Bed", "Admit Status", "Patient"
+            If FindColByHeader(ws, "CSN") > 0 And _
+               FindColByHeader(ws, "Bed") > 0 And _
+               FindColByHeader(ws, "Admit Status") > 0 And _
+               FindColByHeader(ws, "Patient") > 0 Then
+                isValid = True
+            End If
+
+        Case "PREV_MFC"
+            ' Allow any file for the previous MFC report since older manually-done
+            ' reports have varying structures (e.g. combined EFC sheets).
+            isValid = True
+    End Select
+
+    ValidateFileHeaders = isValid
+End Function
+
+' Searches row 1 of ws for a column whose header matches headerName.
+' Matching is case-insensitive and whitespace-tolerant: line breaks
+' (Alt+Enter / wrapped headers), non-breaking spaces, and runs of spaces
+' are all normalised to a single space before comparison. This lets a header
+' typed as "Date Updated" + line break + "(DD/MM/YYYY)" still match the
+' search string "Date Updated (DD/MM/YYYY)".
+' Returns the 1-based column index, or 0 if not found.
+Public Function FindColByHeader(ws As Worksheet, headerName As String) As Long
+    Dim lastCol As Long
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    Dim target As String
+    target = NormHeader(headerName)
+
+    Dim c As Long
+    For c = 1 To lastCol
+        If NormHeader(CStr(ws.Cells(1, c).Value)) = target Then
+            FindColByHeader = c
+            Exit Function
+        End If
+    Next c
+
+    FindColByHeader = 0
+End Function
+
+' Normalises a header string for tolerant comparison:
+'   - converts line breaks (Chr 10 / 13) and non-breaking spaces (Chr 160) to spaces
+'   - collapses any run of spaces to a single space
+'   - trims ends and upper-cases
+Public Function NormHeader(s As String) As String
+    Dim t As String
+    t = CStr(s)
+    t = Replace(t, Chr(10), " ")
+    t = Replace(t, Chr(13), " ")
+    t = Replace(t, Chr(160), " ")
+    t = Replace(t, vbTab, " ")
+    Do While InStr(t, "  ") > 0
+        t = Replace(t, "  ", " ")
+    Loop
+    NormHeader = UCase(Trim(t))
+End Function
+
+' Creates or upgrades the Config worksheet. Run via Alt+F8.
+'   - If Config does not exist: creates it with all columns (A-K).
+'   - If Config exists but is missing new columns (C-K): adds them with defaults,
+'     preserving existing Inflight FC Status and Staff Follow Up lists.
+'   - If Config already has all columns: shows "already up to date" message.
+Public Sub CreateConfigSheet()
+    Dim ws As Worksheet
+    Dim i  As Long
+    Dim isNew As Boolean
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Config")
+    On Error GoTo 0
+
+    If ws Is Nothing Then
+        Set ws = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Sheets(ThisWorkbook.Sheets.Count))
+        ws.Name = "Config"
+        isNew = True
+    End If
+
+    ' Detect whether new columns already exist
+    Dim hasNewCols As Boolean
+    hasNewCols = (FindColByHeader(ws, "Output Headers") > 0)
+
+    If Not isNew And hasNewCols Then
+        ' Ensure color cells are text-formatted (fixes Excel auto-interpreting RGB strings)
+        Dim colorCol As Long
+        colorCol = FindColByHeader(ws, "Case Status Color")
+        If colorCol > 0 Then
+            Dim colorLastRow As Long
+            colorLastRow = ws.Cells(ws.Rows.Count, colorCol).End(xlUp).Row
+            If colorLastRow >= 2 Then ws.Range(ws.Cells(2, colorCol), ws.Cells(colorLastRow, colorCol)).NumberFormat = "@"
+        End If
+        Dim settingsCol As Long
+        settingsCol = FindColByHeader(ws, "Settings")
+        If settingsCol > 0 Then
+            Dim settingsValCol As Long
+            settingsValCol = settingsCol + 1
+            ws.Range(ws.Cells(6, settingsValCol), ws.Cells(9, settingsValCol)).NumberFormat = "@"
+        End If
+
+        Dim upgraded As Boolean
+        upgraded = False
+        Application.ScreenUpdating = False
+
+        ' Rename old "NCID Wards" header to "Included NCID Wards"
+        Dim oldNCIDCol As Long
+        oldNCIDCol = FindColByHeader(ws, "NCID Wards")
+        If oldNCIDCol > 0 And FindColByHeader(ws, "Included NCID Wards") = 0 Then
+            WriteConfigHeader ws, oldNCIDCol, "Included NCID Wards", _
+                "Inflight-covered wards in the NCID building." & vbNewLine & _
+                "These pass through the filter but are NOT tagged NCID."
+            Dim oldLastRow As Long
+            oldLastRow = ws.Cells(ws.Rows.Count, oldNCIDCol).End(xlUp).Row
+            If oldLastRow >= 2 Then
+                ws.Range(ws.Cells(2, oldNCIDCol), ws.Cells(oldLastRow, oldNCIDCol)).ClearContents
+            End If
+            ws.Cells(2, oldNCIDCol).Value = "08F"
+            upgraded = True
+        End If
+
+        ' Add "All NCID Wards" if missing, or move it next to "Included NCID Wards"
+        Dim allNCIDCol As Long
+        allNCIDCol = FindColByHeader(ws, "All NCID Wards")
+
+        Dim inclCol As Long
+        inclCol = FindColByHeader(ws, "Included NCID Wards")
+        If inclCol = 0 Then inclCol = 5
+
+        If allNCIDCol = 0 Then
+            ' Insert new column right after Included NCID Wards
+            ws.Columns(inclCol + 1).Insert Shift:=xlToRight
+            WriteConfigHeader ws, inclCol + 1, "All NCID Wards", _
+                "Every ward code in the NCID building." & vbNewLine & _
+                "Wards here but not in Included NCID Wards are tagged NCID."
+            Dim upgradeNCID(1 To 12) As String
+            upgradeNCID(1) = "03E" : upgradeNCID(2) = "05F" : upgradeNCID(3) = "06F"
+            upgradeNCID(4) = "07E" : upgradeNCID(5) = "07F" : upgradeNCID(6) = "08E"
+            upgradeNCID(7) = "08F" : upgradeNCID(8) = "09F" : upgradeNCID(9) = "11E"
+            upgradeNCID(10) = "11F" : upgradeNCID(11) = "12E" : upgradeNCID(12) = "14F"
+            Dim u As Long
+            For u = 1 To 12
+                ws.Cells(u + 1, inclCol + 1).Value = upgradeNCID(u)
+            Next u
+            upgraded = True
+        ElseIf allNCIDCol <> inclCol + 1 Then
+            ' Move it next to Included NCID Wards
+            ws.Columns(allNCIDCol).Cut
+            ws.Columns(inclCol + 1).Insert Shift:=xlToRight
+            upgraded = True
+        End If
+
+        ws.Columns("A:K").AutoFit
+        Application.ScreenUpdating = True
+
+        If upgraded Then
+            MsgBox "Config sheet upgraded." & vbNewLine & _
+                   "Cols E-F are now Included NCID Wards / All NCID Wards." & vbNewLine & _
+                   "Review the Config tab and adjust as needed.", _
+                   vbInformation, "Config Upgraded"
+        Else
+            MsgBox "Config sheet is already up to date." & vbNewLine & _
+                   "Edit it directly to customize the macro.", vbInformation, "Config"
+        End If
+        Exit Sub
+    End If
+
+    Application.ScreenUpdating = False
+
+    ' --- Cols A-B: only populate on fresh creation (preserve existing lists) ---
+    If isNew Then
+        WriteConfigHeader ws, 1, "Inflight FC Status", _
+            "Edit the list below -- one item per row."
+        WriteConfigHeader ws, 2, "Staff Follow Up", _
+            "Edit the list below -- one item per row."
+
+        Dim inflightDefaults(1 To 20) As String
+        inflightDefaults(1) = "No Attempt"
+        inflightDefaults(2) = "Attempted - Pending FC"
+        inflightDefaults(3) = "FC Complete - CCF left with NOK"
+        inflightDefaults(4) = "FC Complete - CCF signed"
+        inflightDefaults(5) = "FC Completed @ ED"
+        inflightDefaults(6) = "FC Declined @ ED"
+        inflightDefaults(7) = "FC Declined @ Inflight"
+        inflightDefaults(8) = "Discharged -- MCAF"
+        inflightDefaults(9) = "Discharged - No MCAF"
+        inflightDefaults(10) = "Uncontactable NOK with MCAF"
+        inflightDefaults(11) = "Transfer to NCID/Renci"
+        inflightDefaults(12) = "Planned Transfer"
+        inflightDefaults(13) = "C Class with MediFund Activated"
+        inflightDefaults(14) = "Nursing Home Case / No NOK"
+        inflightDefaults(15) = "Deceased"
+        inflightDefaults(16) = "Received unsigned CCF/FC/ReFC"
+        inflightDefaults(17) = "Non-Inflight Case"
+        inflightDefaults(18) = "Explained CCF but Declined FC form"
+        inflightDefaults(19) = "LOG Template"
+        inflightDefaults(20) = "Others (to indicate in Remarks)"
+        For i = 1 To 20
+            ws.Cells(i + 1, 1).Value = inflightDefaults(i)
+        Next i
+
+        ws.Cells(2, 2).Value = "Staff A"
+        ws.Cells(3, 2).Value = "Staff B"
+        ws.Cells(4, 2).Value = "Staff C"
+    End If
+
+    ' --- Col C: Output Headers (15 header names for cols A-O) ---
+    WriteConfigHeader ws, 3, "Output Headers", _
+        "The 15 output column headers (A-O)." & vbNewLine & _
+        "Rename any header -- the macro uses these names."
+    Dim outHdr(1 To 15) As String
+    outHdr(1) = "Inflight FC Status"
+    outHdr(2) = "Date Updated (DD/MM/YYYY)"
+    outHdr(3) = "Staff Follow Up (if any)"
+    outHdr(4) = "Remarks"
+    outHdr(5) = "Case Status"
+    outHdr(6) = "FC ID"
+    outHdr(7) = "Encounter Number"
+    outHdr(8) = "MRN"
+    outHdr(9) = "Patient Name"
+    outHdr(10) = "Adm Date for MFC"
+    outHdr(11) = "FC Status"
+    outHdr(12) = "Point of Care"
+    outHdr(13) = "Final Bed"
+    outHdr(14) = "Admission Level Of Care"
+    outHdr(15) = "Epic Admission Status"
+    For i = 1 To 15
+        ws.Cells(i + 1, 3).Value = outHdr(i)
+    Next i
+
+    ' --- Col D: Excluded Bed Prefixes ---
+    WriteConfigHeader ws, 4, "Excluded Bed Prefixes", _
+        "Bed code prefixes to EXCLUDE." & vbNewLine & _
+        "One per row. A bed starting with any prefix here is removed."
+    Dim prefixes(1 To 10) As String
+    prefixes(1) = "AUC" : prefixes(2) = "EDC" : prefixes(3) = "EDTC"
+    prefixes(4) = "EDX" : prefixes(5) = "EDXO" : prefixes(6) = "O14"
+    prefixes(7) = "O15" : prefixes(8) = "RES" : prefixes(9) = "TWAS"
+    prefixes(10) = "TWDS"
+    For i = 1 To 10
+        ws.Cells(i + 1, 4).Value = prefixes(i)
+    Next i
+
+    ' --- Col E: Included NCID Wards ---
+    WriteConfigHeader ws, 5, "Included NCID Wards", _
+        "Inflight-covered wards in the NCID building." & vbNewLine & _
+        "These pass through the filter but are NOT tagged NCID."
+    ws.Cells(2, 5).Value = "08F"
+
+    ' --- Col F: All NCID Wards (every ward in the NCID building) ---
+    WriteConfigHeader ws, 6, "All NCID Wards", _
+        "Every ward code in the NCID building." & vbNewLine & _
+        "Wards here but not in Included NCID Wards (col E) are tagged NCID."
+    Dim allNCID(1 To 12) As String
+    allNCID(1) = "03E" : allNCID(2) = "05F" : allNCID(3) = "06F"
+    allNCID(4) = "07E" : allNCID(5) = "07F" : allNCID(6) = "08E"
+    allNCID(7) = "08F" : allNCID(8) = "09F" : allNCID(9) = "11E"
+    allNCID(10) = "11F" : allNCID(11) = "12E" : allNCID(12) = "14F"
+    For i = 1 To 12
+        ws.Cells(i + 1, 6).Value = allNCID(i)
+    Next i
+
+    ' --- Cols G-H: Case Status + Color ---
+    WriteConfigHeader ws, 7, "Case Status", _
+        "Dropdown values for the Case Status column." & vbNewLine & _
+        "Each row pairs with the color in column H."
+    WriteConfigHeader ws, 8, "Case Status Color", _
+        "Fill color for each Case Status as R,G,B." & vbNewLine & _
+        "Example: 255,229,153 for pale gold."
+    ws.Range(ws.Cells(2, 8), ws.Cells(10, 8)).NumberFormat = "@"
+    ws.Cells(2, 7).Value = "Resolved"  : ws.Cells(2, 8).Value = "169,209,142"
+    ws.Cells(3, 7).Value = "U-turn"    : ws.Cells(3, 8).Value = "255,255,0"
+    ws.Cells(4, 7).Value = "Clear"     : ws.Cells(4, 8).Value = "255,255,255"
+
+    ' --- Col I: FC Status Keep Values ---
+    WriteConfigHeader ws, 9, "FC Status Keep Values", _
+        "FC Status values to KEEP (Draft variants)." & vbNewLine & _
+        "Rows with these statuses pass through the filter."
+    ws.Cells(2, 9).Value = "Draft"
+    ws.Cells(3, 9).Value = "Draft (ETBS Generated)"
+    ws.Cells(4, 9).Value = "Draft (CCF Generated)"
+
+    ' --- Cols J-K: Settings (key-value pairs) ---
+    WriteConfigHeader ws, 10, "Settings", _
+        "Key-value settings. Edit the VALUE in column K." & vbNewLine & _
+        "Do not rename the keys in column J."
+    With ws.Cells(1, 11)
+        .Value = "(Values)"
+        .Font.Bold = True
+        .Interior.Color = RGB(31, 73, 125)
+        .Font.Color = RGB(255, 255, 255)
+    End With
+
+    ws.Cells(2, 10).Value = "Filename Prefix"     : ws.Cells(2, 11).Value = "MFC"
+    ws.Cells(3, 10).Value = "Sheet Name"           : ws.Cells(3, 11).Value = "MFC Report"
+    ws.Cells(4, 10).Value = "Font Name"            : ws.Cells(4, 11).Value = "Aptos Narrow"
+    ws.Cells(5, 10).Value = "Font Size"            : ws.Cells(5, 11).Value = 11
+    ws.Range(ws.Cells(6, 11), ws.Cells(9, 11)).NumberFormat = "@"
+    ws.Cells(6, 10).Value = "Header Color"         : ws.Cells(6, 11).Value = "31,73,125"
+    ws.Cells(7, 10).Value = "Header Font Color"    : ws.Cells(7, 11).Value = "255,255,255"
+    ws.Cells(8, 10).Value = "Border Color"         : ws.Cells(8, 11).Value = "89,89,89"
+    ws.Cells(9, 10).Value = "Duplicate Color"      : ws.Cells(9, 11).Value = "255,0,0"
+    ws.Cells(10, 10).Value = "Date Dropdown Days"  : ws.Cells(10, 11).Value = 30
+
+    ws.Columns("A:K").AutoFit
+    Application.ScreenUpdating = True
+
+    If isNew Then
+        MsgBox "Config sheet created with all customizable settings." & vbNewLine & vbNewLine & _
+               "Next step: review the Config tab and update as needed." & vbNewLine & _
+               "Replace Staff Follow Up placeholder names with your team's actual names.", _
+               vbInformation, "Config Created"
+    Else
+        MsgBox "Config sheet upgraded with new customizable columns (C-J)." & vbNewLine & _
+               "Your existing Inflight FC Status and Staff Follow Up lists are preserved." & vbNewLine & vbNewLine & _
+               "Review the new columns and adjust as needed.", _
+               vbInformation, "Config Upgraded"
+    End If
+End Sub
+
+
+' Writes a formatted column header with a tooltip comment.
+Private Sub WriteConfigHeader(ws As Worksheet, col As Long, title As String, tooltip As String)
+    With ws.Cells(1, col)
+        .Value = title
+        .Font.Bold = True
+        .Interior.Color = RGB(31, 73, 125)
+        .Font.Color = RGB(255, 255, 255)
+    End With
+    On Error Resume Next
+    ws.Cells(1, col).Comment.Delete
+    ws.Cells(1, col).AddComment tooltip
+    On Error GoTo 0
+End Sub
+
+Attribute VB_Name = "MainMacro"
+Option Explicit
+
+' ============================================================
+' MainMacro.bas
+'
+' Entry point. Orchestrates the full Inflight MFC report generation:
+'   1.  Open and validate 4 input files (with similarity guard for EFC pair)
+'   2.  Combine EFC files
+'   3.  Extract + reformat Admission Date  -- MUST precede LookupEpicData
+'   4.  Filter: keep Draft FC Status rows (+ Missed FC rows) -- runs before Epic for speed
+'   5.  XLOOKUP Final Bed and Epic Admission Status from Epic
+'   6.  Filter: remove rows whose Final Bed matches the Inflight excludelist
+'   7.  Filter: remove ALL discharged cases (including Missed FC); captures them
+'       for the Discharged output tab built in step 9. Runs after the bed
+'       filter so the Discharged tab only ever contains Inflight-ward beds.
+'   8.  Flag duplicate Encounter No + Patient Name combinations
+'   9.  Build output .xlsx (cols A-O)
+'   10. Compare against previous MFC, highlight backlog, write summary table
+' ============================================================
+
+Sub GenerateMFCReport()
+
+    Dim wbMain   As Workbook   ' EFC without missed FC cases
+    Dim wbMissed As Workbook   ' EFC with missed FC cases
+    Dim wbEpic   As Workbook   ' Epic Census report
+    Dim wbPrev   As Workbook   ' Previous MFC report (for backlog)
+    Dim wbOutput As Workbook   ' New output MFC file
+
+    Dim wsMainEFC   As Worksheet
+    Dim wsMissedEFC As Worksheet
+    Dim wsEpic      As Worksheet
+
+    ' --- Progress window ---
+    Dim prog As New ProgressForm
+    prog.ShowProgress 10
+
+    ' --- Step 1: Select all 4 input files via dashboard ---
+    prog.Update 1, "Select input files..."
+    Dim picker As New FilePickerForm
+    If Not picker.ShowFilePicker() Then GoTo Cleanup
+
+    Set wbMain   = picker.SelectedMain
+    Set wbMissed = picker.SelectedMissed
+    Set wbEpic   = picker.SelectedEpic
+    Set wbPrev   = picker.SelectedPrev
+
+    Set wsMainEFC   = wbMain.Sheets(1)
+    Set wsMissedEFC = wbMissed.Sheets(1)
+    Set wsEpic      = wbEpic.Sheets(1)
+
+    ' --- Step 2: Stack missed FC rows below main EFC rows ---
+    prog.Update 2, "Combining EFC files..."
+    CombineEFCFiles wsMainEFC, wsMissedEFC
+
+    ' --- Step 3: Reformat Admission Date, insert "Adm Date for MFC" column ---
+    prog.Update 3, "Extracting and reformatting admission dates..."
+    ExtractAdmissionDate wsMainEFC
+
+    ' --- Step 4: Filter FC Status BEFORE Epic lookup ---
+    ' Keeps Draft + Missed FC rows only; reduces row count before Epic lookup.
+    prog.Update 4, "Filtering FC Status..."
+    If Not FilterFCStatus(wsMainEFC) Then GoTo Cleanup
+
+    ' --- Step 5: XLOOKUP Final Bed and Epic Admission Status from Epic ---
+    ' Inserts "Final Bed" after "Point Of Care" and appends
+    ' "Epic Admission Status" after the last EFC column.
+    prog.Update 5, "Looking up Final Bed and Admit Status from Epic (~20,000 rows)..."
+    LookupEpicData wsMainEFC, wsEpic
+
+    ' --- Step 6: Remove rows whose Final Bed matches the Inflight excludelist ---
+    ' Must run after Epic lookup. Runs BEFORE the discharge filter so that
+    ' non-Inflight-ward rows are gone before discharged rows get captured --
+    ' keeps the Discharged tab scoped to the same wards as the main report.
+    prog.Update 6, "Filtering by bed code (Inflight wards)..."
+    FilterByBedCode wsMainEFC
+
+    ' --- Step 7: Remove ALL discharged cases ---
+    ' Unlike NCID, Inflight removes discharged patients unconditionally
+    ' (including Missed FC rows). Must run after Epic lookup.
+    ' Discharged rows are captured onto a hidden temp sheet (wsDischarged) instead
+    ' of being lost -- BuildMFCOutput turns them into a second "Discharged" tab
+    ' for the manager to close out in eFC.
+    prog.Update 7, "Filtering discharged cases..."
+    Dim wsDischarged As Worksheet
+    FilterDischarged wsMainEFC, wsDischarged
+
+    ' --- Step 8: Highlight duplicate Encounter No + Patient Name rows red ---
+    prog.Update 8, "Flagging duplicate rows..."
+    FlagDuplicateRows wsMainEFC
+
+    ' --- Step 9: Create and save the output .xlsx (also adds the Discharged
+    ' tab if any rows were captured in step 6) ---
+    prog.Update 9, "Building output report..."
+    Set wbOutput = BuildMFCOutput(wsMainEFC, wsDischarged)
+    If wbOutput Is Nothing Then GoTo Cleanup
+
+    ' --- Step 10: Compare against previous MFC, highlight backlog, write summary ---
+    prog.Update 10, "Comparing against previous MFC report..."
+    Dim totalCases   As Long
+    Dim backlogCount As Long
+    Dim wsPrev As Worksheet
+    Dim prevSheetName As String
+    prevSheetName = GetSetting("Sheet Name", "MFC Report")
+    On Error Resume Next
+    Set wsPrev = wbPrev.Sheets(prevSheetName)
+    If wsPrev Is Nothing Then Set wsPrev = wbPrev.Sheets("MFC Report")
+    If wsPrev Is Nothing Then Set wsPrev = wbPrev.Sheets("MFC")
+    If wsPrev Is Nothing Then
+        If wbPrev.Sheets.Count >= 3 Then
+            Set wsPrev = wbPrev.Sheets(3)
+        Else
+            Set wsPrev = wbPrev.Sheets(1)
+        End If
+    End If
+    On Error GoTo 0
+    BacklogSummary wbOutput.Sheets(1), wsPrev, totalCases, backlogCount
+
+    ' Close input workbooks before the success dialog so the output is already
+    ' visible when the user clicks OK.
+    On Error Resume Next
+    If Not wbMain   Is Nothing Then wbMain.Close   SaveChanges:=False
+    If Not wbMissed Is Nothing Then wbMissed.Close SaveChanges:=False
+    If Not wbEpic   Is Nothing Then wbEpic.Close   SaveChanges:=False
+    If Not wbPrev   Is Nothing Then wbPrev.Close   SaveChanges:=False
+    On Error GoTo 0
+    wbOutput.Sheets(1).Activate
+    Application.ScreenUpdating = True
+
+    Application.StatusBar = False
+    prog.CloseProgress
+    MsgBox "MFC Report generated successfully!" & vbNewLine & vbNewLine & _
+           "Total Cases   : " & totalCases & vbNewLine & _
+           "Backlog       : " & backlogCount & vbNewLine & _
+           "Today's Cases : " & (totalCases - backlogCount) & vbNewLine & vbNewLine & _
+           "Next Steps:" & vbNewLine & _
+           "1. Check RED rows -- review and delete duplicates" & vbNewLine & _
+           "   (or pick the blank option in Case Status to clear the row)", _
+           vbInformation, "MFC Report Done"
+    Exit Sub
+
+Cleanup:
+    Application.StatusBar = False
+    On Error Resume Next
+    prog.CloseProgress
+    On Error GoTo 0
+    On Error Resume Next
+    If Not wbMain   Is Nothing Then wbMain.Close   SaveChanges:=False
+    If Not wbMissed Is Nothing Then wbMissed.Close SaveChanges:=False
+    If Not wbEpic   Is Nothing Then wbEpic.Close   SaveChanges:=False
+    If Not wbPrev   Is Nothing Then wbPrev.Close   SaveChanges:=False
+    On Error GoTo 0
+
+End Sub
+
+Attribute VB_Name = "OutputWriter"
+Option Explicit
+
+' ============================================================
+' OutputWriter.bas
+'
+' Writes and formats the output sheet cells (cols A-O). Called by
+' BuildMFCOutput. For the full A-O column meaning, see the header of
+' BuildOutput.bas.
+'   WriteOutputHeaders -- row 1 headers
+'   WriteOutputData    -- data rows from the working array
+'   FormatOutputSheet  -- fonts, borders, freeze panes, autofit
+' ============================================================
+
+
+' Writes and formats the 15 column headers (A-O) on the output sheet.
+Public Sub WriteOutputHeaders(outWs As Worksheet)
+    Dim headers() As String
+    headers = GetOutputHeaders()
+
+    Dim headerRow(1 To 1, 1 To 15) As String
+    Dim c As Long
+    For c = 1 To 15
+        headerRow(1, c) = headers(c)
+    Next c
+
+    Dim hdrColor As Long
+    hdrColor = GetSettingColor("Header Color", 31, 73, 125)
+    Dim hdrFontColor As Long
+    hdrFontColor = GetSettingColor("Header Font Color", 255, 255, 255)
+
+    With outWs.Range("A1:O1")
+        .Value = headerRow
+        .Font.Bold = True
+        .Interior.Color = hdrColor
+        .Font.Color = hdrFontColor
+    End With
+End Sub
+
+
+' Copies data from wsData (working sheet in memory) into output cols F-O,
+' pre-formats two columns, then applies the red duplicate-row highlight.
+' colMap(1..10): each index maps an output column (F=1..O=10) to its source column in wsData.
+Public Sub WriteOutputData(outWs As Worksheet, wsData As Variant, dataRows As Long, _
+                            lastRow As Long, colMap() As Long, rowIsRed() As Boolean)
+    ' Pre-format before writing to prevent Excel auto-conversion
+    outWs.Range(outWs.Cells(2, 7),  outWs.Cells(lastRow, 7)).NumberFormat  = "0"  ' Encounter Number: no decimals
+    outWs.Range(outWs.Cells(2, 10), outWs.Cells(lastRow, 10)).NumberFormat = "@"  ' Adm Date: text, prevent date reformatting
+
+    ' Build output data array and bulk-write to cols F-O in one call
+    Dim outData() As Variant
+    ReDim outData(1 To dataRows, 1 To 10)
+    Dim i As Long, j As Long
+    For i = 1 To dataRows
+        For j = 1 To 10
+            outData(i, j) = wsData(i + 1, colMap(j))  ' i+1 skips header row in wsData
+        Next j
+    Next i
+    outWs.Range(outWs.Cells(2, 6), outWs.Cells(lastRow, 15)).Value = outData
+
+    ' Apply red duplicate highlight: Union all flagged rows, colour in one call
+    Dim redRange As Range
+    For i = 1 To dataRows
+        If rowIsRed(i) Then
+            If redRange Is Nothing Then
+                Set redRange = outWs.Rows(i + 1)
+            Else
+                Set redRange = Union(redRange, outWs.Rows(i + 1))
+            End If
+        End If
+    Next i
+    If Not redRange Is Nothing Then
+        redRange.Interior.Color = GetSettingColor("Duplicate Color", 255, 0, 0)
+        redRange.Font.Color     = RGB(255, 255, 255)
+    End If
+End Sub
+
+
+' Applies Aptos Narrow font, inner/outer borders, header row height,
+' column autofit, and freezes panes below the header row.
+Public Sub FormatOutputSheet(outWs As Worksheet, lastRow As Long)
+    Dim tableRange As Range
+    Set tableRange = outWs.Range(outWs.Cells(1, 1), outWs.Cells(lastRow, 15))
+
+    Dim fontName As String
+    fontName = GetSetting("Font Name", "Aptos Narrow")
+    Dim fontSize As Long
+    fontSize = GetSettingLong("Font Size", 11)
+
+    tableRange.Font.Name = fontName
+    tableRange.Font.Size = fontSize
+
+    Dim borderColor As Long
+    borderColor = GetSettingColor("Border Color", 89, 89, 89)
+
+    With tableRange.Borders(xlInsideVertical)
+        .LineStyle = xlContinuous
+        .Weight    = xlThin
+        .Color     = borderColor
+    End With
+    With tableRange.Borders(xlInsideHorizontal)
+        .LineStyle = xlContinuous
+        .Weight    = xlThin
+        .Color     = borderColor
+    End With
+    tableRange.BorderAround LineStyle:=xlContinuous, Weight:=xlMedium, Color:=RGB(0, 0, 0)
+
+    outWs.Rows(1).RowHeight = 30
+    outWs.Columns("A:O").AutoFit
+    outWs.Range("A2").Select
+    ActiveWindow.FreezePanes = True
+End Sub
+
+Attribute VB_Name = "ProgressForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+' ============================================================
+' IMPORT NOTE (staff): This module is an Excel UserForm, NOT a
+' standard module. To install it from MFC_All_Modules.txt:
+'   1. In the VBA Editor: Insert > UserForm.
+'   2. In the Properties window (F4), set (Name) = ProgressForm.
+'   3. Open the form's code window (F7) and paste everything from
+'      the "Option Explicit" line above down to the end of this
+'      section (skip the VERSION / Begin / Attribute lines).
+' All controls are built automatically when the form opens.
+' ============================================================
+
+' Modeless progress window shown by MainMacro during GenerateMFCReport.
+' The macro runs with ScreenUpdating = False, so Application.StatusBar never
+' repaints; this form forces a redraw via Me.Repaint on every Update.
+
+Private m_total As Long
+Private m_lblStep As MSForms.Label
+Private m_barTrack As MSForms.Label
+Private m_barFill As MSForms.Label
+
+Private Const BAR_LEFT As Single = 12
+Private Const BAR_TOP As Single = 44
+Private Const BAR_WIDTH As Single = 192
+Private Const BAR_HEIGHT As Single = 16
+
+Public Sub ShowProgress(totalSteps As Long)
+    m_total = totalSteps
+    BuildControls
+    m_lblStep.Caption = "Starting..."
+    m_barFill.Width = 0
+    Me.Show vbModeless
+    Me.Repaint
+End Sub
+
+Public Sub Update(stepNum As Long, message As String)
+    BuildControls
+    m_lblStep.Caption = "Step " & stepNum & " of " & m_total & " -- " & message
+    If m_total > 0 Then m_barFill.Width = BAR_WIDTH * (stepNum / m_total)
+    Me.Repaint
+    DoEvents
+End Sub
+
+Public Sub CloseProgress()
+    Unload Me
+End Sub
+
+Private Sub UserForm_Initialize()
+    Me.Caption = "MFC Report -- Generating"
+    Me.Width = 222
+    Me.Height = 96
+    Me.Font.Name = "Tahoma"
+    Me.Font.Size = 9
+    BuildControls
+End Sub
+
+' Builds the label + progress bar once. Guarded so it is safe to call repeatedly.
+Private Sub BuildControls()
+    If Not m_barFill Is Nothing Then Exit Sub
+
+    Set m_lblStep = Me.Controls.Add("Forms.Label.1", "lblStep", True)
+    m_lblStep.Left = BAR_LEFT
+    m_lblStep.Top = 12
+    m_lblStep.Width = BAR_WIDTH
+    m_lblStep.Height = 24
+
+    Set m_barTrack = Me.Controls.Add("Forms.Label.1", "barTrack", True)
+    m_barTrack.Left = BAR_LEFT
+    m_barTrack.Top = BAR_TOP
+    m_barTrack.Width = BAR_WIDTH
+    m_barTrack.Height = BAR_HEIGHT
+    m_barTrack.BackColor = RGB(220, 220, 220)
+    m_barTrack.BorderStyle = fmBorderStyleSingle
+
+    Set m_barFill = Me.Controls.Add("Forms.Label.1", "barFill", True)
+    m_barFill.Left = BAR_LEFT
+    m_barFill.Top = BAR_TOP
+    m_barFill.Width = 0
+    m_barFill.Height = BAR_HEIGHT
+    m_barFill.BackColor = RGB(0, 128, 0)
+End Sub
+
+' Block the user's X button so the window cannot be dismissed mid-run.
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then Cancel = 1
+End Sub

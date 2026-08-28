@@ -1,0 +1,39 @@
+{
+  "pairs": [
+    {
+      "id": "pair_001",
+      "invoice": "invoices/inv_001.png",
+      "po": "purchase_orders/po_001.json",
+      "expected_discrepancies": [],
+      "label": "Clean Match"
+    },
+    {
+      "id": "pair_002",
+      "invoice": "invoices/inv_002.png",
+      "po": "purchase_orders/po_002.json",
+      "expected_discrepancies": [
+        {
+          "type": "price_mismatch",
+          "line_item": "USB-C Cable 2m",
+          "invoice_value": "9.50",
+          "po_value": "8.50"
+        }
+      ],
+      "label": "Price Mismatch"
+    },
+    {
+      "id": "pair_003",
+      "invoice": "invoices/inv_003.png",
+      "po": "purchase_orders/po_003.json",
+      "expected_discrepancies": [
+        {
+          "type": "quantity_mismatch",
+          "line_item": "A4 Copy Paper (Ream)",
+          "invoice_value": "60",
+          "po_value": "50"
+        }
+      ],
+      "label": "Quantity Mismatch"
+    }
+  ]
+}

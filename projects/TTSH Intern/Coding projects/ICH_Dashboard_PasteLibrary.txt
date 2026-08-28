@@ -1,0 +1,909 @@
+================================================================
+ICH REFERRAL DASHBOARD — COPY/PASTE LIBRARY
+Separate app from the triage entry form.
+Data source: Excel Online (Business) → Table1 in Referral_Data_2026_1.xlsx
+Canvas size: 1366 × 768 (fixed, landscape)
+================================================================
+
+COLUMN REFERENCE (Excel Table1 — use these exact names in formulas)
+  Col B  → [Referral case taken by]
+  Col E  → [Referring source (TTSH/Ren Ci/External)]
+  Col F  → [Referring location]
+  Col G  → [Patient's name]
+  Col H  → [Patient's NRIC]
+  Col I  → [Referral ordered Date]
+  Col J  → [Referral ordered Time]
+  Col K  → [Referring Discipline]
+  Col AI → [Logic Checker (Triage Recommendation)]
+  Col AJ → [CRE Swab Status]
+  Col AK → [MRSA Swab Status]
+  Col AL → [VRE Swab Status]
+  Col AM → [Decision Date]
+  Col AO → [TAT (Order to Completion)]
+  Col AQ → [Lapse Reason]
+  Col AR → [Escalated to Clinician?]
+  Col AS → [Referral Status (Accepted/Rejected/Withdrawn/Cancelled)]
+  Col AT → [Receiving Ward Type]
+  Col BB → [PSO Comment]
+  Col BC → [Final Referral Status (Do not amend)]
+
+PENDING DEFINITION
+  IsBlank([Final Referral Status (Do not amend)])
+  && !IsBlank([Referral case taken by])
+
+NOTE: Excel Online connector column names must match the header row
+exactly (row 2 of the sheet). If a column name errors, check for
+trailing spaces in the Excel header.
+
+================================================================
+[DA] COLOURS — Dashboard palette
+================================================================
+Navy bg         ColorValue("#0C3A5E")
+Navy mid        ColorValue("#1A5276")
+Accent blue     ColorValue("#2E86C1")
+Accent light    ColorValue("#D6EAF8")
+White           Color.White
+Page bg         ColorValue("#F0F3F7")
+Border          ColorValue("#D5D8DC")
+Text primary    ColorValue("#1C2833")
+Text sub        ColorValue("#7F8C8D")
+
+State: With PSO fill    ColorValue("#FEF9E7")
+State: With PSO text    ColorValue("#B7770D")
+State: With PSO border  ColorValue("#F9E79F")
+State: Await SC fill    ColorValue("#FDEDEC")
+State: Await SC text    ColorValue("#A93226")
+State: Await SC border  ColorValue("#F5B7B1")
+
+Age: Overdue fill   ColorValue("#FADBD8")
+Age: Overdue text   ColorValue("#C0392B")
+Age: Warn fill      ColorValue("#FDEBD0")
+Age: Warn text      ColorValue("#E67E22")
+Age: OK fill        ColorValue("#D5F5E3")
+Age: OK text        ColorValue("#1E8449")
+
+KPI accent: Accepted    ColorValue("#1E8449")
+KPI accent: Rejected    ColorValue("#C0392B")
+KPI accent: Escalated   ColorValue("#2E86C1")
+KPI accent: Overdue     ColorValue("#8E44AD")
+KPI accent: Pending     ColorValue("#E67E22")
+
+
+================================================================
+[DB] App.OnStart
+================================================================
+Set(gblSelected, Blank());
+Set(gblNavScreen, "Pending");
+ClearCollect(colDashDisc,
+  "All disciplines",
+  "CVM - Cardiology",
+  "DHM - Haematology",
+  "ED - Emergency Medicine",
+  "EDTC - TTSH Emergency Observational Med",
+  "ENT - Otorhinolaryngology",
+  "EXTERNAL REFERRAL",
+  "GEM - Gastroenterology",
+  "GMD - General Medicine",
+  "GRM - Geriatric Medicine",
+  "GSD - General Surgery",
+  "HFS - Heart Failure Services",
+  "HSS - Hand Surgery",
+  "IDS - Infectious Disease",
+  "NLD - Neurology",
+  "NLD - Neurology - Stroke",
+  "NSD - Neurosurgery",
+  "ORT - Orthopaedic Surgery",
+  "ORT - Orthopaedic Surgery, Hip Fracture",
+  "ORT - Orthopaedic Surgery, TKR",
+  "RAI - Rheumatology Allergy & Immuno",
+  "RCCM - Resp & Critical Care Med",
+  "REH - Rehabilitation Medicine",
+  "TJM - Oncology",
+  "TPS - Plastic Svs",
+  "URO - Urology"
+);
+ClearCollect(colDashWard,
+  "All ward types",
+  "Gen IR",
+  "Gen SA",
+  "GRM SA"
+);
+ClearCollect(colDashState,
+  "All states",
+  "With PSO",
+  "Awaiting SC"
+);
+ClearCollect(colDashAge,
+  "Any age",
+  "Overdue (>3 days)",
+  "2-3 days",
+  "<2 days"
+
+
+================================================================
+[DC] DATA SOURCE CONNECTION (do this first)
+================================================================
+Steps:
+1. Open Power Apps Studio → new Canvas app → 1366×768
+2. Left panel → Data → Add data → search "Excel Online (Business)"
+3. Connect → select your SharePoint site → navigate to the Excel file
+4. Select table: Table1 → click Connect
+5. Data source name in formulas = [Table1] (Power Apps uses the
+   table name, not the sheet name)
+
+Test the connection: insert a temporary label, set Text to:
+  CountRows(Table1) & " rows"
+If it shows a number, connection is working. Delete the label.
+
+
+================================================================
+[DD] NAVIGATION SIDEBAR — controls & properties
+================================================================
+The sidebar is a rectangle + labels + buttons layered on the left.
+Width = 140, Height = 768, X = 0, Y = 0.
+
+→ recSidebar.Fill
+ColorValue("#0C3A5E")
+
+→ recSidebar dimensions
+X:0  Y:0  Width:140  Height:768
+
+→ lblDashLogo.Text
+"ICH Referral" & Char(10) & "Dashboard"
+
+→ lblDashLogo properties
+X:8  Y:20  Width:124  Height:40
+Color: Color.White
+Size: 12  FontWeight: FontWeight.Bold
+
+→ lblDashLogoTag.Text
+"TTSH / NCID"
+
+→ lblDashLogoTag properties
+X:8  Y:12  Width:124  Height:14
+Color: ColorValue("#5DADE2")  Size: 9
+
+Nav buttons — make 3 rectangles + 3 labels stacked:
+
+→ recNavPending / recNavAnalytics / recNavDiscipline
+Width:140  Height:34
+Fill (active):   ColorValue("#1A5276")
+Fill (inactive): ColorValue("#0C3A5E")
+HoverFill:       ColorValue("#1A5276")
+
+Active state formula for recNavPending.Fill:
+If(gblNavScreen="Pending", ColorValue("#1A5276"), ColorValue("#0C3A5E"))
+
+Active state formula for recNavAnalytics.Fill:
+If(gblNavScreen="Analytics", ColorValue("#1A5276"), ColorValue("#0C3A5E"))
+
+Active state formula for recNavDiscipline.Fill:
+If(gblNavScreen="Discipline", ColorValue("#1A5276"), ColorValue("#0C3A5E"))
+
+→ Nav button Y positions (stack from Y=80)
+recNavPending:    Y:80
+recNavAnalytics:  Y:120
+recNavDiscipline: Y:160
+
+→ Nav label texts
+"Pending cases"
+"Analytics"
+"By discipline"
+
+→ Nav label properties (all three)
+X:16  Width:110  Height:34  Size:10
+Color: Color.White
+VerticalAlign: VerticalAlign.Middle
+
+→ Nav button OnSelect formulas
+recNavPending.OnSelect:    Set(gblNavScreen,"Pending"); Set(gblSelected,Blank())
+recNavAnalytics.OnSelect:  Set(gblNavScreen,"Analytics"); Set(gblSelected,Blank())
+recNavDiscipline.OnSelect: Set(gblNavScreen,"Discipline"); Set(gblSelected,Blank())
+
+→ Active left-border indicator: add a thin rectangle per nav item
+recNavPendingBar:
+  Width:3  Height:34  X:0
+  Y: same as recNavPending
+  Fill: If(gblNavScreen="Pending", ColorValue("#5DADE2"), ColorValue("#0C3A5E"))
+
+Repeat for Analytics and Discipline bars.
+
+→ Pending badge count label
+  Text: CountRows(Filter(Table1,
+    IsBlank([Final Referral Status (Do not amend)]),
+    !IsBlank([Referral case taken by])))
+  X:108  Y:88  Width:24  Height:18
+  Fill: ColorValue("#C0392B")  Color: Color.White
+  Size:9  FontWeight:Bold  Align:Center
+  BorderRadius: 9
+
+
+================================================================
+[DE] TOPBAR — controls & properties
+================================================================
+→ recTopbar
+X:140  Y:0  Width:1226  Height:44
+Fill: Color.White
+BorderColor: ColorValue("#D5D8DC")  BorderThickness: 1 (bottom only
+  — use a thin rectangle recTopbarBorder at Y:44 Height:1)
+
+→ lblTopTitle.Text
+Switch(gblNavScreen,
+  "Pending",    "Pending cases",
+  "Analytics",  "Analytics",
+  "Discipline", "By discipline",
+  "Pending cases")
+
+→ lblTopTitle properties
+X:154  Y:6  Width:600  Height:18
+Size:14  FontWeight:Bold  Color:ColorValue("#0C3A5E")
+
+→ lblTopSub.Text
+Switch(gblNavScreen,
+  "Pending",    "Cases in progress — flag threshold: 3 days",
+  "Analytics",  "Referral outcomes and turnaround time",
+  "Discipline", "Volume and admin load per referring department",
+  "")
+
+→ lblTopSub properties
+X:154  Y:26  Width:700  Height:14
+Size:10  Color:ColorValue("#7F8C8D")
+
+→ btnRefresh.Text  (optional — triggers re-load of data)
+"↻  Refresh"
+
+→ btnRefresh properties
+X:1280  Y:10  Width:76  Height:26
+Fill: ColorValue("#D6EAF8")
+Color: ColorValue("#1A5276")
+BorderColor: ColorValue("#A9CCE3")
+Size:10  FontWeight:Bold
+
+
+================================================================
+[DF] PENDING SCREEN — KPI CARDS
+================================================================
+4 cards across top. Each card = recKPI + lblKPILabel + lblKPIVal + lblKPISub
+Card Width:290  Height:72  Y:56
+
+Card X positions:
+  Card 1 (Pending):     X:150
+  Card 2 (Await SC):    X:448
+  Card 3 (With PSO):    X:746
+  Card 4 (Overdue):     X:1044
+
+→ recKPI_.Fill: Color.White
+→ recKPI_.BorderColor: ColorValue("#D5D8DC")
+→ recKPI_.BorderThickness: 1
+
+Top accent bar per card (Height:3, Y same as card):
+  Pending accent:  ColorValue("#E67E22")
+  Await SC accent: ColorValue("#C0392B")
+  With PSO accent: ColorValue("#E67E22")
+  Overdue accent:  ColorValue("#8E44AD")
+
+→ KPI label texts (Size:8 FontWeight:Bold Color:ColorValue("#7F8C8D"))
+"PENDING"
+"AWAITING SC"
+"WITH PSO"
+"OVERDUE (>3 DAYS)"
+
+→ KPI value formulas (Size:22 FontWeight:Bold)
+
+lblKPIVal_Pending.Text:
+Text(CountRows(Filter(Table1,
+  IsBlank([Final Referral Status (Do not amend)]),
+  !IsBlank([Referral case taken by]))))
+
+lblKPIVal_AwaitSC.Text:
+Text(CountRows(Filter(Table1,
+  IsBlank([Final Referral Status (Do not amend)]),
+  !IsBlank([Referral case taken by]),
+  [Escalated to Clinician?] = "YES")))
+
+lblKPIVal_WithPSO.Text:
+Text(CountRows(Filter(Table1,
+  IsBlank([Final Referral Status (Do not amend)]),
+  !IsBlank([Referral case taken by]),
+  [Escalated to Clinician?] = "NO")))
+
+lblKPIVal_Overdue.Text:
+Text(CountRows(Filter(Table1,
+  IsBlank([Final Referral Status (Do not amend)]),
+  !IsBlank([Referral case taken by]),
+  DateDiff([Referral ordered Date], Today(), Days) >= 3)))
+
+→ KPI value colours
+Pending:  ColorValue("#0C3A5E")
+Await SC: ColorValue("#C0392B")
+With PSO: ColorValue("#E67E22")
+Overdue:  ColorValue("#C0392B")
+
+→ KPI sub labels (Size:9 Color:ColorValue("#7F8C8D"))
+"Cases in progress"
+"Escalated, no SC reply"
+"Not yet escalated"
+"Require immediate review"
+
+
+================================================================
+[DG] PENDING SCREEN — FILTER BAR
+================================================================
+Filter bar = recFilterBar + 4 dropdowns
+recFilterBar: X:150 Y:136 Width:1186 Height:34
+Fill: Color.White  BorderColor: ColorValue("#D5D8DC")  BorderThickness:1
+
+→ DropFState (state filter)
+X:220  Y:143  Width:130  Height:22
+Items: colDashState
+Default: "All states"
+
+→ DropFDisc (discipline filter)
+X:358  Y:143  Width:200  Height:22
+Items: colDashDisc
+Default: "All disciplines"
+
+→ DropFWard (ward type filter)
+X:566  Y:143  Width:130  Height:22
+Items: colDashWard
+Default: "All ward types"
+
+→ DropFAge (age filter)
+X:760  Y:143  Width:150  Height:22
+Items: colDashAge
+Default: "Any age"
+
+→ Filter bar label
+X:158  Y:147  Width:56  Height:16
+Text: "FILTER"  Size:8  FontWeight:Bold  Color:ColorValue("#7F8C8D")
+
+
+================================================================
+[DH] PENDING SCREEN — FILTERED DATA COLLECTION
+================================================================
+Put this on the filter bar's OnChange, or on each dropdown's OnChange.
+Also call it from App.OnStart after the data source loads.
+
+→ Formula (paste onto each dropdown's OnChange):
+ClearCollect(colPendingFiltered,
+  Filter(Table1,
+    IsBlank([Final Referral Status (Do not amend)]),
+    !IsBlank([Referral case taken by]),
+    Or(DropFState.Selected.Value = "All states",
+       And(DropFState.Selected.Value = "With PSO",
+           [Escalated to Clinician?] = "NO"),
+       And(DropFState.Selected.Value = "Awaiting SC",
+           [Escalated to Clinician?] = "YES")),
+    Or(DropFDisc.Selected.Value = "All disciplines",
+       Upper(Trim([Referring Discipline])) =
+       Upper(Trim(DropFDisc.Selected.Value))),
+    Or(DropFWard.Selected.Value = "All ward types",
+       Upper(Trim([Receiving Ward Type])) =
+       Upper(Trim(DropFWard.Selected.Value))),
+    Or(DropFAge.Selected.Value = "Any age",
+       And(DropFAge.Selected.Value = "Overdue (>3 days)",
+           DateDiff([Referral ordered Date], Today(), Days) >= 3),
+       And(DropFAge.Selected.Value = "2-3 days",
+           DateDiff([Referral ordered Date], Today(), Days) >= 2,
+           DateDiff([Referral ordered Date], Today(), Days) < 3),
+       And(DropFAge.Selected.Value = "<2 days",
+           DateDiff([Referral ordered Date], Today(), Days) < 2))
+  )
+)
+
+NOTE: Upper(Trim()) handles the ward type casing bug (Gen IR vs GEN IR).
+
+
+================================================================
+[DI] PENDING SCREEN — GALLERY
+================================================================
+Gallery shows colPendingFiltered. Tap row → sets gblSelected.
+When gblSelected is not blank, detail panel becomes visible.
+
+→ galPending
+X:150  Y:178  Width:700  Height:582
+Items: colPendingFiltered
+TemplateHeight: 38
+Layout: Blank (manual controls inside template)
+
+→ galPending.OnSelect
+Set(gblSelected, ThisItem)
+
+→ Inside gallery template — add these labels:
+(All Y:0 Height:38 VerticalAlign:Middle)
+
+  lblGalSN:       X:4   Width:30   Text: ThisItem.[S/N]
+                  Size:11  FontWeight:Bold  Color:ColorValue("#0C3A5E")
+
+  lblGalName:     X:36  Width:100  Text: ThisItem.[Patient's name]
+                  Size:10  FontWeight:Bold
+
+  lblGalNRIC:     X:138 Width:70   Text: ThisItem.[Patient's NRIC]
+                  Size:9  Color:ColorValue("#7F8C8D")
+
+  lblGalDisc:     X:210 Width:130  Text: ThisItem.[Referring Discipline]
+                  Size:9  Overflow:TextOverflow.Clip
+
+  lblGalWard:     X:342 Width:55   Text: ThisItem.[Receiving Ward Type]
+                  Size:9
+
+  lblGalDate:     X:399 Width:75
+                  Text: Text(ThisItem.[Referral ordered Date], "dd mmm yyyy")
+                  Size:9  Color:ColorValue("#7F8C8D")
+
+→ Age badge — use a rectangle + label pair inside the template:
+
+  recGalAge:
+    X:476  Y:10  Width:52  Height:18
+    Fill:
+      If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=3,
+         ColorValue("#FADBD8"),
+       If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=2,
+         ColorValue("#FDEBD0"),
+         ColorValue("#D5F5E3")))
+    BorderRadius: 9
+
+  lblGalAge:
+    X:476  Y:10  Width:52  Height:18
+    Text:
+      If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=3,
+         "⚠ " & Text(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)) & "d",
+         Text(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)) & "d")
+    Size:9  FontWeight:Bold  Align:Center
+    Color:
+      If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=3,
+         ColorValue("#C0392B"),
+       If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=2,
+         ColorValue("#E67E22"),
+         ColorValue("#1E8449")))
+
+→ State badge — rectangle + label pair:
+
+  recGalState:
+    X:530  Y:10  Width:80  Height:18
+    Fill:
+      If(ThisItem.[Escalated to Clinician?]="YES",
+         ColorValue("#FDEDEC"), ColorValue("#FEF9E7"))
+    BorderColor:
+      If(ThisItem.[Escalated to Clinician?]="YES",
+         ColorValue("#F5B7B1"), ColorValue("#F9E79F"))
+    BorderThickness: 1  BorderRadius: 9
+
+  lblGalState:
+    X:530  Y:10  Width:80  Height:18
+    Text:
+      If(ThisItem.[Escalated to Clinician?]="YES",
+         "● Awaiting SC", "● With PSO")
+    Size:8  FontWeight:Bold  Align:Center
+    Color:
+      If(ThisItem.[Escalated to Clinician?]="YES",
+         ColorValue("#A93226"), ColorValue("#B7770D"))
+
+→ Row background tint (recGalRowBg behind all controls):
+    X:0  Y:0  Width:700  Height:38
+    Fill:
+      If(ThisItem.[S/N] = gblSelected.[S/N],
+         ColorValue("#EBF5FB"),
+       If(DateDiff(ThisItem.[Referral ordered Date],Today(),Days)>=3,
+         ColorValue("#FDF9F7"),
+         Color.White))
+
+→ Column headers (labels above the gallery at Y:172 Height:16):
+  "SN"        X:154  Width:30
+  "Patient"   X:190  Width:100
+  "NRIC"      X:292  Width:70
+  "Discipline" X:364  Width:130
+  "Ward"      X:496  Width:55
+  "Order date" X:553  Width:75
+  "Age"       X:630  Width:52
+  "State"     X:684  Width:80
+  All: Size:8  FontWeight:Bold  Color:ColorValue("#7F8C8D")
+
+
+================================================================
+[DJ] PENDING SCREEN — DETAIL PANEL
+================================================================
+Panel sits to the right of the gallery.
+Visible only when gblSelected is not blank.
+
+→ recDetailPanel
+X:858  Y:178  Width:478  Height:582
+Fill: Color.White  BorderColor: ColorValue("#D5D8DC")  BorderThickness:1
+Visible: !IsBlank(gblSelected)
+
+→ recDetailHeader (top of panel)
+X:858  Y:178  Width:478  Height:48
+Fill: ColorValue("#F7F9FC")
+Visible: !IsBlank(gblSelected)
+
+→ lblDetailName.Text
+gblSelected.[Patient's name]
+X:868  Y:184  Size:13  FontWeight:Bold  Color:ColorValue("#0C3A5E")
+Visible: !IsBlank(gblSelected)
+
+→ lblDetailSub.Text
+"SN " & gblSelected.[S/N] &
+"  ·  " & Text(DateDiff(gblSelected.[Referral ordered Date],Today(),Days)) & "d open" &
+"  ·  " & If(gblSelected.[Escalated to Clinician?]="YES","Awaiting SC","With PSO")
+X:868  Y:200  Size:9  Color:ColorValue("#7F8C8D")
+Visible: !IsBlank(gblSelected)
+
+→ btnDetailClose (×)
+X:1300  Y:184  Width:28  Height:28
+Text:"✕"  Size:12
+Fill: ColorValue("#F0F3F7")  Color:ColorValue("#7F8C8D")
+OnSelect: Set(gblSelected, Blank())
+Visible: !IsBlank(gblSelected)
+
+--- SECTION LABELS (all inside panel, Visible: !IsBlank(gblSelected)) ---
+Size:8  FontWeight:Bold  Color:ColorValue("#7F8C8D")  Width:440
+"CASE INFO"      Y:234
+"TRIAGE"         Y:370
+"SWAB STATUS"    Y:460
+"PSO COMMENT"    Y:530
+
+--- FIELD LABELS + VALUES (pairs, inside panel) ---
+Each pair: label Size:8 Color:ColorValue("#7F8C8D"), value Size:10 FontWeight:Bold
+Two columns: left col X:868, right col X:1068. Step Y by 26.
+
+Left column (Y starts 248):
+  NRIC:     gblSelected.[Patient's NRIC]
+  Source:   gblSelected.[Referring source (TTSH/Ren Ci/External)]
+  Location: gblSelected.[Referring location]
+  Ward:     gblSelected.[Receiving Ward Type]
+  Taken by: gblSelected.[Referral case taken by]
+
+Right column (Y starts 248):
+  Discipline: gblSelected.[Referring Discipline]
+  Rec.:       gblSelected.[Logic Checker (Triage Recommendation)]
+  Escalated:  gblSelected.[Escalated to Clinician?]
+  Lapse:
+    If(IsBlank(gblSelected.[Lapse Reason]),"—",gblSelected.[Lapse Reason])
+
+Swab row (Y:474, side by side):
+  CRE:  gblSelected.[CRE Swab Status]    X:868
+  MRSA: gblSelected.[MRSA Swab Status]   X:1018
+  VRE:  gblSelected.[VRE Swab Status]    X:1168
+
+PSO Comment box:
+  → recComment: X:868 Y:546 Width:440 Height:60
+    Fill: ColorValue("#F2F3F4")  BorderRadius:4
+  → lblComment:
+    Text: If(IsBlank(gblSelected.[PSO Comment]),"No comment entered.",
+             gblSelected.[PSO Comment])
+    X:876  Y:550  Width:424  Height:52
+    Size:10  Color:ColorValue("#1C2833")
+
+→ btnClosePanel (bottom)
+X:868  Y:720  Width:440  Height:28
+Text: "Close"
+Fill: ColorValue("#F0F3F7")  Color:ColorValue("#5D6D7E")
+BorderColor: ColorValue("#D5D8DC")  BorderThickness:1
+OnSelect: Set(gblSelected, Blank())
+Visible: !IsBlank(gblSelected)
+
+
+================================================================
+[DK] ANALYTICS SCREEN — KPI CARDS
+================================================================
+5 cards. Width:224  Height:72  Y:56
+X positions: 150, 382, 614, 846, 1078
+
+→ KPI value formulas:
+
+Total:
+Text(CountRows(Filter(Table1, !IsBlank([Final Referral Status (Do not amend)]))))
+
+Accepted:
+Text(CountRows(Filter(Table1,
+  [Final Referral Status (Do not amend)] = "Accepted With Admission Details")))
+
+Rejected:
+Text(CountRows(Filter(Table1,
+  [Final Referral Status (Do not amend)] = "Rejected")))
+
+Escalated to SC:
+Text(CountRows(Filter(Table1,
+  !IsBlank([Final Referral Status (Do not amend)]),
+  [Escalated to Clinician?] = "YES")))
+
+TAT >3 days:
+Text(CountRows(Filter(Table1,
+  !IsBlank([Final Referral Status (Do not amend)]),
+  [TAT (Order to Completion)] * 24 >= 72)))
+
+NOTE: TAT column stores days as a decimal (e.g. 1.5 = 36 hours).
+Multiply by 24 to convert to hours before comparing.
+
+→ Acceptance rate label below accepted card:
+Text(
+  Round(
+    CountRows(Filter(Table1,
+      [Final Referral Status (Do not amend)]="Accepted With Admission Details")) /
+    CountRows(Filter(Table1,
+      !IsBlank([Final Referral Status (Do not amend)]))) * 100,
+    1)
+) & "% rate"
+
+
+================================================================
+[DL] ANALYTICS SCREEN — PIE CHART
+================================================================
+Power Apps has a built-in Pie chart control (Insert → Charts → Pie).
+It reads from a collection, not directly from a table.
+
+Step 1 — build the collection (put in App.OnStart or screen's OnVisible):
+
+ClearCollect(colOutcomePie,
+  {Label:"Accepted",
+   Value: CountRows(Filter(Table1,
+     [Final Referral Status (Do not amend)]="Accepted With Admission Details"))},
+  {Label:"Rejected",
+   Value: CountRows(Filter(Table1,
+     [Final Referral Status (Do not amend)]="Rejected"))},
+  {Label:"Cancelled",
+   Value: CountRows(Filter(Table1,
+     StartsWith([Final Referral Status (Do not amend)],"Cancelled")))},
+  {Label:"Withdrawn",
+   Value: CountRows(Filter(Table1,
+     [Final Referral Status (Do not amend)]="Withdrawn"))}
+)
+
+Step 2 — Pie chart control properties:
+  Items: colOutcomePie
+  Series: "Value"
+  Labels: "Label"
+  X:150  Y:136  Width:300  Height:280
+  ShowLabels: true
+
+LIMITATION: Power Apps pie chart does not support custom slice colours.
+The chart picks its own colour scheme. You cannot override it without
+a premium connector. This is a known constraint — accept it.
+
+To compensate, add a manual colour-coded legend below the chart:
+4 rectangles (14×14) + labels side by side:
+  ■ Accepted   ■ Rejected   ■ Cancelled   ■ Withdrawn
+Use the [DA] colours for the rectangles. This gives visual clarity
+even if the chart colours don't match exactly.
+
+
+================================================================
+[DM] ANALYTICS SCREEN — TAT BAR CHART
+================================================================
+Power Apps bar chart (Insert → Charts → Column chart).
+
+Step 1 — build collection (App.OnStart):
+
+ClearCollect(colTATBuckets,
+  {Bucket:"<6h",
+   Count: CountRows(Filter(Table1,
+     !IsBlank([Final Referral Status (Do not amend)]),
+     [TAT (Order to Completion)] * 24 < 6))},
+  {Bucket:"6-24h",
+   Count: CountRows(Filter(Table1,
+     !IsBlank([Final Referral Status (Do not amend)]),
+     [TAT (Order to Completion)] * 24 >= 6,
+     [TAT (Order to Completion)] * 24 < 24))},
+  {Bucket:"1-2 days",
+   Count: CountRows(Filter(Table1,
+     !IsBlank([Final Referral Status (Do not amend)]),
+     [TAT (Order to Completion)] * 24 >= 24,
+     [TAT (Order to Completion)] * 24 < 48))},
+  {Bucket:"2-3 days",
+   Count: CountRows(Filter(Table1,
+     !IsBlank([Final Referral Status (Do not amend)]),
+     [TAT (Order to Completion)] * 24 >= 48,
+     [TAT (Order to Completion)] * 24 < 72))},
+  {Bucket:">3 days",
+   Count: CountRows(Filter(Table1,
+     !IsBlank([Final Referral Status (Do not amend)]),
+     [TAT (Order to Completion)] * 24 >= 72))}
+)
+
+Step 2 — Column chart properties:
+  Items: colTATBuckets
+  Series: "Count"
+  Labels: "Bucket"
+  X:458  Y:136  Width:878  Height:280
+
+LIMITATION: Single colour only in standard Power Apps charts.
+Bar colour cannot be set per bar. Accept this constraint.
+
+
+================================================================
+[DN] DISCIPLINE SCREEN — DATA COLLECTION
+================================================================
+Build this collection in App.OnStart. It pre-aggregates per discipline
+so the gallery renders fast (avoids re-calculating on every row render).
+
+ClearCollect(colDiscStats,
+  ForAll(
+    GroupBy(
+      Filter(Table1, !IsBlank([Final Referral Status (Do not amend)])),
+      "Referring Discipline",
+      "Cases"
+    ),
+    {
+      Discipline: 'Referring Discipline',
+      Total: CountRows(Cases),
+      Accepted: CountRows(Filter(Cases,
+        [Final Referral Status (Do not amend)]="Accepted With Admission Details")),
+      Rejected: CountRows(Filter(Cases,
+        [Final Referral Status (Do not amend)]="Rejected")),
+      Cancelled: CountRows(Filter(Cases,
+        StartsWith([Final Referral Status (Do not amend)],"Cancelled"))),
+      Withdrawn: CountRows(Filter(Cases,
+        [Final Referral Status (Do not amend)]="Withdrawn")),
+      AccPct: Round(
+        CountRows(Filter(Cases,
+          [Final Referral Status (Do not amend)]="Accepted With Admission Details")) /
+        CountRows(Cases) * 100, 0),
+      NonAccPct: Round(
+        (CountRows(Cases) -
+         CountRows(Filter(Cases,
+           [Final Referral Status (Do not amend)]="Accepted With Admission Details"))) /
+        CountRows(Cases) * 100, 0)
+    }
+  )
+)
+
+Sort by highest non-acceptance rate in the gallery:
+  Items: SortByColumns(colDiscStats, "NonAccPct", SortOrder.Descending)
+
+
+================================================================
+[DO] DISCIPLINE SCREEN — GALLERY
+================================================================
+→ galDisc
+X:150  Y:136  Width:1186  Height:590
+Items: SortByColumns(colDiscStats,"NonAccPct",SortOrder.Descending)
+TemplateHeight: 52
+
+Inside template:
+
+  lblDiscName:   X:4   Width:170  Text:ThisItem.Discipline
+                 Size:9  FontWeight:Bold  Overflow:Clip
+
+  lblDiscTotal:  X:176 Width:36   Text:Text(ThisItem.Total)
+                 Size:11  FontWeight:Bold  Color:ColorValue("#0C3A5E")
+                 Align:Center
+
+  lblDiscBreak:  X:214 Width:200
+                 Text: Text(ThisItem.Accepted) & "A  ·  " &
+                       Text(ThisItem.Rejected)  & "R  ·  " &
+                       Text(ThisItem.Cancelled) & "C  ·  " &
+                       Text(ThisItem.Withdrawn) & "W"
+                 Size:8  Color:ColorValue("#7F8C8D")
+
+  Stacked outcome bar (4 rectangles, Y:30 Height:8, total width 200):
+    recDiscAcc:  Width: ThisItem.AccPct * 2    Fill:ColorValue("#1E8449")
+    recDiscRej:  Width: (ThisItem.Rejected/ThisItem.Total*100) * 2  Fill:ColorValue("#C0392B")
+    recDiscCan:  Width: (ThisItem.Cancelled/ThisItem.Total*100) * 2 Fill:ColorValue("#E67E22")
+    recDiscWit:  Width: (ThisItem.Withdrawn/ThisItem.Total*100) * 2 Fill:ColorValue("#7F8C8D")
+    X positions: chain left-to-right. Set each X based on prior widths.
+    Simplification: use a single HTML Text control instead (see note below)
+
+  lblDiscAccPct: X:416 Width:52
+                 Text: Text(ThisItem.AccPct) & "%"
+                 Size:10  FontWeight:Bold  Color:ColorValue("#1E8449")
+
+  lblDiscNonPct: X:470 Width:52
+                 Text: Text(ThisItem.NonAccPct) & "%"
+                 Size:10  FontWeight:Bold  Color:ColorValue("#C0392B")
+
+  Waste badge (rectangle + label):
+    recDiscWaste:  X:524 Width:44 Y:14 Height:22 BorderRadius:4
+    Fill:
+      If(ThisItem.NonAccPct>=60, ColorValue("#FADBD8"),
+       If(ThisItem.NonAccPct>=40, ColorValue("#FDEBD0"),
+          ColorValue("#D5F5E3")))
+    lblDiscWaste:
+      Text: If(ThisItem.NonAccPct>=60,"High",
+             If(ThisItem.NonAccPct>=40,"Med","Low"))
+      Color:
+        If(ThisItem.NonAccPct>=60, ColorValue("#C0392B"),
+         If(ThisItem.NonAccPct>=40, ColorValue("#E67E22"),
+            ColorValue("#1E8449")))
+      Size:8  FontWeight:Bold  Align:Center
+
+NOTE ON STACKED BAR: Chaining rectangle X positions in Power Apps
+gallery templates is fiddly because each control X is set independently.
+Simpler alternative — use an HTML Text control with inline div widths:
+
+  HtmlText control, HtmlText property:
+  "<div style='display:flex;height:8px;border-radius:4px;overflow:hidden;'>" &
+  "<div style='width:" & Text(ThisItem.AccPct) & "%;background:#1E8449;'></div>" &
+  "<div style='width:" & Text(Round(ThisItem.Rejected/ThisItem.Total*100,0)) & "%;background:#C0392B;'></div>" &
+  "<div style='width:" & Text(Round(ThisItem.Cancelled/ThisItem.Total*100,0)) & "%;background:#E67E22;'></div>" &
+  "<div style='width:" & Text(Round(ThisItem.Withdrawn/ThisItem.Total*100,0)) & "%;background:#7F8C8D;'></div>" &
+  "</div>"
+  X:214  Y:34  Width:200  Height:14
+
+This is cleaner than 4 chained rectangles.
+
+
+================================================================
+[DP] DISCIPLINE SCREEN — WASTE CALLOUT BANNER
+================================================================
+→ recWasteBanner
+X:150  Y:688  Width:1186  Height:72
+Fill: ColorValue("#FDEBD0")
+BorderColor: ColorValue("#F0B27A")  BorderThickness:1
+
+→ lblWasteTitle.Text
+"High-waste disciplines — non-acceptance >60%, min 10 referrals"
+X:162  Y:694  Size:9  FontWeight:Bold  Color:ColorValue("#E67E22")
+
+→ lblWasteBody.Text
+Concat(
+  Filter(colDiscStats, NonAccPct >= 60, Total >= 10),
+  Discipline & ": " & Text(Total) & " referrals, " &
+  Text(AccPct) & "% accepted (" & Text(Accepted) & " of " &
+  Text(Total) & ").   ",
+  ""
+)
+X:162  Y:710  Width:1162  Height:42
+Size:9  Color:ColorValue("#6E2F0E")
+
+
+================================================================
+[DQ] SCREEN VISIBILITY — WRAP EVERYTHING IN Visible PROPERTY
+================================================================
+All pending screen controls:  Visible: gblNavScreen = "Pending"
+All analytics screen controls: Visible: gblNavScreen = "Analytics"
+All discipline screen controls: Visible: gblNavScreen = "Discipline"
+
+This is how Power Apps fakes multi-screen navigation in a single screen.
+Alternative: use actual separate screens and Navigate() — but that causes
+a full screen flash on each tab switch. Single-screen with Visible is cleaner
+for a dashboard.
+
+
+================================================================
+[DR] BUILD ORDER
+================================================================
+1. Create app, set canvas 1366×768
+2. Connect Excel data source (see [DC])
+3. Test CountRows(Table1) → confirm row count
+4. Build App.OnStart ([DB]) — collections first
+5. Build sidebar ([DD])
+6. Build topbar ([DE])
+7. Build Pending screen controls ([DF][DG][DH][DI][DJ])
+   — test filter and gallery before building detail panel
+8. Build Analytics KPIs ([DK])
+9. Build pie chart + TAT bar ([DL][DM])
+10. Build Discipline screen ([DN][DO][DP])
+11. Set all Visible formulas ([DQ])
+12. Save → test → share with supervisor (File → Share)
+
+SAVE AFTER EVERY STEP. Ctrl+S.
+
+================================================================
+[DS] COMMON ERRORS TO WATCH FOR
+================================================================
+1. Column name spaces — Excel Online column names with spaces need
+   square brackets: [Patient's name] not 'Patient''s name'
+
+2. TAT column is in DAYS not hours — always multiply by 24:
+   [TAT (Order to Completion)] * 24 >= 72  (not >= 3)
+
+3. Ward type casing — data has both "Gen IR" and "GEN IR".
+   Always wrap in Upper(Trim()) when filtering by ward type.
+
+4. GroupBy + ForAll for discipline stats — ForAll is not delegable
+   in Excel Online. If you get a warning about delegation, the
+   collection will still work but will be capped at 500 rows.
+   At 646 rows you are fine. This becomes a problem if the file
+   grows past 2000 rows — flag it when that happens.
+
+5. Pie chart colours — not controllable in standard licensing.
+   Do not spend time trying to match the mockup colours. Build the
+   manual legend instead ([DL]).
+
+6. Detail panel flicker — if gblSelected causes controls to
+   jump, ensure recDetailPanel has the same Visible formula as
+   all controls inside it: !IsBlank(gblSelected)
+
+================================================================
+END OF DASHBOARD PASTE LIBRARY
+================================================================

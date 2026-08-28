@@ -1,0 +1,1159 @@
+﻿============================================================
+ATTENDANCE REPORT MACRO - ALL MODULES
+Copy each section into a separate VBA module (or UserForm, per its
+IMPORT NOTE) in the VBA Editor. The module name is shown in the
+header of each section.
+============================================================
+
+
+============================================================
+MODULE: MainMacro.bas
+============================================================
+
+Attribute VB_Name = "MainMacro"
+Option Explicit
+
+Sub GenerateAttendanceReport()
+    Dim srcWb As Workbook, srcWs As Worksheet
+    Dim cfgWs As Worksheet
+    Dim schedule As Object, verifyOptions As Collection
+    Dim rosterCodes As Object, rosterData As Object
+    Dim outWb As Workbook
+    Dim dayCols() As Long, dayDates() As Date, dayNames() As String
+    Dim progressShown As Boolean
+
+    On Error GoTo ErrHandler
+    LastAction = "Showing file picker"
+
+    If Not FilePickerForm.ShowFilePicker() Then Exit Sub   ' user cancelled; picker already closed its own file
+    Set srcWb = FilePickerForm.SelectedSrc
+    Set srcWs = srcWb.Sheets(1)
+
+    Application.ScreenUpdating = False
+    ProgressForm.ShowProgress 5
+    progressShown = True
+
+    ProgressForm.Update 1, "Loading configuration..."
+    LastAction = "Loading Config sheet"
+    Set cfgWs = ThisWorkbook.Sheets("Config")
+    LoadConfig cfgWs, schedule, verifyOptions
+
+    ProgressForm.Update 2, "Loading roster data..."
+    LastAction = "Loading Roster sheet"
+    LoadRoster ThisWorkbook, rosterCodes, rosterData
+
+    ProgressForm.Update 3, "Parsing date headers..."
+    LastAction = "Parsing date headers"
+    ParseDayHeaders srcWs, dayCols, dayDates, dayNames
+
+    ProgressForm.Update 4, "Classifying attendance and building department sheets..."
+    LastAction = "Creating output workbook"
+    Set outWb = Workbooks.Add(xlWBATWorksheet)
+    BuildDepartmentSheets srcWs, outWb, schedule, verifyOptions, dayCols, dayDates, dayNames, rosterCodes, rosterData
+
+    ProgressForm.Update 5, "Finalizing and saving report..."
+    LastAction = "Removing blank placeholder sheet"
+    Application.DisplayAlerts = False
+    Do While outWb.Sheets.Count > 1 And outWb.Sheets(1).Name Like "Sheet*" _
+              And Application.WorksheetFunction.CountA(outWb.Sheets(1).Cells) = 0
+        outWb.Sheets(1).Delete
+    Loop
+    Application.DisplayAlerts = True
+
+    LastAction = "Closing source workbook"
+    srcWb.Close SaveChanges:=False
+
+    Dim outName As String
+    outName = "Attendance_Report_" & Format(dayDates(LBound(dayDates)), "YYYY_MM") & ".xlsx"
+    LastAction = "Saving output workbook as " & outName
+    outWb.SaveAs ThisWorkbook.Path & Application.PathSeparator & outName, FileFormat:=xlOpenXMLWorkbook
+
+    ProgressForm.CloseProgress
+    Application.ScreenUpdating = True
+
+    Dim completionMsg As String
+    completionMsg = "Attendance report generated:" & vbCrLf & outName & vbCrLf & vbCrLf & _
+           "Check each department sheet for purple 'NO PUNCH - VERIFY' rows and fill in the Verification column."
+
+    If Not RosterWarnings Is Nothing Then
+        If RosterWarnings.Count > 0 Then
+            Dim w As Variant
+            completionMsg = completionMsg & vbCrLf & vbCrLf & "Roster warnings:"
+            For Each w In RosterWarnings
+                completionMsg = completionMsg & vbCrLf & "- " & w
+            Next w
+        End If
+    End If
+
+    MsgBox completionMsg, vbInformation
+    Exit Sub
+
+ErrHandler:
+    Dim errNum As Long, errDesc As String
+    errNum = Err.Number
+    errDesc = Err.Description
+
+    If progressShown Then
+        On Error Resume Next
+        ProgressForm.CloseProgress
+        On Error GoTo 0
+    End If
+    Application.ScreenUpdating = True
+    Application.DisplayAlerts = True
+    If Not srcWb Is Nothing Then
+        On Error Resume Next
+        srcWb.Close SaveChanges:=False
+        On Error GoTo 0
+    End If
+    MsgBox "Error " & errNum & ": " & errDesc & vbCrLf & vbCrLf & _
+           "Last action: " & LastAction, vbCritical, "Attendance Report Generator"
+End Sub
+
+
+============================================================
+MODULE: Helpers.bas
+============================================================
+
+Attribute VB_Name = "Helpers"
+Option Explicit
+
+Public GracePeriodMinutes As Long
+Public HoursUnitIsMinutes As Boolean
+Public RosterWarnings As Collection
+
+' Tracks the most recent operation for diagnostic error messages -- see
+' MainMacro.ErrHandler, which appends this to the error MsgBox so a crash
+' points at the sheet/row being processed instead of just a line number.
+Public LastAction As String
+
+Public Function BuildScheduleKey(dept As String, wkday As String) As String
+    BuildScheduleKey = UCase(Trim(dept)) & "|" & UCase(Trim(wkday))
+End Function
+
+Public Function FindColByHeader(ws As Worksheet, headerRow As Long, headerText As String) As Long
+    Dim lastCol As Long, c As Long
+    lastCol = ws.Cells(headerRow, ws.Columns.Count).End(xlToLeft).Column
+    For c = 1 To lastCol
+        If Trim(CStr(ws.Cells(headerRow, c).Value)) = headerText Then
+            FindColByHeader = c
+            Exit Function
+        End If
+    Next c
+    FindColByHeader = 0
+End Function
+
+' Reads the Config sheet (tblSchedule + tblVerification + GracePeriod named range)
+' schedule: Dictionary keyed "DEPT|WEEKDAY" -> Array(IsScheduled As Boolean, StartTime As Double, EndTime As Double)
+Public Sub LoadConfig(cfgWs As Worksheet, ByRef schedule As Object, ByRef verifyOptions As Collection)
+    Set schedule = CreateObject("Scripting.Dictionary")
+    Set verifyOptions = New Collection
+
+    LastAction = "LoadConfig: reading GracePeriod named range"
+    Dim gpRange As Range
+    On Error Resume Next
+    Set gpRange = cfgWs.Range("GracePeriod")
+    On Error GoTo 0
+    If gpRange Is Nothing Then
+        Err.Raise vbObjectError + 2, , "GracePeriod named range not found in Config sheet."
+    End If
+    GracePeriodMinutes = gpRange.Value
+
+    Dim hoursUnitRaw As String
+    On Error Resume Next
+    hoursUnitRaw = CStr(cfgWs.Range("HoursUnit").Value)
+    On Error GoTo 0
+    HoursUnitIsMinutes = (UCase(Trim(hoursUnitRaw)) = "MINUTES")
+
+    LastAction = "LoadConfig: locating tblSchedule"
+    Dim lo As ListObject, tbl As ListObject, vtbl As ListObject
+    For Each lo In cfgWs.ListObjects
+        If lo.Name = "tblSchedule" Then Set tbl = lo: Exit For
+    Next lo
+    If tbl Is Nothing Then
+        Err.Raise vbObjectError + 3, , "tblSchedule table not found in Config sheet."
+    End If
+
+    Dim i As Long, key As String
+    For i = 1 To tbl.ListRows.Count
+        Dim dept As String, wkday As String, sched As String
+        dept = CStr(tbl.DataBodyRange(i, 1).Value)
+        wkday = CStr(tbl.DataBodyRange(i, 2).Value)
+        sched = CStr(tbl.DataBodyRange(i, 3).Value)
+        LastAction = "LoadConfig: reading tblSchedule row " & i & " (dept=" & dept & ", weekday=" & wkday & ")"
+        key = BuildScheduleKey(dept, wkday)
+
+        Dim arr(2) As Variant
+        arr(0) = (UCase(Trim(sched)) = "Y")
+        If arr(0) Then
+            If Not IsNumeric(tbl.DataBodyRange(i, 4).Value) Or Not IsNumeric(tbl.DataBodyRange(i, 5).Value) Then
+                Err.Raise vbObjectError + 4, , "tblSchedule row for " & dept & "/" & wkday & _
+                    " has a non-numeric Start Time or End Time."
+            End If
+            arr(1) = CDbl(tbl.DataBodyRange(i, 4).Value)
+            arr(2) = CDbl(tbl.DataBodyRange(i, 5).Value)
+        Else
+            arr(1) = 0
+            arr(2) = 0
+        End If
+        schedule(key) = arr
+    Next i
+
+    LastAction = "LoadConfig: locating tblVerification"
+    For Each lo In cfgWs.ListObjects
+        If lo.Name = "tblVerification" Then Set vtbl = lo: Exit For
+    Next lo
+    If vtbl Is Nothing Then
+        Err.Raise vbObjectError + 5, , "tblVerification table not found in Config sheet."
+    End If
+    For i = 1 To vtbl.ListRows.Count
+        LastAction = "LoadConfig: reading tblVerification row " & i
+        verifyOptions.Add CStr(vtbl.DataBodyRange(i, 1).Value)
+    Next i
+End Sub
+
+Public Function DeptHasScheduleRows(schedule As Object, dept As String) As Boolean
+    Dim wkdays As Variant, i As Long
+    wkdays = Array("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    For i = 0 To 6
+        If schedule.Exists(BuildScheduleKey(dept, CStr(wkdays(i)))) Then
+            DeptHasScheduleRows = True
+            Exit Function
+        End If
+    Next i
+    DeptHasScheduleRows = False
+End Function
+
+Public Function ClassifyInStatus(inTime As Double, schedStart As Double, graceMin As Long) As String
+    Dim diffMin As Double
+    diffMin = (inTime - schedStart) * 1440
+    If diffMin <= 0 Then
+        ClassifyInStatus = "On Time"
+    ElseIf diffMin <= graceMin Then
+        ClassifyInStatus = "Within Grace"
+    Else
+        ClassifyInStatus = "Late"
+    End If
+End Function
+
+Public Function ClassifyOutStatus(outTime As Double, schedEnd As Double, graceMin As Long) As String
+    Dim diffMin As Double
+    diffMin = (schedEnd - outTime) * 1440
+    If diffMin <= 0 Then
+        ClassifyOutStatus = "On Time"
+    ElseIf diffMin <= graceMin Then
+        ClassifyOutStatus = "Within Grace"
+    Else
+        ClassifyOutStatus = "Early Leave"
+    End If
+End Function
+
+' Structural validator for the raw Monthly Punch List export - there is no header
+' row to scan (row 1 is a title, row 2 is dates, row 3 is weekday names), so this
+' checks the same two structural facts BuildDepartmentSheets/ParseDayHeaders rely
+' on: at least one valid date column in row 2, and at least one data row present.
+Public Function ValidatePunchListFile(wb As Workbook) As Boolean
+    Dim ws As Worksheet
+    Set ws = wb.Sheets(1)
+
+    Dim dayCols() As Long, dayDates() As Date, dayNames() As String
+    On Error Resume Next
+    Err.Clear
+    ParseDayHeaders ws, dayCols, dayDates, dayNames
+    If Err.Number <> 0 Then
+        On Error GoTo 0
+        ValidatePunchListFile = False
+        Exit Function
+    End If
+    On Error GoTo 0
+
+    ValidatePunchListFile = (Trim(CStr(ws.Cells(4, 1).Value)) <> "")
+End Function
+
+' Optional feature: reads a manager-maintained per-unit leave/duty roster. Each unit
+' pastes its own roster into its own table on the "Roster" sheet (named tblRoster_<Unit>,
+' e.g. tblRoster_PSO) -- LoadRoster discovers every table whose name starts with
+' "tblRoster" and merges them all into one combined rosterData dictionary, so units can
+' be added/removed/resized independently without any VBA change. Matching is by plain
+' day-of-month (1-31), not calendar date -- the native rosters this feature reads from
+' have no month/year anywhere in them, only a day-number column per day. tblRosterCodes
+' (Config sheet) lists the recognized leave codes. Both are optional -- if the Roster
+' sheet is absent, or has no tblRoster* tables, this leaves rosterCodes/rosterData empty
+' and every [-] day behaves exactly as it does without this feature (see
+' ReportBuilder.BuildDepartmentSheets, Case "NOPUNCH").
+' rosterData is keyed "UCASE(TRIM(AttendanceName))|DayOfMonth" -> UCase'd code string.
+Public Sub LoadRoster(wb As Workbook, ByRef rosterCodes As Object, ByRef rosterData As Object)
+    Set rosterCodes = CreateObject("Scripting.Dictionary")
+    Set rosterData = CreateObject("Scripting.Dictionary")
+    Set RosterWarnings = New Collection
+
+    On Error GoTo UnexpectedError
+
+    LastAction = "LoadRoster: locating tblRosterCodes"
+    Dim cfgWs As Worksheet
+    Set cfgWs = wb.Sheets("Config")
+    Dim lo As ListObject, codesTbl As ListObject
+    For Each lo In cfgWs.ListObjects
+        If lo.Name = "tblRosterCodes" Then Set codesTbl = lo: Exit For
+    Next lo
+
+    If Not codesTbl Is Nothing Then
+        Dim ci As Long, codeVal As String
+        For ci = 1 To codesTbl.ListRows.Count
+            LastAction = "LoadRoster: reading tblRosterCodes row " & ci
+            codeVal = UCase(Trim(CStr(codesTbl.DataBodyRange(ci, 1).Value)))
+            If codeVal <> "" Then rosterCodes(codeVal) = True
+        Next ci
+    End If
+
+    LastAction = "LoadRoster: locating Roster sheet"
+    Dim sh As Worksheet, rosterWs As Worksheet
+    For Each sh In wb.Sheets
+        If sh.Name = "Roster" Then Set rosterWs = sh: Exit For
+    Next sh
+    If rosterWs Is Nothing Then Exit Sub
+
+    Dim seenNames As Object
+    Set seenNames = CreateObject("Scripting.Dictionary")
+
+    Dim rosterTbl As ListObject
+    LastAction = "LoadRoster: enumerating tblRoster* tables"
+    For Each lo In rosterWs.ListObjects
+        If UCase(Left(lo.Name, 9)) <> "TBLROSTER" Then GoTo NextTable
+        Set rosterTbl = lo
+
+        LastAction = "LoadRoster: locating Attendance Name column in " & rosterTbl.Name
+        Dim nameCol As ListColumn, idCol As Long
+        idCol = 0
+        For Each nameCol In rosterTbl.ListColumns
+            If nameCol.Name = "Attendance Name" Then idCol = nameCol.Index: Exit For
+        Next nameCol
+        If idCol = 0 Then
+            RosterWarnings.Add rosterTbl.Name & " is missing an 'Attendance Name' column -- roster matching skipped for this table."
+            GoTo NextTable
+        End If
+
+        LastAction = "LoadRoster: discovering day-of-month columns in " & rosterTbl.Name
+        Dim dayColIdx() As Long, dayOfMonthVal() As Long, nDayCols As Long
+        ReDim dayColIdx(1 To rosterTbl.ListColumns.Count)
+        ReDim dayOfMonthVal(1 To rosterTbl.ListColumns.Count)
+        nDayCols = 0
+
+        Dim seenDays As Object
+        Set seenDays = CreateObject("Scripting.Dictionary")
+
+        Dim lc As ListColumn, hdrVal As Variant, dayNum As Long
+        For Each lc In rosterTbl.ListColumns
+            hdrVal = lc.Range.Cells(1, 1).Value
+            If IsNumeric(hdrVal) Then
+                dayNum = CLng(hdrVal)
+                If dayNum >= 1 And dayNum <= 31 Then
+                    If seenDays.Exists(dayNum) Then
+                        RosterWarnings.Add rosterTbl.Name & " has a duplicate day-of-month column (" & _
+                            dayNum & ") -- first occurrence used."
+                    Else
+                        seenDays(dayNum) = True
+                        nDayCols = nDayCols + 1
+                        dayColIdx(nDayCols) = lc.Index
+                        dayOfMonthVal(nDayCols) = dayNum
+                    End If
+                End If
+            End If
+        Next lc
+
+        LastAction = "LoadRoster: reading " & rosterTbl.Name & " rows"
+        Dim ri As Long, empName As String
+        For ri = 1 To rosterTbl.ListRows.Count
+            LastAction = "LoadRoster: reading " & rosterTbl.Name & " row " & ri
+            empName = UCase(Trim(CStr(rosterTbl.DataBodyRange(ri, idCol).Value)))
+            If empName = "" Then GoTo NextRosterRow
+
+            If seenNames.Exists(empName) Then
+                RosterWarnings.Add rosterTbl.Name & " has a duplicate Attendance Name (" & empName & ") -- first occurrence used."
+                GoTo NextRosterRow
+            End If
+            seenNames(empName) = True
+
+            Dim di As Long, cellVal As String
+            For di = 1 To nDayCols
+                cellVal = UCase(Trim(CStr(rosterTbl.DataBodyRange(ri, dayColIdx(di)).Value)))
+                If cellVal <> "" Then rosterData(empName & "|" & dayOfMonthVal(di)) = cellVal
+            Next di
+NextRosterRow:
+        Next ri
+NextTable:
+    Next lo
+    Exit Sub
+
+UnexpectedError:
+    RosterWarnings.Add "Unexpected error while loading Roster data (" & Err.Description & _
+        ") -- roster matching skipped for this run."
+    Set rosterCodes = CreateObject("Scripting.Dictionary")
+    Set rosterData = CreateObject("Scripting.Dictionary")
+End Sub
+
+
+============================================================
+MODULE: PunchParser.bas
+============================================================
+
+Attribute VB_Name = "PunchParser"
+Option Explicit
+
+' Raw cell formats observed in the Monthly Punch List export:
+'   "07:47-17:00"  -> normal, both punches present
+'   "[-]"          -> scheduled day, zero punches at all
+'   "09:27-]"      -> clock-in present, clock-out missing
+'   "[-17:01"      -> clock-in missing, clock-out present
+'   ""             -> not scheduled that day (blank cell, not an error)
+' Returns one of: "NORMAL","NOPUNCH","MISSING_IN","MISSING_OUT","BLANK","UNKNOWN"
+Public Function ParsePunchCell(raw As String, ByRef hasIn As Boolean, ByRef hasOut As Boolean, _
+                                ByRef inTime As Double, ByRef outTime As Double) As String
+    Dim s As String
+    s = Trim(raw)
+    hasIn = False
+    hasOut = False
+    inTime = 0
+    outTime = 0
+
+    If s = "" Then
+        ParsePunchCell = "BLANK"
+        Exit Function
+    End If
+
+    If s = "[-]" Then
+        ParsePunchCell = "NOPUNCH"
+        Exit Function
+    End If
+
+    Dim dashPos As Long
+    dashPos = InStr(s, "-")
+    If dashPos = 0 Then
+        ParsePunchCell = "UNKNOWN"
+        Exit Function
+    End If
+
+    Dim leftPart As String, rightPart As String
+    leftPart = Trim(Left(s, dashPos - 1))
+    rightPart = Trim(Mid(s, dashPos + 1))
+
+    If leftPart = "[" Then
+        hasIn = False
+    Else
+        hasIn = True
+        On Error GoTo BadFormat
+        inTime = TimeSerial(CInt(Left(leftPart, 2)), CInt(Mid(leftPart, 4, 2)), 0)
+        On Error GoTo 0
+    End If
+
+    If rightPart = "]" Then
+        hasOut = False
+    Else
+        hasOut = True
+        On Error GoTo BadFormat
+        outTime = TimeSerial(CInt(Left(rightPart, 2)), CInt(Mid(rightPart, 4, 2)), 0)
+        On Error GoTo 0
+    End If
+
+    If hasIn And hasOut Then
+        ParsePunchCell = "NORMAL"
+    ElseIf hasIn And Not hasOut Then
+        ParsePunchCell = "MISSING_OUT"
+    ElseIf Not hasIn And hasOut Then
+        ParsePunchCell = "MISSING_IN"
+    Else
+        ParsePunchCell = "NOPUNCH"
+    End If
+    Exit Function
+
+BadFormat:
+    ParsePunchCell = "UNKNOWN"
+End Function
+
+' Reads row 2 (dates) and row 3 (weekday names) of the raw export, starting at column E,
+' and returns only the columns that actually contain a valid date - handles 28/29/30/31 day months.
+Public Sub ParseDayHeaders(ws As Worksheet, ByRef dayCols() As Long, ByRef dayDates() As Date, ByRef dayNames() As String)
+    Dim lastCol As Long, c As Long, n As Long
+    lastCol = ws.Cells(2, ws.Columns.Count).End(xlToLeft).Column
+
+    ReDim dayCols(1 To lastCol)
+    ReDim dayDates(1 To lastCol)
+    ReDim dayNames(1 To lastCol)
+    n = 0
+
+    For c = 5 To lastCol
+        If IsDate(ws.Cells(2, c).Value) Then
+            n = n + 1
+            dayCols(n) = c
+            dayDates(n) = CDate(ws.Cells(2, c).Value)
+            dayNames(n) = CStr(ws.Cells(3, c).Value)
+        End If
+    Next c
+
+    If n = 0 Then
+        Err.Raise vbObjectError + 1, , "No valid date columns found in row 2 of the raw file. Check the export format."
+    End If
+
+    ReDim Preserve dayCols(1 To n)
+    ReDim Preserve dayDates(1 To n)
+    ReDim Preserve dayNames(1 To n)
+End Sub
+
+
+============================================================
+MODULE: ReportBuilder.bas
+============================================================
+
+Attribute VB_Name = "ReportBuilder"
+Option Explicit
+
+Public Sub WriteDetailHeader(ws As Worksheet)
+    Dim hrsLbl As String, expLbl As String
+    If HoursUnitIsMinutes Then
+        hrsLbl = "Minutes Worked": expLbl = "Expected Minutes"
+    Else
+        hrsLbl = "Hours Worked": expLbl = "Expected Hours"
+    End If
+
+    Dim hdrs As Variant
+    hdrs = Array("Personnel ID", "Name", "Department", "Date", "Weekday", "Raw Punch", _
+                 "Clock In", "Clock Out", "Sched Start", "Sched End", _
+                 "Clock-In Status", "Clock-Out Status", "Late (min)", "Early (min)", _
+                 hrsLbl, expLbl, "Verification", "Notes")
+    Dim i As Long
+    For i = 0 To UBound(hdrs)
+        With ws.Cells(1, i + 1)
+            .Value = hdrs(i)
+            .Font.Bold = True
+            .Font.Color = RGB(255, 255, 255)
+            .Interior.Color = RGB(12, 68, 124)
+        End With
+    Next i
+    ws.Rows(1).AutoFilter
+End Sub
+
+' isAltBand alternates per employee block so consecutive employees are easy to tell
+' apart at a glance; it only affects the default (no-status) row color so flagged
+' statuses below keep taking visual priority.
+Public Sub ApplyRowColor(ws As Worksheet, r As Long, statusIn As String, isAltBand As Boolean)
+    Dim clr As Long
+    If Left(statusIn, Len("NO PUNCH - ROSTER: ")) = "NO PUNCH - ROSTER: " Then
+        clr = RGB(215, 235, 250)
+    Else
+        Select Case statusIn
+            Case "NO PUNCH - VERIFY"
+                clr = RGB(230, 200, 250)
+            Case "Late", "Missing Clock-In"
+                clr = RGB(252, 235, 235)
+            Case "Within Grace"
+                clr = RGB(250, 238, 218)
+            Case "UNRECOGNIZED FORMAT"
+                clr = RGB(255, 120, 120)
+            Case Else
+                If isAltBand Then
+                    clr = RGB(238, 238, 238)
+                Else
+                    clr = RGB(255, 255, 255)
+                End If
+        End Select
+    End If
+    ws.Range(ws.Cells(r, 1), ws.Cells(r, 18)).Interior.Color = clr
+End Sub
+
+Public Sub FinalizeSheet(ws As Worksheet, verifyOptions As Collection, uniqueEmp As Collection)
+    LastAction = "FinalizeSheet(" & ws.Name & "): computing last row"
+    Dim lastRow As Long
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+
+    Dim sumDecimals As Long
+    If HoursUnitIsMinutes Then sumDecimals = 0 Else sumDecimals = 2
+
+    Dim optList As String, v As Variant
+    For Each v In verifyOptions
+        optList = optList & v & ","
+    Next v
+    If Len(optList) > 0 Then optList = Left(optList, Len(optList) - 1)
+
+    If lastRow >= 2 And Len(optList) > 0 Then
+        LastAction = "FinalizeSheet(" & ws.Name & "): adding Verification dropdown validation"
+        With ws.Range("Q2:Q" & lastRow).Validation
+            On Error Resume Next
+            .Delete
+            .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Formula1:=optList
+            On Error GoTo 0
+        End With
+    End If
+
+    LastAction = "FinalizeSheet(" & ws.Name & "): writing summary header"
+    ws.Cells(1, 21).Value = "SUMMARY"
+    ws.Cells(1, 21).Font.Bold = True
+    Dim sumHrsLbl As String, sumExpLbl As String
+    If HoursUnitIsMinutes Then
+        sumHrsLbl = "Minutes Worked": sumExpLbl = "Expected Minutes"
+    Else
+        sumHrsLbl = "Hours Worked": sumExpLbl = "Expected Hours"
+    End If
+    Dim hdrs As Variant
+    hdrs = Array("Personnel ID", "Name", "Days Worked", "Late", "Within Grace", "Early Leave", _
+                 "Missing Punch", "No Punch-Verify", "Roster-Resolved", sumHrsLbl, sumExpLbl)
+    Dim i As Long
+    For i = 0 To UBound(hdrs)
+        With ws.Cells(2, 21 + i)
+            .Value = hdrs(i)
+            .Font.Bold = True
+            .Interior.Color = RGB(230, 241, 251)
+        End With
+    Next i
+
+    If lastRow >= 2 Then
+        Dim r As Long
+        r = 3
+        Dim itm As Variant, parts() As String, empID As String, empName As String
+        For Each itm In uniqueEmp
+            LastAction = "FinalizeSheet(" & ws.Name & "): summary row for employee entry '" & itm & "'"
+            parts = Split(itm, "|")
+            empID = parts(0)
+            empName = parts(1)
+
+            ws.Cells(r, 21).Value = empID
+            ws.Cells(r, 22).Value = empName
+            ws.Cells(r, 23).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""<>"")"
+            ws.Cells(r, 24).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""Late"")"
+            ws.Cells(r, 25).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""Within Grace"")+COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$L$2:$L$" & lastRow & ",""Within Grace"")"
+            ws.Cells(r, 26).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$L$2:$L$" & lastRow & ",""Early Leave"")"
+            ws.Cells(r, 27).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""Missing Clock-In"")+COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$L$2:$L$" & lastRow & ",""Missing Clock-Out"")"
+            ws.Cells(r, 28).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""NO PUNCH - VERIFY"")"
+            ' Wildcard match: roster-resolved statuses carry a variable code suffix ("NO PUNCH - ROSTER: AL")
+            ws.Cells(r, 29).Formula = "=COUNTIFS($A$2:$A$" & lastRow & ",$U" & r & ",$K$2:$K$" & lastRow & ",""NO PUNCH - ROSTER: *"")"
+            ws.Cells(r, 30).Formula = "=ROUND(SUMIFS($O$2:$O$" & lastRow & ",$A$2:$A$" & lastRow & ",$U" & r & ")," & sumDecimals & ")"
+            ws.Cells(r, 31).Formula = "=ROUND(SUMIFS($P$2:$P$" & lastRow & ",$A$2:$A$" & lastRow & ",$U" & r & ")," & sumDecimals & ")"
+            r = r + 1
+        Next itm
+    End If
+
+    LastAction = "FinalizeSheet(" & ws.Name & "): autofitting columns"
+    ' AutoFit measures rendered text width, so it computes wrong (too-narrow) widths
+    ' while ScreenUpdating is off -- the caller runs this whole pipeline with it False.
+    Dim priorScreenUpdating As Boolean
+    priorScreenUpdating = Application.ScreenUpdating
+    Application.ScreenUpdating = True
+    ws.Columns("A:AE").AutoFit
+    Application.ScreenUpdating = priorScreenUpdating
+
+    LastAction = "FinalizeSheet(" & ws.Name & "): setting freeze panes"
+    ws.Application.Goto ws.Range("A1"), True
+    ActiveWindow.FreezePanes = False
+    ws.Rows("2:2").Select
+    ActiveWindow.FreezePanes = True
+    ws.Range("A1").Select
+End Sub
+
+Public Sub BuildDepartmentSheets(srcWs As Worksheet, outWb As Workbook, schedule As Object, _
+                                  verifyOptions As Collection, dayCols() As Long, dayDates() As Date, dayNames() As String, _
+                                  rosterCodes As Object, rosterData As Object)
+    Dim lastRow As Long, r As Long
+    lastRow = srcWs.Cells(srcWs.Rows.Count, 1).End(xlUp).Row
+
+    Dim deptSheetMap As Object, deptRowMap As Object, deptEmpMap As Object, deptBandMap As Object
+    Set deptSheetMap = CreateObject("Scripting.Dictionary")
+    Set deptRowMap = CreateObject("Scripting.Dictionary")
+    Set deptEmpMap = CreateObject("Scripting.Dictionary")
+    Set deptBandMap = CreateObject("Scripting.Dictionary")
+
+    Dim unmappedWs As Worksheet, unmappedRow As Long, unmappedEmp As Collection
+    Dim unmappedBand As Boolean
+    Set unmappedEmp = New Collection
+    unmappedRow = 2
+
+    For r = 4 To lastRow
+        Dim empID As String, fName As String, dept As String
+        empID = Trim(CStr(srcWs.Cells(r, 1).Value))
+        If empID = "" Then GoTo NextRow
+
+        fName = Trim(Trim(CStr(srcWs.Cells(r, 2).Value)) & " " & Trim(CStr(srcWs.Cells(r, 3).Value)))
+        dept = Trim(CStr(srcWs.Cells(r, 4).Value))
+        If dept = "" Then GoTo NextRow
+
+        Dim mapped As Boolean
+        mapped = DeptHasScheduleRows(schedule, dept)
+
+        Dim ws As Worksheet, outRow As Long, empColl As Collection
+
+        If mapped Then
+            If Not deptSheetMap.Exists(dept) Then
+                LastAction = "BuildDepartmentSheets: creating sheet for dept '" & dept & "'"
+                Set ws = outWb.Sheets.Add(After:=outWb.Sheets(outWb.Sheets.Count))
+                ws.Name = Left(dept, 31)
+                WriteDetailHeader ws
+                Set deptSheetMap(dept) = ws
+                deptRowMap(dept) = 2
+                Set deptEmpMap(dept) = New Collection
+            End If
+            Set ws = deptSheetMap(dept)
+            outRow = deptRowMap(dept)
+            Set empColl = deptEmpMap(dept)
+            deptBandMap(dept) = Not deptBandMap(dept)
+        Else
+            If unmappedWs Is Nothing Then
+                Set unmappedWs = outWb.Sheets.Add(After:=outWb.Sheets(outWb.Sheets.Count))
+                unmappedWs.Name = "Unmapped"
+                WriteDetailHeader unmappedWs
+            End If
+            Set ws = unmappedWs
+            outRow = unmappedRow
+            Set empColl = unmappedEmp
+            unmappedBand = Not unmappedBand
+        End If
+
+        Dim isAltBand As Boolean
+        If mapped Then isAltBand = deptBandMap(dept) Else isAltBand = unmappedBand
+
+        Dim blockStartRow As Long
+        blockStartRow = outRow
+
+        On Error Resume Next
+        empColl.Add empID & "|" & fName, empID
+        On Error GoTo 0
+
+        Dim d As Long
+        For d = LBound(dayCols) To UBound(dayCols)
+            LastAction = "BuildDepartmentSheets: row " & r & " (empID=" & empID & ", dept=" & dept & "), day " & dayNames(d)
+            Dim rawVal As String
+            rawVal = CStr(srcWs.Cells(r, dayCols(d)).Value)
+            If Trim(rawVal) = "" Then GoTo NextDay
+
+            Dim patType As String, hasIn As Boolean, hasOut As Boolean, inTime As Double, outT As Double
+            patType = ParsePunchCell(rawVal, hasIn, hasOut, inTime, outT)
+
+            Dim key As String
+            key = BuildScheduleKey(dept, dayNames(d))
+            Dim isSched As Boolean, schedStart As Double, schedEnd As Double
+            isSched = False
+            If schedule.Exists(key) Then
+                isSched = schedule(key)(0)
+                schedStart = schedule(key)(1)
+                schedEnd = schedule(key)(2)
+            End If
+
+            Dim statusIn As String, statusOut As String
+            Dim lateMin As Variant, earlyMin As Variant, hrsWorked As Variant, expHrs As Variant, verifyMatch As Variant
+            Dim effectiveIn As Double
+            statusIn = "": statusOut = ""
+            lateMin = Empty: earlyMin = Empty: hrsWorked = Empty: expHrs = Empty: verifyMatch = Empty
+
+            Select Case patType
+                Case "NOPUNCH"
+                    statusIn = "NO PUNCH - VERIFY"
+                    statusOut = "N/A"
+                    Dim rKey As String, rCode As String
+                    rKey = UCase(Trim(fName)) & "|" & Day(dayDates(d))
+                    If rosterData.Exists(rKey) Then
+                        rCode = CStr(rosterData(rKey))
+                        If rosterCodes.Exists(rCode) Then
+                            verifyMatch = rCode
+                            statusIn = "NO PUNCH - ROSTER: " & rCode
+                        End If
+                    End If
+                Case "MISSING_OUT"
+                    statusOut = "Missing Clock-Out"
+                    If isSched Then
+                        statusIn = ClassifyInStatus(inTime, schedStart, GracePeriodMinutes)
+                        lateMin = (inTime - schedStart) * 1440
+                        If lateMin < 0 Then lateMin = 0
+                        lateMin = Round(lateMin, 1)
+                    Else
+                        statusIn = "On Time"
+                    End If
+                Case "MISSING_IN"
+                    statusIn = "Missing Clock-In"
+                    If isSched Then
+                        statusOut = ClassifyOutStatus(outT, schedEnd, GracePeriodMinutes)
+                        earlyMin = (schedEnd - outT) * 1440
+                        If earlyMin < 0 Then earlyMin = 0
+                        earlyMin = Round(earlyMin, 1)
+                    Else
+                        statusOut = "On Time"
+                    End If
+                Case "NORMAL"
+                    If isSched Then
+                        statusIn = ClassifyInStatus(inTime, schedStart, GracePeriodMinutes)
+                        statusOut = ClassifyOutStatus(outT, schedEnd, GracePeriodMinutes)
+                        lateMin = (inTime - schedStart) * 1440
+                        If lateMin < 0 Then lateMin = 0
+                        lateMin = Round(lateMin, 1)
+                        earlyMin = (schedEnd - outT) * 1440
+                        If earlyMin < 0 Then earlyMin = 0
+                        earlyMin = Round(earlyMin, 1)
+
+                        effectiveIn = inTime
+                        If effectiveIn < schedStart Then effectiveIn = schedStart
+                        If HoursUnitIsMinutes Then
+                            hrsWorked = Round((outT - effectiveIn) * 1440, 0)
+                        Else
+                            hrsWorked = Round((outT - effectiveIn) * 24, 2)
+                        End If
+                    Else
+                        statusIn = "On Time (Unscheduled Day)"
+                        statusOut = "On Time (Unscheduled Day)"
+                    End If
+                Case Else
+                    statusIn = "UNRECOGNIZED FORMAT"
+                    statusOut = "UNRECOGNIZED FORMAT"
+            End Select
+
+            If isSched Then
+                If HoursUnitIsMinutes Then
+                    expHrs = Round((schedEnd - schedStart) * 1440, 0)
+                Else
+                    expHrs = Round((schedEnd - schedStart) * 24, 2)
+                End If
+            End If
+
+            ws.Cells(outRow, 1).Value = empID
+            ws.Cells(outRow, 2).Value = fName
+            ws.Cells(outRow, 3).Value = dept
+            ws.Cells(outRow, 4).Value = dayDates(d)
+            ws.Cells(outRow, 4).NumberFormat = "dd/mm/yyyy"
+            ws.Cells(outRow, 5).Value = dayNames(d)
+            ws.Cells(outRow, 6).Value = rawVal
+            If hasIn Then
+                ws.Cells(outRow, 7).Value = inTime
+                ws.Cells(outRow, 7).NumberFormat = "hh:mm"
+            End If
+            If hasOut Then
+                ws.Cells(outRow, 8).Value = outT
+                ws.Cells(outRow, 8).NumberFormat = "hh:mm"
+            End If
+            If isSched Then
+                ws.Cells(outRow, 9).Value = schedStart
+                ws.Cells(outRow, 9).NumberFormat = "hh:mm"
+                ws.Cells(outRow, 10).Value = schedEnd
+                ws.Cells(outRow, 10).NumberFormat = "hh:mm"
+            End If
+            ws.Cells(outRow, 11).Value = statusIn
+            ws.Cells(outRow, 12).Value = statusOut
+            If Not IsEmpty(lateMin) Then ws.Cells(outRow, 13).Value = lateMin
+            If Not IsEmpty(earlyMin) Then ws.Cells(outRow, 14).Value = earlyMin
+            If Not IsEmpty(hrsWorked) Then ws.Cells(outRow, 15).Value = hrsWorked
+            If Not IsEmpty(expHrs) Then ws.Cells(outRow, 16).Value = expHrs
+            If Not IsEmpty(verifyMatch) Then ws.Cells(outRow, 17).Value = verifyMatch
+
+            ApplyRowColor ws, outRow, statusIn, isAltBand
+
+            outRow = outRow + 1
+NextDay:
+        Next d
+
+        If outRow > blockStartRow Then
+            With ws.Range(ws.Cells(outRow - 1, 1), ws.Cells(outRow - 1, 18)).Borders(xlEdgeBottom)
+                .LineStyle = xlContinuous
+                .Weight = xlThick
+                .Color = RGB(80, 80, 80)
+            End With
+        End If
+
+        If mapped Then
+            deptRowMap(dept) = outRow
+        Else
+            unmappedRow = outRow
+        End If
+NextRow:
+    Next r
+
+    Dim dKey As Variant
+    For Each dKey In deptSheetMap.Keys
+        Dim finalWs As Worksheet, finalEmp As Collection
+        Set finalWs = deptSheetMap(dKey)
+        Set finalEmp = deptEmpMap(dKey)
+        FinalizeSheet finalWs, verifyOptions, finalEmp
+    Next dKey
+    If Not unmappedWs Is Nothing Then
+        FinalizeSheet unmappedWs, verifyOptions, unmappedEmp
+    End If
+End Sub
+
+
+============================================================
+MODULE: FilePickerForm.bas
+============================================================
+
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} FilePickerForm
+   Caption         =   "Attendance Report - Select Punch List File"
+   ClientHeight    =   2400
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   5100
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "FilePickerForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+' ============================================================
+' IMPORT NOTE (staff): This module is an Excel UserForm, NOT a
+' standard module -- it cannot be pasted into a normal module.
+' To install it from Attendance_All_Modules.txt:
+'   1. In the VBA Editor: Insert > UserForm.
+'   2. In the Properties window (F4), set (Name) = FilePickerForm.
+'   3. Open the form's code window (F7) and paste everything from
+'      the "Option Explicit" line above down to the end of this
+'      section (skip the VERSION / Begin / Attribute lines).
+' All controls are built automatically when the form opens, so you
+' never need to draw anything on the form by hand.
+' ============================================================
+
+' Public property returning the selected workbook
+Public SelectedSrc As Workbook
+Public Cancelled As Boolean
+
+' Module-level folder tracking
+Private m_lastFolder As String
+
+' Event-enabled controls
+Private WithEvents m_btnSrc As MSForms.CommandButton
+Private WithEvents m_btnGenerate As MSForms.CommandButton
+Private WithEvents m_btnCancel As MSForms.CommandButton
+
+' Label controls (to update status/filename)
+Private m_lblSrcFile As MSForms.Label
+Private m_lblSrcStatus As MSForms.Label
+
+' Status flag
+Private m_validSrc As Boolean
+
+Public Function ShowFilePicker() As Boolean
+    Cancelled = True
+    Set SelectedSrc = Nothing
+    m_lastFolder = ""
+    m_validSrc = False
+
+    If Not m_lblSrcFile Is Nothing Then
+        m_lblSrcFile.caption = "(not selected)"
+        m_lblSrcStatus.caption = ChrW(9675)
+        m_lblSrcStatus.ForeColor = RGB(0, 0, 0)
+        m_btnGenerate.Enabled = False
+    End If
+
+    Me.Show vbModal
+
+    ShowFilePicker = Not Cancelled
+End Function
+
+Private Sub UserForm_Initialize()
+    Me.Caption = "Attendance Report - Select Punch List File"
+    Me.Width = 400
+    Me.Height = 220
+    Me.Font.Name = "Tahoma"
+    Me.Font.Size = 9.5
+
+    CreateLabel "lblSrc", "Monthly Punch List Export", 20, 15, 340, 15, True
+    Set m_btnSrc = CreateButton("btnSrc", "Browse...", 20, 32, 70, 22)
+    Set m_lblSrcFile = CreateLabel("lblSrcFile", "(not selected)", 100, 35, 180, 15, False)
+    Set m_lblSrcStatus = CreateLabel("lblSrcStatus", ChrW(9675), 290, 35, 70, 15, False)
+    m_lblSrcStatus.Font.Bold = True
+
+    Set m_btnGenerate = CreateButton("btnGenerate", "Generate Report", 110, 100, 110, 26)
+    m_btnGenerate.Enabled = False
+    Set m_btnCancel = CreateButton("btnCancel", "Cancel", 230, 100, 110, 26)
+End Sub
+
+Private Function CreateLabel(name As String, caption As String, left As Single, top As Single, width As Single, height As Single, bold As Boolean) As MSForms.Label
+    Dim lbl As MSForms.Label
+    Set lbl = Me.Controls.Add("Forms.Label.1", name, True)
+    lbl.left = left
+    lbl.top = top
+    lbl.width = width
+    lbl.height = height
+    lbl.caption = caption
+    If bold Then lbl.Font.Bold = True
+    Set CreateLabel = lbl
+End Function
+
+Private Function CreateButton(name As String, caption As String, left As Single, top As Single, width As Single, height As Single) As MSForms.CommandButton
+    Dim btn As MSForms.CommandButton
+    Set btn = Me.Controls.Add("Forms.CommandButton.1", name, True)
+    btn.left = left
+    btn.top = top
+    btn.width = width
+    btn.height = height
+    btn.caption = caption
+    Set CreateButton = btn
+End Function
+
+Private Function PickFileWithFolder(title As String) As Workbook
+    Dim fd As FileDialog
+    Set fd = Application.FileDialog(msoFileDialogFilePicker)
+    fd.title = title
+    fd.Filters.Clear
+    fd.Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xls"
+
+    If m_lastFolder <> "" Then fd.InitialFileName = m_lastFolder & "\"
+
+    If fd.Show = -1 Then
+        Dim filePath As String
+        filePath = fd.SelectedItems(1)
+        m_lastFolder = Left(filePath, InStrRev(filePath, "\") - 1)
+        Set PickFileWithFolder = Workbooks.Open(filePath, ReadOnly:=True)
+    Else
+        Set PickFileWithFolder = Nothing
+    End If
+    AppActivate Me.Caption  ' return focus to the form after the file dialog closes
+End Function
+
+Private Sub m_btnSrc_Click()
+    Dim wb As Workbook
+    Set wb = PickFileWithFolder("Select Monthly Punch List Export")
+    If wb Is Nothing Then Exit Sub      ' user cancelled the dialog -- keep current selection
+
+    ' Release the previous selection, unless the user re-picked the same file
+    ' (Workbooks.Open returns the already-open instance for the same path).
+    If Not (SelectedSrc Is wb) Then
+        On Error Resume Next
+        If Not SelectedSrc Is Nothing Then SelectedSrc.Close SaveChanges:=False
+        On Error GoTo 0
+    End If
+
+    Set SelectedSrc = wb
+    m_lblSrcFile.caption = wb.Name
+    If ValidatePunchListFile(wb) Then
+        m_validSrc = True
+        m_lblSrcStatus.caption = ChrW(&H2713) & " Valid"
+        m_lblSrcStatus.ForeColor = RGB(0, 128, 0)
+    Else
+        m_validSrc = False
+        m_lblSrcStatus.caption = ChrW(&H2717) & " Invalid"
+        m_lblSrcStatus.ForeColor = RGB(255, 0, 0)
+    End If
+
+    m_btnGenerate.Enabled = m_validSrc
+End Sub
+
+Private Sub m_btnGenerate_Click()
+    Cancelled = False
+    Me.Hide
+End Sub
+
+Private Sub m_btnCancel_Click()
+    Cancelled = True
+    On Error Resume Next
+    If Not SelectedSrc Is Nothing Then SelectedSrc.Close SaveChanges:=False
+    On Error GoTo 0
+    Me.Hide
+End Sub
+
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then
+        Cancel = 1
+        m_btnCancel_Click
+    End If
+End Sub
+
+
+============================================================
+MODULE: ProgressForm.bas
+============================================================
+
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} ProgressForm
+   Caption         =   "Attendance Report -- Generating"
+   ClientHeight    =   1500
+   ClientLeft      =   120
+   ClientTop       =   465
+   ClientWidth     =   4200
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "ProgressForm"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Option Explicit
+
+' ============================================================
+' IMPORT NOTE (staff): This module is an Excel UserForm, NOT a
+' standard module. To install it from Attendance_All_Modules.txt:
+'   1. In the VBA Editor: Insert > UserForm.
+'   2. In the Properties window (F4), set (Name) = ProgressForm.
+'   3. Open the form's code window (F7) and paste everything from
+'      the "Option Explicit" line above down to the end of this
+'      section (skip the VERSION / Begin / Attribute lines).
+' All controls are built automatically when the form opens.
+' ============================================================
+
+' Modeless progress window shown by MainMacro during GenerateAttendanceReport.
+' The macro runs with ScreenUpdating = False, so Application.StatusBar never
+' repaints; this form forces a redraw via Me.Repaint on every Update.
+
+Private m_total As Long
+Private m_lblStep As MSForms.Label
+Private m_barTrack As MSForms.Label
+Private m_barFill As MSForms.Label
+
+Private Const BAR_LEFT As Single = 12
+Private Const BAR_TOP As Single = 44
+Private Const BAR_WIDTH As Single = 192
+Private Const BAR_HEIGHT As Single = 16
+
+Public Sub ShowProgress(totalSteps As Long)
+    m_total = totalSteps
+    BuildControls
+    m_lblStep.Caption = "Starting..."
+    m_barFill.Width = 0
+    Me.Show vbModeless
+    Me.Repaint
+End Sub
+
+Public Sub Update(stepNum As Long, message As String)
+    BuildControls
+    m_lblStep.Caption = "Step " & stepNum & " of " & m_total & " -- " & message
+    If m_total > 0 Then m_barFill.Width = BAR_WIDTH * (stepNum / m_total)
+    Me.Repaint
+    DoEvents
+End Sub
+
+Public Sub CloseProgress()
+    Unload Me
+End Sub
+
+Private Sub UserForm_Initialize()
+    Me.Caption = "Attendance Report -- Generating"
+    Me.Width = 222
+    Me.Height = 96
+    Me.Font.Name = "Tahoma"
+    Me.Font.Size = 9
+    BuildControls
+End Sub
+
+' Builds the label + progress bar once. Guarded so it is safe to call repeatedly.
+Private Sub BuildControls()
+    If Not m_barFill Is Nothing Then Exit Sub
+
+    Set m_lblStep = Me.Controls.Add("Forms.Label.1", "lblStep", True)
+    m_lblStep.Left = BAR_LEFT
+    m_lblStep.Top = 12
+    m_lblStep.Width = BAR_WIDTH
+    m_lblStep.Height = 24
+
+    Set m_barTrack = Me.Controls.Add("Forms.Label.1", "barTrack", True)
+    m_barTrack.Left = BAR_LEFT
+    m_barTrack.Top = BAR_TOP
+    m_barTrack.Width = BAR_WIDTH
+    m_barTrack.Height = BAR_HEIGHT
+    m_barTrack.BackColor = RGB(220, 220, 220)
+    m_barTrack.BorderStyle = fmBorderStyleSingle
+
+    Set m_barFill = Me.Controls.Add("Forms.Label.1", "barFill", True)
+    m_barFill.Left = BAR_LEFT
+    m_barFill.Top = BAR_TOP
+    m_barFill.Width = 0
+    m_barFill.Height = BAR_HEIGHT
+    m_barFill.BackColor = RGB(0, 128, 0)
+End Sub
+
+' Block the user's X button so the window cannot be dismissed mid-run.
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then Cancel = 1
+End Sub

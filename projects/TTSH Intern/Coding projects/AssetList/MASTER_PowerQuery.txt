@@ -1,0 +1,8 @@
+section Section1;
+
+shared MASTER = let
+    Source = Excel.CurrentWorkbook(),
+    DeptTables = Table.SelectRows(Source, each List.Contains({"tbl_A1L5", "tbl_ICHPSO", "tbl_PSOINF", "tbl_AONCID", "tbl_EDFC"}, [Name])),
+    Combined = Table.Combine(DeptTables[Content])
+in
+    Combined;

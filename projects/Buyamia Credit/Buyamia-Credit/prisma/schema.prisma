@@ -1,0 +1,299 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// TYPE CONSTANTS (using String for compatibility)
+// ============================================
+// UserType: "BUYER" | "SUPPLIER"
+// InvoiceStatus: "PENDING" | "PAID" | "DUE_SOON" | "OVERDUE_3" | "OVERDUE_7" | "DEFAULTED"
+// IssueType: "NOT_RECEIVED" | "DAMAGED" | "DELAYED" | "WRONG_ITEMS" | "PAYMENT_ISSUE" | "OTHER"
+// IssueStatus: "OPEN" | "RESOLVED" | "CLOSED"
+// MessageDirection: "SENT" | "RECEIVED"
+// CallStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED" | "NO_ANSWER" | "BUSY"
+// CallDirection: "OUTBOUND" | "INBOUND"
+// CollectionStatus: "PENDING" | "IN_PROGRESS" | "PAID" | "ESCALATED"
+
+model User {
+  id            String    @id @default(cuid())
+  type          String    // "BUYER" | "SUPPLIER"
+  userId        String    @unique // BJ#### or SP####
+  
+  // === BUYAMIA LINK (Phase 1) ===
+  buyamiaUserId String?   @unique // UUID from Buyamia - links to Buyamia account (nullable for existing users)
+  buyamiaUserType String?  // "BUYER" | "SUPPLIER" from Buyamia (can be different from type)
+  
+  businessName  String
+  phoneNumber   String    @unique
+  address       String?
+  creditScore   Int       @default(50)
+  riskLevel     String?   // "Low Risk" | "Medium Risk" | "High Risk" | "Critical Risk" | null (uncalculated)
+  profileCompleted Boolean @default(false) // Step 2 completion flag
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // === AUTH FIELDS ===
+  inviteStatus     String    @default("ACTIVE") // "INVITED" | "ACTIVE" | "DISABLED"
+  invitedAt        DateTime?
+  lastLoginAt      DateTime?
+
+  // === BUYER FIELDS ===
+  businessTypes       String   @default("[]") // Restaurant, Cafe, Retail, etc. - stored as JSON array string
+  ownerName           String?  // Owner/PIC name
+  averagePurchaseVolume String? // <5M, 5-20M, 20-50M, 50M+
+  orderFrequency      String?  // 1-5 per week, etc.
+  preferredPaymentTerm String? // COD, Net 7, Net 14, Net 30 - SINGLE SELECT
+  yearsInOperation    Int?     // Years
+  businessRegistrationNumber String? // NIB (optional)
+  numberOfEmployees   Int?     // Optional
+  bankName            String?  // Optional
+  // Contact Person (backup contact)
+  contactPersonName   String?  // Another person contact name
+  contactPersonPhone  String?  // Another person contact phone
+  contactPersonEmail  String?  // Another person contact email (optional)
+
+  // === SUPPLIER FIELDS ===
+  categories          String   @default("[]") // Fresh Food, Frozen, etc. - stored as JSON array string
+  regionsServed       String?  // Jakarta, Bandung, etc.
+  averageSupplyCapacity String? // Monthly supply capacity
+  creditTermsOffered  String   @default("[]") // COD, Net 7, Net 14, Net 30, etc. - stored as JSON array string
+  deliveryMethods     String?  // Optional
+  returnPolicy        String?  // Optional
+
+  // Relations
+  invoicesAsBuyer    Invoice[] @relation("BuyerInvoices")
+  invoicesAsSupplier Invoice[] @relation("SupplierInvoices")
+  issuesAsBuyer      Issue[]   @relation("BuyerIssues")
+  issuesAsSupplier   Issue[]   @relation("SupplierIssues")
+  messages           Message[]
+  scoreHistory       ScoreHistory[]
+  callsAsBuyer       Call[]    @relation("BuyerCalls")
+  callsAsSupplier    Call[]    @relation("SupplierCalls")
+  otpChallenges      OtpChallenge[]
+  sessions           Session[]
+  blacklistedBySuppliers SupplierBlacklist[] @relation("SupplierBlacklist")
+  blacklistedBuyers  SupplierBlacklist[] @relation("BuyerBlacklist")
+
+  @@index([userId])
+  @@index([phoneNumber])
+  @@index([buyamiaUserId])
+}
+
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  buyerId       String
+  supplierId    String
+  amount        Float
+  dueDate       DateTime
+  orderId       String?
+  notes         String?
+  status        String   @default("PENDING") // "PENDING" | "PAID" | "DUE_SOON" | "OVERDUE_3" | "OVERDUE_7" | "DEFAULTED"
+  paidAt        DateTime?
+  lastCollectionAttempt DateTime?  // Track last collection attempt
+  collectionStatus      String?    // "PENDING" | "IN_PROGRESS" | "PAID" | "ESCALATED"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  buyer    User   @relation("BuyerInvoices", fields: [buyerId], references: [id])
+  supplier User   @relation("SupplierInvoices", fields: [supplierId], references: [id])
+  reminders Reminder[]
+  calls            Call[]
+  collectionAttempts CollectionAttempt[]
+
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([collectionStatus])
+  @@index([lastCollectionAttempt])
+}
+
+model Issue {
+  id            String   @id @default(cuid())
+  issueNumber   String   @unique
+  orderId       String?  // Optional - just a reference text, not a DB relation
+  buyerId       String
+  supplierId    String
+  createdBy     String   @default("BUYER") // "BUYER" | "SUPPLIER" - who created the issue
+  type          String   // "NOT_RECEIVED" | "DAMAGED" | "DELAYED" | "WRONG_ITEMS" | "PAYMENT_ISSUE" | "OTHER"
+  description   String?
+  transcript    String?  // Voice note transcription (deprecated)
+  audioUrl      String?  // Voice note file URL (deprecated)
+  imageUrl      String?  // Image file URL
+  status        String   @default("OPEN") // "OPEN" | "RESOLVED" | "CLOSED"
+  resolvedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  buyer    User   @relation("BuyerIssues", fields: [buyerId], references: [id])
+  supplier User   @relation("SupplierIssues", fields: [supplierId], references: [id])
+
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdBy])
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  userId      String
+  direction   String   // "SENT" | "RECEIVED"
+  content     String
+  messageId   String?  // WhatsApp message ID
+  timestamp   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([timestamp])
+}
+
+model Reminder {
+  id         String   @id @default(cuid())
+  invoiceId  String
+  type       String   // "due_soon", "due_today", "overdue_3", "overdue_7"
+  sentAt     DateTime @default(now())
+  messageId  String?  // WhatsApp message ID
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+}
+
+model ScoreHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  score       Int
+  reason      String   // "on_time_payment", "late_payment", "issue_reported", etc.
+  relatedId   String?  // Invoice ID or Issue ID
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Call {
+  id            String    @id @default(cuid())
+  invoiceId     String
+  buyerId       String
+  supplierId    String
+  direction     String    // "OUTBOUND" | "INBOUND"
+  status        String    // "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED" | "NO_ANSWER" | "BUSY"
+  toneLevel     String    // "friendly", "professional", "urgent", "firm", "escalated"
+  callSid       String?   // Twilio WhatsApp Call SID
+  duration      Int?      // Duration in seconds
+  recordingUrl  String?   // Twilio WhatsApp call recording URL
+  transcript    String?   // AI transcription of WhatsApp call
+  aiResponse    String?   // AI-generated conversation script for WhatsApp call
+  startedAt     DateTime?
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  buyer   User    @relation("BuyerCalls", fields: [buyerId], references: [id])
+  supplier User   @relation("SupplierCalls", fields: [supplierId], references: [id])
+  collectionAttempts CollectionAttempt[]
+
+  @@index([invoiceId])
+  @@index([buyerId])
+  @@index([supplierId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CollectionAttempt {
+  id            String   @id @default(cuid())
+  invoiceId     String
+  attemptType   String   // "whatsapp_message", "whatsapp_call" (only WhatsApp, no regular calls)
+  toneLevel     String   // "friendly", "professional", "urgent", "firm", "escalated"
+  status        String   // "sent", "delivered", "read", "failed", "answered", "no_answer", "busy", "pending"
+  messageId     String?  // WhatsApp message ID (if whatsapp_message)
+  messageContent String? // The actual message content that was sent (if whatsapp_message)
+  callId        String?  // Call ID (if whatsapp_call)
+  response      String?  // Buyer response (if any)
+  createdAt     DateTime @default(now())
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+  call    Call?   @relation(fields: [callId], references: [id])
+
+  @@index([invoiceId])
+  @@index([callId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model SupplierBlacklist {
+  id          String   @id @default(cuid())
+  supplierId  String
+  buyerId     String
+  reason      String?  // Optional reason for blacklisting
+  replacedBy  String?  // Optional: buyerId of replacement buyer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  supplier User @relation("SupplierBlacklist", fields: [supplierId], references: [id])
+  buyer    User @relation("BuyerBlacklist", fields: [buyerId], references: [id])
+
+  @@unique([supplierId, buyerId])
+  @@index([supplierId])
+  @@index([buyerId])
+}
+
+// ============================================
+// AUTH MODELS - OTP & Sessions
+// ============================================
+
+model OtpChallenge {
+  id           String    @id @default(cuid())
+  userId       String    // Reference to User.id
+  codeHash     String    // Hashed OTP code
+  sentTo       String    // Phone number OTP was sent to
+  expiresAt    DateTime  // When the OTP expires
+  consumedAt   DateTime? // When the OTP was used (null if not used)
+  attemptCount Int       @default(0) // Failed verification attempts
+  createdAt    DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([createdAt])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String    // Reference to User.id
+  token        String    @unique // Session token (stored in cookie)
+  expiresAt    DateTime  // Session expiry
+  userAgent    String?   // Browser/device info
+  ipAddress    String?   // IP address
+  createdAt    DateTime  @default(now())
+  lastActiveAt DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}

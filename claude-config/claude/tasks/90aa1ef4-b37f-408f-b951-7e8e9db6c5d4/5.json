@@ -1,0 +1,8 @@
+{
+  "id": "5",
+  "subject": "Task 5: Restructure WriteSummarySheet with headline block",
+  "description": "Add WriteHeadlineBlock/WriteHeadlineRow, reorder WriteSummarySheet body, add chart1AnchorRow/chart2AnchorRow ByRef params per plan Task 5.",
+  "status": "completed",
+  "blocks": [],
+  "blockedBy": []
+}

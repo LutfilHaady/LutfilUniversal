@@ -1,0 +1,18 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "C:\\Users\\lutfi\\.claude\\plugins\\marketplaces\\claude-plugins-official",
+    "lastUpdated": "2026-07-31T01:04:05.026Z"
+  },
+  "vercel": {
+    "source": {
+      "source": "github",
+      "repo": "vercel/vercel-plugin"
+    },
+    "installLocation": "C:\\Users\\lutfi\\.claude\\plugins\\marketplaces\\vercel",
+    "lastUpdated": "2026-06-05T03:22:22.019Z"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "6",
+  "subject": "Update CreateConfigSheet header notes + sync to FCCompletion_All_Modules.txt",
+  "description": "Mention SuggestTeamsFromPointOfCare and import/export subs in header comments; regenerate the concatenated deliverable file; grep for dangling refs/dup Subs; update docs/VBA_Code_Progress.md and CLAUDE.md",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

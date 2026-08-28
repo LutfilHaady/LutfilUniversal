@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 70" fill="none">
+  <!-- toe beans -->
+  <ellipse cx="22" cy="22" rx="9" ry="12" fill="#d168a0" opacity="0.85"/>
+  <ellipse cx="45" cy="15" rx="9" ry="13" fill="#d168a0" opacity="0.85"/>
+  <ellipse cx="68" cy="22" rx="9" ry="12" fill="#d168a0" opacity="0.85"/>
+  <!-- main pad -->
+  <path d="M45 30c14 0 24 10 24 22 0 9-9 14-24 14S21 61 21 52c0-12 10-22 24-22z" fill="#d168a0"/>
+</svg>

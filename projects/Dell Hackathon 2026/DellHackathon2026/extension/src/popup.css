@@ -1,0 +1,18 @@
+.popup-container {
+  width: 300px;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+.popup-container h1 {
+  margin: 0 0 12px 0;
+  color: #0f766e;
+  font-size: 20px;
+}
+
+.popup-container p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}

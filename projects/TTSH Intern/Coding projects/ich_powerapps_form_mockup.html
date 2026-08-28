@@ -1,0 +1,334 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+.app{background:var(--color-background-tertiary);border-radius:var(--border-radius-lg);padding:16px;font-size:14px;}
+.screen{display:none;background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);padding:0;overflow:hidden;}
+.screen.active{display:block;}
+.topbar{background:#0C447C;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{color:#E6F1FB;font-size:15px;font-weight:500;}
+.topbar-sub{color:#85B7EB;font-size:12px;}
+.stepper{display:flex;align-items:center;gap:0;padding:14px 20px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);}
+.step{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--color-text-secondary);}
+.step.active{color:#0C447C;font-weight:500;}
+.step.done{color:var(--color-text-success);}
+.stepnum{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;flex:0 0 22px;}
+.step.active .stepnum{background:#0C447C;border-color:#0C447C;color:#fff;}
+.step.done .stepnum{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success);}
+.stepdiv{width:24px;height:1px;background:var(--color-border-tertiary);margin:0 4px;}
+.body{padding:20px;}
+.alert{border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;}
+.alert.warn{background:var(--color-background-warning);color:var(--color-text-warning);border:0.5px solid var(--color-border-warning);}
+.alert.danger{background:var(--color-background-danger);color:var(--color-text-danger);border:0.5px solid var(--color-border-danger);}
+.alert.success{background:var(--color-background-success);color:var(--color-text-success);border:0.5px solid var(--color-border-success);}
+.alert.info{background:var(--color-background-info);color:var(--color-text-info);border:0.5px solid var(--color-border-info);}
+.alert.show{display:flex;align-items:flex-start;gap:8px;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.grid.full{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:12px;color:var(--color-text-secondary);font-weight:500;}
+.field input,.field select,.field textarea{font-size:13px;padding:7px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);width:100%;}
+.field textarea{resize:none;height:60px;}
+.flag-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.flag-row{display:flex;align-items:center;justify-content:space-between;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 12px;border:0.5px solid var(--color-border-tertiary);}
+.flag-label{font-size:13px;color:var(--color-text-primary);}
+.flag-toggle{display:flex;gap:4px;}
+.toggle-btn{font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;}
+.toggle-btn.yes.active{background:var(--color-background-danger);color:var(--color-text-danger);border-color:var(--color-border-danger);}
+.toggle-btn.no.active{background:var(--color-background-success);color:var(--color-text-success);border-color:var(--color-border-success);}
+.vital-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.vital-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px;border:0.5px solid var(--color-border-tertiary);}
+.vital-card.flagged{border-color:var(--color-border-danger);background:var(--color-background-danger);}
+.vital-name{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px;}
+.vital-card.flagged .vital-name{color:var(--color-text-danger);}
+.vital-range{font-size:10px;color:var(--color-text-tertiary);margin-top:3px;}
+.vital-card.flagged .vital-range{color:var(--color-text-danger);}
+.vital-card input{font-size:14px;font-weight:500;border:none;background:transparent;color:var(--color-text-primary);width:100%;padding:0;}
+.vital-card.flagged input{color:var(--color-text-danger);}
+.rec-card{border-radius:var(--border-radius-md);padding:14px 16px;margin-bottom:16px;border:0.5px solid;}
+.rec-card.accept{background:var(--color-background-success);border-color:var(--color-border-success);}
+.rec-card.reject{background:var(--color-background-danger);border-color:var(--color-border-danger);}
+.rec-card.escalate{background:var(--color-background-warning);border-color:var(--color-border-warning);}
+.rec-title{font-size:15px;font-weight:500;margin-bottom:4px;}
+.rec-card.accept .rec-title{color:var(--color-text-success);}
+.rec-card.reject .rec-title{color:var(--color-text-danger);}
+.rec-card.escalate .rec-title{color:var(--color-text-warning);}
+.rec-sub{font-size:12px;}
+.rec-card.accept .rec-sub{color:var(--color-text-success);}
+.rec-card.reject .rec-sub{color:var(--color-text-danger);}
+.rec-card.escalate .rec-sub{color:var(--color-text-warning);}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:16px;}
+.summary-row{display:flex;justify-content:space-between;font-size:12px;padding:6px 10px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);}
+.summary-key{color:var(--color-text-secondary);}
+.summary-val{color:var(--color-text-primary);font-weight:500;}
+.footer{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary);}
+.btn{font-size:13px;font-weight:500;padding:8px 20px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;}
+.btn.primary{background:#0C447C;border-color:#0C447C;color:#E6F1FB;}
+.btn.danger{background:var(--color-background-danger);border-color:var(--color-border-danger);color:var(--color-text-danger);}
+.btn.success{background:var(--color-background-success);border-color:var(--color-border-success);color:var(--color-text-success);}
+.sec-title{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary);}
+</style>
+<h2 class="sr-only">Interactive mockup of the ICH Referral Triage Power Apps form. Four screens: case info, triage flags, vitals, and review. Click Next to advance through screens and see early exit logic fire.</h2>
+<div class="app">
+
+<div class="screen active" id="s1">
+<div class="topbar"><div><div class="topbar-title">ICH Referral Triage</div><div class="topbar-sub">New referral</div></div></div>
+<div class="stepper">
+  <div class="step active"><div class="stepnum">1</div><span>Case info</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">2</div><span>Triage flags</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">3</div><span>Vitals</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">4</div><span>Review</span></div>
+</div>
+<div class="body">
+  <div id="s1-flag-alert" class="alert warn"><i class="ti ti-alert-triangle" style="font-size:16px;flex:0 0 16px"></i><span>Flagged patient — surface to screening clinician if referred back. Check remarks before proceeding.</span></div>
+  <div id="s1-ed-alert" class="alert info"><i class="ti ti-info-circle" style="font-size:16px;flex:0 0 16px"></i><span>ED / EDTC discipline — escalate to SC + bed booking immediately. No further screening required.</span></div>
+  <div class="sec-title">Referral details</div>
+  <div class="grid">
+    <div class="field"><label>Referral taken by</label><input type="text" placeholder="PSA name" id="f-taken"></div>
+    <div class="field"><label>Referring source</label><select id="f-source"><option value="">Select</option><option>TTSH</option><option>Ren Ci</option><option>External</option></select></div>
+    <div class="field"><label>Referring location</label><input type="text" placeholder="e.g. Ward 7D Bed 03"></div>
+    <div class="field"><label>Referral ordered date/time</label><input type="datetime-local"></div>
+  </div>
+  <div class="sec-title">Patient</div>
+  <div class="grid">
+    <div class="field"><label>Patient name <span style="color:var(--color-text-danger)">PDPA</span></label><input type="text" placeholder="Full name" id="f-name"></div>
+    <div class="field"><label>NRIC <span style="color:var(--color-text-danger)">PDPA</span></label><input type="text" placeholder="S1234567A" id="f-nric" oninput="checkNric()"></div>
+  </div>
+  <div class="sec-title">Discipline</div>
+  <div class="grid full">
+    <div class="field"><label>Referring discipline</label>
+    <select id="f-disc" onchange="checkDisc()">
+      <option value="">Select discipline</option>
+      <option>ED - Emergency Medicine</option>
+      <option>EDTC - TTSH Emergency Observational Med</option>
+      <option>CVM - Cardiology</option>
+      <option>GEM - General Medicine</option>
+      <option>GSD - General Surgery</option>
+      <option>NSD - Neurosurgery</option>
+      <option>ORT - Orthopaedic Surgery</option>
+      <option>REH - Rehabilitation Medicine</option>
+      <option>GRM - Geriatric Medicine</option>
+      <option>PSY - Psychiatry</option>
+      <option>EXTERNAL REFERRAL</option>
+    </select></div>
+  </div>
+</div>
+<div class="footer">
+  <span style="font-size:12px;color:var(--color-text-tertiary)">Screen 1 of 4</span>
+  <button class="btn primary" onclick="goS2()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+</div>
+</div>
+
+<div class="screen" id="s2">
+<div class="topbar"><div><div class="topbar-title">ICH Referral Triage</div><div class="topbar-sub" id="s2-sub">Triage flags</div></div></div>
+<div class="stepper">
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Case info</span></div>
+  <div class="stepdiv"></div>
+  <div class="step active"><div class="stepnum">2</div><span>Triage flags</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">3</div><span>Vitals</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">4</div><span>Review</span></div>
+</div>
+<div class="body">
+  <div id="s2-reject-alert" class="alert danger"><i class="ti ti-ban" style="font-size:16px;flex:0 0 16px"></i><span id="s2-reject-reason">Case auto-rejected.</span></div>
+  <div class="sec-title">Hard exclusion criteria</div>
+  <div class="flag-grid">
+    <div class="flag-row"><span class="flag-label">Dialysis</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'dialysis','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'dialysis','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">Parenteral nutrition</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'pn','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'pn','NO')">NO</button></div></div>
+  </div>
+  <div class="sec-title">Soft flags <span id="soft-count" style="font-size:11px;color:var(--color-text-secondary);font-weight:400">(0 / 11 flagged)</span></div>
+  <div class="flag-grid">
+    <div class="flag-row"><span class="flag-label">IV Chemo / Radio</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'chemo','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'chemo','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">Psychiatric / Behavioural</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'psych','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'psych','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">Suicidal precaution</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'sui','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'sui','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">BIPAP / CPAP</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'bipap','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'bipap','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">Tracheostomy &lt;4hrly</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'trach','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'trach','NO')">NO</button></div></div>
+    <div class="flag-row"><span class="flag-label">Appt / pending scans</span><div class="flag-toggle"><button class="toggle-btn yes" onclick="setFlag(this,'appt','YES')">YES</button><button class="toggle-btn no active" onclick="setFlag(this,'appt','NO')">NO</button></div></div>
+  </div>
+  <div class="grid full">
+    <div class="field"><label>Appt / scan details</label><textarea placeholder="Note any pending appointments or investigations"></textarea></div>
+    <div class="field"><label>For referral to GRM</label><select><option value="">N/A</option><option>Frailty</option><option>Dementia</option><option>SA</option><option>IR</option><option>GMU</option></select></div>
+  </div>
+</div>
+<div class="footer">
+  <button class="btn" onclick="show('s1')"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+  <button class="btn primary" onclick="goS3()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+</div>
+</div>
+
+<div class="screen" id="s3">
+<div class="topbar"><div><div class="topbar-title">ICH Referral Triage</div><div class="topbar-sub">Vitals</div></div></div>
+<div class="stepper">
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Case info</span></div>
+  <div class="stepdiv"></div>
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Triage flags</span></div>
+  <div class="stepdiv"></div>
+  <div class="step active"><div class="stepnum">3</div><span>Vitals</span></div>
+  <div class="stepdiv"></div>
+  <div class="step"><div class="stepnum">4</div><span>Review</span></div>
+</div>
+<div class="body">
+  <div class="sec-title">Vital signs <span style="font-size:11px;color:var(--color-text-tertiary);font-weight:400">— leave blank if not recorded</span></div>
+  <div class="vital-grid">
+    <div class="vital-card" id="vc-temp"><div class="vital-name">Temperature (°C)</div><input type="number" step="0.1" placeholder="37.0" id="v-temp" oninput="checkVitals()"><div class="vital-range">Normal: &lt; 37.5</div></div>
+    <div class="vital-card" id="vc-bp"><div class="vital-name">BP — SBP (mmHg)</div><input type="number" placeholder="120" id="v-bp" oninput="checkVitals()"><div class="vital-range">Normal: 100–170</div></div>
+    <div class="vital-card" id="vc-pulse"><div class="vital-name">Pulse (bpm)</div><input type="number" placeholder="75" id="v-pulse" oninput="checkVitals()"><div class="vital-range">Normal: 50–100</div></div>
+    <div class="vital-card" id="vc-rr"><div class="vital-name">RR (breaths/min)</div><input type="number" placeholder="16" id="v-rr" oninput="checkVitals()"><div class="vital-range">Normal: 12–20</div></div>
+    <div class="vital-card" id="vc-spo2"><div class="vital-name">SpO₂ (%)</div><input type="number" placeholder="98" id="v-spo2" oninput="checkVitals()"><div class="vital-range">Normal: 95–100</div></div>
+    <div class="vital-card" id="vc-o2"><div class="vital-name">O₂ flow (L/min)</div><input type="number" step="0.1" placeholder="0" id="v-o2" oninput="checkVitals()"><div class="vital-range">Flag if ≥ 2.5</div></div>
+  </div>
+  <div class="sec-title">Swab status</div>
+  <div class="grid">
+    <div class="field"><label>CRE swab status</label><select><option value="">Unknown</option><option>Known positive</option><option>Known negative</option><option>Pending</option></select></div>
+    <div class="field"><label>MRSA swab status</label><select><option value="">Unknown</option><option>Known positive</option><option>Known negative</option><option>Pending</option></select></div>
+    <div class="field"><label>VRE swab status</label><select><option value="">Unknown</option><option>Known positive</option><option>Known negative</option><option>Pending</option></select></div>
+  </div>
+</div>
+<div class="footer">
+  <button class="btn" onclick="show('s2')"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+  <button class="btn primary" onclick="goS4()">Review <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+</div>
+</div>
+
+<div class="screen" id="s4">
+<div class="topbar"><div><div class="topbar-title">ICH Referral Triage</div><div class="topbar-sub">Review &amp; confirm</div></div></div>
+<div class="stepper">
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Case info</span></div>
+  <div class="stepdiv"></div>
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Triage flags</span></div>
+  <div class="stepdiv"></div>
+  <div class="step done"><div class="stepnum"><i class="ti ti-check" style="font-size:11px"></i></div><span>Vitals</span></div>
+  <div class="stepdiv"></div>
+  <div class="step active"><div class="stepnum">4</div><span>Review</span></div>
+</div>
+<div class="body">
+  <div id="rec-box" class="rec-card accept">
+    <div class="rec-title" id="rec-title">ACCEPT</div>
+    <div class="rec-sub" id="rec-sub">No exclusion criteria met. Proceed with acceptance.</div>
+  </div>
+  <div class="sec-title">Summary</div>
+  <div class="summary-grid">
+    <div class="summary-row"><span class="summary-key">Patient</span><span class="summary-val" id="r-name">—</span></div>
+    <div class="summary-row"><span class="summary-key">NRIC</span><span class="summary-val" id="r-nric">—</span></div>
+    <div class="summary-row"><span class="summary-key">Discipline</span><span class="summary-val" id="r-disc">—</span></div>
+    <div class="summary-row"><span class="summary-key">Dialysis</span><span class="summary-val">NO</span></div>
+    <div class="summary-row"><span class="summary-key">Soft flags</span><span class="summary-val" id="r-soft">0</span></div>
+    <div class="summary-row"><span class="summary-key">Vital flags</span><span class="summary-val" id="r-vital">0</span></div>
+  </div>
+  <div class="grid full">
+    <div class="field"><label>PSO comment</label><textarea placeholder="Optional notes"></textarea></div>
+  </div>
+</div>
+<div class="footer">
+  <button class="btn" onclick="show('s3')"><i class="ti ti-arrow-left" aria-hidden="true"></i> Back</button>
+  <button class="btn primary" id="submit-btn" onclick="submitForm()"><i class="ti ti-send" aria-hidden="true"></i> Submit &amp; trigger flow</button>
+</div>
+</div>
+
+</div>
+<script>
+const flags={dialysis:'NO',pn:'NO',chemo:'NO',psych:'NO',sui:'NO',bipap:'NO',trach:'NO',appt:'NO'};
+const SOFT_FLAGS=['psych','sui','bipap','trach','appt'];
+const AUTO_ESC=['CVM - Cardiology','GSD - General Surgery','NSD - Neurosurgery','PSY - Psychiatry','EXTERNAL REFERRAL','GEM - General Medicine'];
+const FLAGGED_NRICS=['S1234567A','T9876543B'];
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function checkNric(){
+  const nric=document.getElementById('f-nric').value.trim().toUpperCase();
+  const alert=document.getElementById('s1-flag-alert');
+  alert.classList.toggle('show',FLAGGED_NRICS.includes(nric));
+}
+
+function checkDisc(){
+  const disc=document.getElementById('f-disc').value;
+  const edAlert=document.getElementById('s1-ed-alert');
+  edAlert.classList.toggle('show',disc==='ED - Emergency Medicine'||disc==='EDTC - TTSH Emergency Observational Med');
+}
+
+function setFlag(btn,key,val){
+  flags[key]=val;
+  const row=btn.closest('.flag-toggle');
+  row.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateSoftCount();
+  checkHardExclusion();
+}
+
+function updateSoftCount(){
+  const count=SOFT_FLAGS.filter(f=>flags[f]==='YES').length;
+  document.getElementById('soft-count').textContent=`(${count} / 11 flagged)`;
+}
+
+function checkHardExclusion(){
+  const alert=document.getElementById('s2-reject-alert');
+  const reason=document.getElementById('s2-reject-reason');
+  if(flags.dialysis==='YES'){alert.classList.add('show');reason.textContent='Dialysis = YES — case does not meet ICH criteria. Stop here and reject.';}
+  else if(flags.pn==='YES'){alert.classList.add('show');reason.textContent='Parenteral nutrition = YES — case does not meet ICH criteria. Stop here and reject.';}
+  else{alert.classList.remove('show');}
+}
+
+function goS2(){
+  const disc=document.getElementById('f-disc').value;
+  if(!disc){alert('Please select a referring discipline.');return;}
+  document.getElementById('s2-sub').textContent='Triage flags — '+disc;
+  show('s2');
+}
+
+function goS3(){show('s3');}
+
+function checkVitals(){
+  const vitals=[
+    {id:'temp',vc:'vc-temp',val:parseFloat(document.getElementById('v-temp').value),flag:v=>!isNaN(v)&&v>=37.5},
+    {id:'bp',vc:'vc-bp',val:parseFloat(document.getElementById('v-bp').value),flag:v=>!isNaN(v)&&(v<100||v>170)},
+    {id:'pulse',vc:'vc-pulse',val:parseFloat(document.getElementById('v-pulse').value),flag:v=>!isNaN(v)&&(v<50||v>100)},
+    {id:'rr',vc:'vc-rr',val:parseFloat(document.getElementById('v-rr').value),flag:v=>!isNaN(v)&&(v<12||v>20)},
+    {id:'spo2',vc:'vc-spo2',val:parseFloat(document.getElementById('v-spo2').value),flag:v=>!isNaN(v)&&(v<95||v>100)},
+    {id:'o2',vc:'vc-o2',val:parseFloat(document.getElementById('v-o2').value),flag:v=>!isNaN(v)&&v>=2.5},
+  ];
+  vitals.forEach(v=>{document.getElementById(v.vc).classList.toggle('flagged',v.flag(v.val));});
+}
+
+function computeRec(){
+  const disc=document.getElementById('f-disc').value;
+  const softCount=SOFT_FLAGS.filter(f=>flags[f]==='YES').length;
+  const vitalCount=[
+    parseFloat(document.getElementById('v-temp').value)>=37.5,
+    (v=>!isNaN(v)&&(v<100||v>170))(parseFloat(document.getElementById('v-bp').value)),
+    (v=>!isNaN(v)&&(v<50||v>100))(parseFloat(document.getElementById('v-pulse').value)),
+    (v=>!isNaN(v)&&(v<12||v>20))(parseFloat(document.getElementById('v-rr').value)),
+    (v=>!isNaN(v)&&(v<95||v>100))(parseFloat(document.getElementById('v-spo2').value)),
+    parseFloat(document.getElementById('v-o2').value)>=2.5,
+  ].filter(Boolean).length;
+  const totalSoft=softCount+vitalCount;
+  if(disc==='ED - Emergency Medicine'||disc==='EDTC - TTSH Emergency Observational Med') return{rec:'ESCALATE',reason:'ED/EDTC — escalate to SC + bed booking immediately.',cls:'escalate'};
+  if(flags.dialysis==='YES'||flags.pn==='YES') return{rec:'REJECT',reason:'Hard exclusion criteria met (dialysis or parenteral nutrition).',cls:'reject'};
+  if(totalSoft>3) return{rec:'REJECT',reason:`${totalSoft} soft flags exceed threshold of 3.`,cls:'reject'};
+  if(flags.chemo==='YES'||totalSoft>=1||AUTO_ESC.includes(disc)) return{rec:'ESCALATE',reason:'Escalate to ICH Screening Clinician for review.',cls:'escalate'};
+  return{rec:'ACCEPT',reason:'No exclusion criteria met. Proceed with acceptance.',cls:'accept'};
+}
+
+function goS4(){
+  const r=computeRec();
+  const box=document.getElementById('rec-box');
+  box.className='rec-card '+r.cls;
+  document.getElementById('rec-title').textContent=r.rec;
+  document.getElementById('rec-sub').textContent=r.reason;
+  document.getElementById('r-name').textContent=document.getElementById('f-name').value||'—';
+  document.getElementById('r-nric').textContent=document.getElementById('f-nric').value||'—';
+  document.getElementById('r-disc').textContent=document.getElementById('f-disc').value||'—';
+  const soft=SOFT_FLAGS.filter(f=>flags[f]==='YES').length;
+  document.getElementById('r-soft').textContent=soft;
+  const vf=[parseFloat(document.getElementById('v-temp').value)>=37.5,(v=>!isNaN(v)&&(v<100||v>170))(parseFloat(document.getElementById('v-bp').value)),(v=>!isNaN(v)&&(v<50||v>100))(parseFloat(document.getElementById('v-pulse').value)),(v=>!isNaN(v)&&(v<12||v>20))(parseFloat(document.getElementById('v-rr').value)),(v=>!isNaN(v)&&(v<95||v>100))(parseFloat(document.getElementById('v-spo2').value)),parseFloat(document.getElementById('v-o2').value)>=2.5].filter(Boolean).length;
+  document.getElementById('r-vital').textContent=vf;
+  const btn=document.getElementById('submit-btn');
+  if(r.cls==='reject'){btn.className='btn danger';btn.innerHTML='<i class="ti ti-ban" aria-hidden="true"></i> Confirm rejection';}
+  else if(r.cls==='escalate'){btn.className='btn';btn.style.background='var(--color-background-warning)';btn.style.borderColor='var(--color-border-warning)';btn.style.color='var(--color-text-warning)';btn.innerHTML='<i class="ti ti-arrow-up-right" aria-hidden="true"></i> Submit &amp; escalate to SC';}
+  else{btn.className='btn success';btn.innerHTML='<i class="ti ti-check" aria-hidden="true"></i> Confirm acceptance';}
+  show('s4');
+}
+
+function submitForm(){alert('Flow triggered — Teams message or adaptive card will be sent based on recommendation.');}
+</script>

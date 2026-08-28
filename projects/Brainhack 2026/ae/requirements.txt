@@ -1,0 +1,11 @@
+# Dependencies for AE.
+
+fastapi
+uvicorn[standard]
+numpy
+
+# Heuristic agent only needs gymnasium (no torch/sb3 — saves ~3GB image size)
+gymnasium
+
+# til_environment pinned to match competition eval
+til_environment @ git+https://github.com/til-ai/til-26-ae@077a4efac0d2c961a2266df22561cfc8ae7be0e7

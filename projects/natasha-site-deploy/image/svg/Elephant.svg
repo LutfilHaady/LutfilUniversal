@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" fill="none">
+  <!-- big floppy ears -->
+  <ellipse cx="50" cy="104" rx="31" ry="42" transform="rotate(10 50 104)" fill="#b9bcc4"/>
+  <ellipse cx="150" cy="104" rx="31" ry="42" transform="rotate(-10 150 104)" fill="#b9bcc4"/>
+  <ellipse cx="52" cy="104" rx="18" ry="28" transform="rotate(10 52 104)" fill="#f0dbe6"/>
+  <ellipse cx="148" cy="104" rx="18" ry="28" transform="rotate(-10 148 104)" fill="#f0dbe6"/>
+  <!-- body -->
+  <ellipse cx="100" cy="166" rx="56" ry="50" fill="#b9bcc4"/>
+  <!-- feet -->
+  <ellipse cx="76" cy="206" rx="20" ry="13" fill="#aab0b8"/>
+  <ellipse cx="124" cy="206" rx="20" ry="13" fill="#aab0b8"/>
+  <!-- head -->
+  <ellipse cx="100" cy="100" rx="46" ry="42" fill="#c4c7ce"/>
+  <!-- trunk -->
+  <path d="M90 104 Q85 142 94 160 Q100 172 110 161 Q103 140 110 104 Z" fill="#c4c7ce"/>
+  <path d="M94 152 q6 7 12 0" stroke="#9aa0a8" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- cheeks -->
+  <circle cx="74" cy="106" r="9" fill="#f3b8d2" opacity="0.55"/>
+  <circle cx="126" cy="106" r="9" fill="#f3b8d2" opacity="0.55"/>
+  <!-- eyes -->
+  <circle cx="84" cy="92" r="5" fill="#4a3329"/>
+  <circle cx="116" cy="92" r="5" fill="#4a3329"/>
+  <circle cx="86" cy="90" r="1.5" fill="#fff"/>
+  <circle cx="118" cy="90" r="1.5" fill="#fff"/>
+</svg>

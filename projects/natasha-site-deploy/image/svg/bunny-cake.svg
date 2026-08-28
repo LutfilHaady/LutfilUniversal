@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230" fill="none">
+  <!-- ears -->
+  <path d="M70 92C58 64 50 32 57 14c4-11 16-11 19 1 7 22 4 50 0 77z" fill="#d8c3b0"/>
+  <path d="M71 82C62 60 57 36 62 22c2-6 10-6 12 1 6 18 3 40 0 59z" fill="#f0dbe6"/>
+  <path d="M130 92c12-28 20-60 13-78-4-11-16-11-19 1-7 22-4 50 0 77z" fill="#d8c3b0"/>
+  <path d="M129 82c9-22 14-46 9-60-2-6-10-6-12 1-6 18-3 40 0 59z" fill="#f0dbe6"/>
+  <!-- body -->
+  <ellipse cx="100" cy="160" rx="62" ry="58" fill="#d8c3b0"/>
+  <!-- head -->
+  <ellipse cx="100" cy="110" rx="50" ry="46" fill="#d8c3b0"/>
+  <!-- arms hugging cake -->
+  <ellipse cx="64" cy="172" rx="16" ry="24" fill="#cfb9a4" transform="rotate(20 64 172)"/>
+  <ellipse cx="136" cy="172" rx="16" ry="24" fill="#cfb9a4" transform="rotate(-20 136 172)"/>
+  <!-- cheeks -->
+  <circle cx="72" cy="120" r="10" fill="#f3b8d2" opacity="0.7"/>
+  <circle cx="128" cy="120" r="10" fill="#f3b8d2" opacity="0.7"/>
+  <!-- eyes -->
+  <circle cx="84" cy="106" r="5.5" fill="#4a3329"/>
+  <circle cx="116" cy="106" r="5.5" fill="#4a3329"/>
+  <!-- nose + stitched smile -->
+  <path d="M100 116l6 6h-12z" fill="#b87b95"/>
+  <path d="M88 126q12 10 24 0" stroke="#9a7a64" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- little cake -->
+  <rect x="80" y="176" width="40" height="28" rx="5" fill="#fff3f8"/>
+  <rect x="80" y="176" width="40" height="10" rx="5" fill="#f7d9e6"/>
+  <path d="M80 186q10 8 20 0t20 0v3H80z" fill="#d168a0"/>
+  <!-- candle -->
+  <rect x="98" y="158" width="4" height="18" rx="2" fill="#d168a0"/>
+  <path d="M100 150c4 4 4 9 0 10-4-1-4-6 0-10z" fill="#ffb347"/>
+</svg>

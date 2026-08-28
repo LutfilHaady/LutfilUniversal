@@ -1,0 +1,8 @@
+{
+  "id": "5",
+  "subject": "Add ExportStaffRoster/ImportStaffRoster to Helpers.bas",
+  "description": "CSV export/import of Config roster with proper quoting/escaping for commas and apostrophes, confirm-before-replace on import",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

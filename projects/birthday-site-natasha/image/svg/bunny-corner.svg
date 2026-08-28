@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" fill="none">
+  <!-- ears -->
+  <path d="M55 78C44 56 38 30 44 16c3-9 13-9 16 1 6 18 4 40 0 62z" fill="#d8c3b0"/>
+  <path d="M56 70C48 52 44 32 49 20c2-5 8-5 10 1 5 14 3 32 0 50z" fill="#f0dbe6"/>
+  <path d="M105 78c11-22 17-48 11-62-3-9-13-9-16 1-6 18-4 40 0 62z" fill="#d8c3b0"/>
+  <path d="M104 70c8-18 12-38 7-50-2-5-8-5-10 1-5 14-3 32 0 50z" fill="#f0dbe6"/>
+  <!-- head -->
+  <ellipse cx="80" cy="104" rx="46" ry="42" fill="#d8c3b0"/>
+  <!-- cheeks -->
+  <circle cx="56" cy="112" r="9" fill="#f3b8d2" opacity="0.7"/>
+  <circle cx="104" cy="112" r="9" fill="#f3b8d2" opacity="0.7"/>
+  <!-- eyes -->
+  <circle cx="66" cy="100" r="5" fill="#4a3329"/>
+  <circle cx="94" cy="100" r="5" fill="#4a3329"/>
+  <!-- nose -->
+  <path d="M80 108l5 5h-10z" fill="#b87b95"/>
+  <!-- stitched smile -->
+  <path d="M70 118q10 9 20 0" stroke="#9a7a64" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+</svg>

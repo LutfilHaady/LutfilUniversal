@@ -1,0 +1,71 @@
+# ===== Secrets: never transfer =====
+.credentials.json
+*.key
+*.pem
+.env
+.env.*
+!.env.example
+!.env.template
+
+# ===== Dependencies / build output =====
+node_modules/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.next/
+dist/
+build/
+out/
+.turbo/
+target/
+*.egg-info/
+
+# ===== Claude runtime noise (machine-specific, not settings) =====
+claude-config/claude/shell-snapshots/
+claude-config/claude/paste-cache/
+claude-config/claude/file-history/
+claude-config/claude/session-env/
+claude-config/claude/sessions/
+claude-config/claude/backups/
+claude-config/claude/telemetry/
+claude-config/claude/daemon/
+claude-config/claude/chrome/
+claude-config/claude/ide/
+claude-config/claude/cache/
+claude-config/claude/statsig/
+claude-config/claude/*.log
+claude-config/claude/.last-*
+claude-config/claude/mcp-needs-auth-cache.json
+
+# ===== Large binaries =====
+*.zip
+*.mov
+*.mp4
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ===== OS / editor =====
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+
+# ===== Left on the laptop, not transferred =====
+# Beginner scripts, LinkedIn Learning course files, duplicate zips.
+# (Useful skill collections were rescued into claude-config/extra-skills/)
+Coding/
+# Superseded stale snapshot of ~/.claude (contained credentials) - use claude-config/ instead
+claude-settings/
+"BrainHack Test 2026"/
+
+# Partial/interrupted download temp files
+.*.zip.*
+*.crdownload
+*.part
+
+# Databusters reference PDFs (large, re-downloadable from the case materials)
+projects/Databusters 2026/*.pdf

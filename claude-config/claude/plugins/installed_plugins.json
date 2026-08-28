@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "plugins": {
+    "superpowers@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\lutfi\\.claude\\plugins\\cache\\claude-plugins-official\\superpowers\\6.2.0",
+        "version": "6.2.0",
+        "installedAt": "2026-04-01T11:24:12.770Z",
+        "lastUpdated": "2026-07-26T15:48:12.619Z",
+        "gitCommitSha": "dd237283dbfe466e11bd4be55acf14ecb8f6636e"
+      }
+    ],
+    "playwright@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\lutfi\\.claude\\plugins\\cache\\claude-plugins-official\\playwright\\9097f2e6a49c",
+        "version": "9097f2e6a49c",
+        "installedAt": "2026-04-01T11:10:32.886Z",
+        "lastUpdated": "2026-07-31T01:04:05.219Z",
+        "gitCommitSha": "9097f2e6a49ce624540b8a9b07865e670009ae76"
+      }
+    ],
+    "context7@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\lutfi\\.claude\\plugins\\cache\\claude-plugins-official\\context7\\9097f2e6a49c",
+        "version": "9097f2e6a49c",
+        "installedAt": "2026-04-01T11:10:45.447Z",
+        "lastUpdated": "2026-07-31T01:04:05.239Z",
+        "gitCommitSha": "9097f2e6a49ce624540b8a9b07865e670009ae76"
+      }
+    ],
+    "vercel-plugin@vercel": [
+      {
+        "scope": "user",
+        "installPath": "C:\\Users\\lutfi\\.claude\\plugins\\cache\\vercel\\vercel-plugin\\6e51924cb249",
+        "version": "0.43.0",
+        "installedAt": "2026-06-05T03:22:23.242Z",
+        "lastUpdated": "2026-06-05T03:22:23.242Z",
+        "gitCommitSha": "6e51924cb249e2941de005d59f1ac6f768477b98"
+      }
+    ]
+  }
+}

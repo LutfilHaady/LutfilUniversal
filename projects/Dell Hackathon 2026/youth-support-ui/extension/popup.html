@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400">
+  <title>VOX Guard</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="vox-popup">
+    <div class="vox-popup__header">
+      <span class="vox-popup__title">VOX AI Monitoring</span>
+      <span class="vox-popup__subtitle">Story session</span>
+    </div>
+
+    <div id="vox-idle" class="vox-popup__section vox-popup__section--idle">
+      <p class="vox-popup__hint">Start a monitoring session to analyse Instagram stories. Progress and alerts will appear here and on the page.</p>
+      <button type="button" id="vox-start-btn" class="vox-popup__btn vox-popup__btn--primary">Start session</button>
+    </div>
+
+    <div id="vox-active" class="vox-popup__section vox-popup__section--active" hidden>
+      <div class="vox-popup__row vox-popup__row--main">
+        <div class="vox-popup__timer">
+          <span class="vox-popup__timer-label">Session time</span>
+          <span id="vox-timer" class="vox-popup__timer-value">0:00</span>
+        </div>
+        <div class="vox-popup__stats vox-popup__stats--inline">
+          <div class="vox-popup__stat">
+            <span id="vox-stories-count" class="vox-popup__stat-value">0</span>
+            <span class="vox-popup__stat-label">Stories</span>
+          </div>
+          <div class="vox-popup__stat vox-popup__stat--alert">
+            <span id="vox-high-count" class="vox-popup__stat-value">0</span>
+            <span class="vox-popup__stat-label">High priority</span>
+          </div>
+        </div>
+      </div>
+      <div class="vox-popup__bar-row">
+        <span class="vox-popup__bar-label">Current story</span>
+        <span id="vox-progress-pct" class="vox-popup__bar-pct">0%</span>
+      </div>
+      <div class="vox-popup__bar-track">
+        <div class="vox-popup__bar-fill" id="vox-bar-fill"></div>
+      </div>
+      <div class="vox-popup__row vox-popup__row--actions">
+        <button type="button" id="vox-end-btn" class="vox-popup__btn vox-popup__btn--secondary">End session</button>
+        <div class="vox-popup__footer vox-popup__footer--inline">
+          <a class="vox-popup__link" href="http://localhost:3000/dashboard" target="_blank" rel="noopener noreferrer">Dashboard</a>
+          <a class="vox-popup__link vox-popup__link--muted" href="http://localhost:3000/dashboard#alerts" target="_blank" rel="noopener noreferrer">Alerts</a>
+          <a class="vox-popup__link vox-popup__link--muted" href="http://localhost:3000/dashboard#settings" target="_blank" rel="noopener noreferrer">Settings</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="vox-footer-idle" class="vox-popup__footer">
+      <a class="vox-popup__link" href="http://localhost:3000/dashboard" target="_blank" rel="noopener noreferrer">Open Dashboard</a>
+      <a class="vox-popup__link vox-popup__link--muted" href="http://localhost:3000/dashboard#alerts" target="_blank" rel="noopener noreferrer">View alerts</a>
+      <a class="vox-popup__link vox-popup__link--muted" href="http://localhost:3000/dashboard#settings" target="_blank" rel="noopener noreferrer">Settings</a>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

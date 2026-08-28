@@ -1,0 +1,148 @@
+/* Flush top-right so top-left of panel is near extension icon; wide rectangle (length > height) */
+#vox-ai-overlay,
+.vox-ai-hud {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  right: 12px;
+  width: 280px;
+  min-height: 56px;
+  padding: 10px 14px;
+  background: rgba(20, 20, 20, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 0 0 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  border-right: none;
+  box-shadow: -4px 4px 24px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.vox-ai-hud__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vox-ai-hud__drag-handle {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 4px 0;
+  cursor: grab;
+  pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.vox-ai-hud__drag-handle:active {
+  cursor: grabbing;
+}
+
+.vox-ai-hud__grip {
+  font-size: 14px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+}
+
+.vox-ai-hud__badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.02em;
+}
+
+.vox-ai-hud--dragging {
+  pointer-events: auto;
+}
+
+.vox-ai-hud__bar-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.vox-ai-hud__bar-track {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.vox-ai-hud__bar-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #7c3aed, #a78bfa);
+  border-radius: 3px;
+  transition: width 0.1s linear;
+}
+
+.vox-ai-hud__dashboard-link {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #a78bfa;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.vox-ai-hud__dashboard-link:hover {
+  text-decoration: underline;
+  color: #c4b5fd;
+}
+
+.vox-ai-hud__alert {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(229, 57, 53, 0.9);
+  border: 1px solid rgba(239, 83, 80, 0.8);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  pointer-events: auto;
+}
+
+.vox-ai-hud__alert--hidden {
+  display: none;
+}
+
+.vox-ai-hud__alert-icon {
+  font-size: 12px;
+}
+
+.vox-ai-hud.vox-ai-hud--low-risk .vox-ai-hud__bar-fill {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+}
+
+.vox-ai-hud.vox-ai-hud--low-risk .vox-ai-hud__badge {
+  color: #bbf7d0;
+}
+
+.vox-ai-hud.vox-ai-hud--medium-risk .vox-ai-hud__bar-fill {
+  background: linear-gradient(90deg, #f97316, #fb923c);
+}
+
+.vox-ai-hud.vox-ai-hud--medium-risk .vox-ai-hud__badge {
+  color: #ffedd5;
+}
+
+.vox-ai-hud.vox-ai-hud--high-risk .vox-ai-hud__bar-fill {
+  background: linear-gradient(90deg, #e53935, #ef5350);
+}
+
+.vox-ai-hud.vox-ai-hud--high-risk .vox-ai-hud__badge {
+  color: #ffcdd2;
+}
+
+.vox-ai-hud.vox-ai-hud--high-risk {
+  border-color: rgba(239, 83, 80, 0.5);
+  box-shadow: -4px 4px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(239, 83, 80, 0.2);
+}

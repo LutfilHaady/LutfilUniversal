@@ -1,0 +1,4 @@
+{"location":"lib/prisma.ts:10","message":"Prisma client creation started","data":{"hasDatabaseUrl":true,"dbUrlStartsWith":"postgresql://postgre","nodeEnv":"development"},"timestamp":1767832810302,"sessionId":"debug-session","runId":"run1","hypothesisId":"A,D"}
+{"location":"app/api/dashboard/route.ts:27","message":"Database query starting","data":{"userId":"SP0023","userType":"SUPPLIER","hasDatabaseUrl":true},"timestamp":1767832810324,"sessionId":"debug-session","runId":"run1","hypothesisId":"A,B,C"}
+{"location":"lib/prisma.ts:18","message":"Prisma client created successfully","data":{},"timestamp":1767832810313,"sessionId":"debug-session","runId":"run1","hypothesisId":"E"}
+{"location":"app/api/dashboard/route.ts:27","message":"Database query starting","data":{"userId":"SP0023","userType":"SUPPLIER","hasDatabaseUrl":true},"timestamp":1767832812238,"sessionId":"debug-session","runId":"run1","hypothesisId":"A,B,C"}

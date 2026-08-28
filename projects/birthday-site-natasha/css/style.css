@@ -1,0 +1,824 @@
+/* ============================================================
+   Natasha's Birthday Site
+   ============================================================ */
+
+:root {
+    --blush: #fdf2f6;
+    --soft-pink: #f7d9e6;
+    --rose: #d168a0;
+    --plum: #6b2d4d;
+    --dark: #2a1f26;
+
+    --beige: #d8c3b0;
+    --beige-dark: #c2a98f;
+
+    --font-display: 'Chewy', cursive;
+    --font-body: 'Nunito', sans-serif;
+    --font-hand: 'Gochi Hand', cursive;
+
+    --maxw: 1100px;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    font-family: var(--font-body);
+    color: var(--plum);
+    background: var(--blush);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2 {
+    margin: 0;
+    font-weight: normal;
+}
+
+/* ---------- Floating background petals ---------- */
+.bg-petals {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.bg-petals span {
+    position: absolute;
+    top: -40px;
+    font-size: 18px;
+    opacity: 0.55;
+    animation: fall linear infinite;
+    will-change: transform;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-40px) rotate(0deg);
+    }
+
+    100% {
+        transform: translateY(105vh) rotate(360deg);
+    }
+}
+
+/* ---------- Music toggle ---------- */
+.music-toggle {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 50;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.85);
+    color: var(--rose);
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(107, 45, 77, 0.25);
+    transition: transform 0.2s, background 0.2s;
+    backdrop-filter: blur(6px);
+}
+
+.music-toggle:hover {
+    transform: scale(1.08);
+}
+
+.music-toggle.playing {
+    background: var(--rose);
+    color: #fff;
+}
+
+.music-toggle.playing .music-icon {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.25);
+    }
+}
+
+/* ---------- Generic section ---------- */
+.beat {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    padding: 70px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    color: var(--rose);
+    text-align: center;
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+
+.title-emoji {
+    display: inline-block;
+}
+
+.section-note {
+    font-family: var(--font-hand);
+    font-size: 1.3rem;
+    color: var(--plum);
+    opacity: 0.7;
+    margin: 0 0 38px;
+}
+
+/* ---------- Dividers (Jellycat motifs) ---------- */
+.divider {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.divider-motif {
+    display: block;
+    width: 70px;
+    height: 54px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.9;
+}
+
+.divider-motif.paw {
+    background-image: url('../image/svg/paw.svg');
+}
+
+.divider-motif.ears {
+    background-image: url('../image/svg/ears.svg');
+}
+
+/* ============================================================
+   BEAT 1 — COUNTDOWN
+   ============================================================ */
+.countdown {
+    min-height: 100svh;
+    justify-content: center;
+    background:
+        radial-gradient(circle at 50% 30%, #3a2b34 0%, var(--dark) 70%);
+    color: #f6e9ef;
+    overflow: hidden;
+}
+
+.countdown-inner {
+    text-align: center;
+    z-index: 2;
+}
+
+.kicker {
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--rose);
+    margin: 0 0 6px;
+}
+
+.countdown-name {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 12vw, 6rem);
+    color: #fff;
+    line-height: 1;
+    text-shadow: 0 4px 22px rgba(209, 104, 160, 0.45);
+}
+
+.countdown-sub {
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    color: var(--soft-pink);
+    margin: 10px 0 38px;
+}
+
+.clock {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+}
+
+.clock-unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 74px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(247, 217, 230, 0.18);
+    border-radius: 18px;
+    padding: 14px 8px 10px;
+}
+
+.clock-unit .num {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 7vw, 3rem);
+    color: #fff;
+    line-height: 1;
+}
+
+.clock-unit .lbl {
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--rose);
+    margin-top: 8px;
+}
+
+.clock-sep {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: var(--rose);
+    align-self: center;
+    opacity: 0.6;
+}
+
+.countdown-target {
+    font-family: var(--font-body);
+    letter-spacing: 2px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--soft-pink);
+    opacity: 0.7;
+    margin-top: 34px;
+}
+
+/* Plush corners */
+.plush-corner {
+    position: absolute;
+    width: 140px;
+    height: 150px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.92;
+    z-index: 1;
+}
+
+.plush-tl {
+    top: -6px;
+    left: -10px;
+    transform: rotate(-8deg);
+    background-image: url('../image/svg/Elephant.svg');
+}
+
+.plush-br {
+    bottom: -10px;
+    right: -8px;
+    transform: rotate(8deg);
+    background-image: url('../image/svg/Bear.svg');
+}
+
+/* ============================================================
+   BEAT 2 — MESSAGE REVEAL
+   ============================================================ */
+.message {
+    min-height: 80svh;
+    justify-content: center;
+    background: linear-gradient(180deg, var(--dark) 0%, #4a2a3c 100%);
+}
+
+.message-inner {
+    text-align: center;
+}
+
+.typewriter {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 8vw, 4.5rem);
+    color: #fff;
+    line-height: 1.15;
+    min-height: 1.2em;
+}
+
+.typewriter .caret {
+    color: var(--rose);
+    animation: blink 0.8s step-end infinite;
+}
+
+@keyframes blink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+.scroll-cue {
+    margin-top: 40px;
+    font-family: var(--font-body);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--soft-pink);
+    opacity: 0;
+    transition: opacity 0.8s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.scroll-cue.show {
+    opacity: 0.85;
+}
+
+.scroll-cue .arrow {
+    font-size: 1.4rem;
+    animation: bounce 1.6s ease-in-out infinite;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(8px);
+    }
+}
+
+/* ============================================================
+   BEAT 3 & 4 — GALLERIES
+   ============================================================ */
+.stinky-bg {
+    background:
+        linear-gradient(180deg, #4a2a3c 0%, var(--soft-pink) 18%, var(--blush) 100%);
+}
+
+.nice-bg {
+    background: linear-gradient(180deg, var(--blush) 0%, #fbe6f0 100%);
+}
+
+.polaroid-wall {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 40px 32px;
+    max-width: var(--maxw);
+    width: 100%;
+    justify-items: center;
+}
+
+/* Polaroid flip card — caption first, photo on the back */
+.polaroid {
+    --tilt: 0deg;
+    width: 100%;
+    max-width: 220px;
+    perspective: 1100px;
+    cursor: pointer;
+    transform: rotate(var(--tilt));
+    transition: transform 0.3s ease, z-index 0s;
+}
+
+.polaroid:hover {
+    transform: rotate(0deg) translateY(-5px);
+    z-index: 5;
+}
+
+.pol-inner {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    transition: transform 0.65s cubic-bezier(0.4, 0.1, 0.2, 1);
+    transform-style: preserve-3d;
+}
+
+.polaroid.revealed .pol-inner {
+    transform: rotateY(180deg);
+}
+
+.pol-face {
+    position: absolute;
+    inset: 0;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: #fff;
+    border-radius: 6px;
+    box-shadow: 0 10px 26px rgba(107, 45, 77, 0.28);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* caption side (shown first) */
+.pol-caption {
+    background: linear-gradient(160deg, #fbe2ee 0%, var(--soft-pink) 100%);
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 10px;
+    padding: 18px 16px;
+}
+
+.pol-caption .cap-emoji {
+    font-size: 2.4rem;
+    line-height: 1;
+}
+
+.pol-caption .cap-text {
+    font-family: var(--font-hand);
+    font-size: 1.3rem;
+    color: var(--plum);
+    line-height: 1.25;
+}
+
+.pol-caption .cap-hint {
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--rose);
+    opacity: 0.75;
+    margin-top: 2px;
+}
+
+/* photo side (revealed) */
+.pol-photo {
+    transform: rotateY(180deg);
+    padding: 11px 11px 0;
+}
+
+.pol-img {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    /* critical: lets the image crop instead of overflowing */
+    width: 100%;
+    overflow: hidden;
+    border-radius: 3px;
+    background: #e9d6df;
+}
+
+.pol-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.pol-img.ph,
+.pol-img.vid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+        repeating-linear-gradient(45deg, #f3dde8, #f3dde8 12px, #efd3e1 12px, #efd3e1 24px);
+    background-size: cover;
+}
+
+.pol-img.vid.has-thumb {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+}
+
+.pol-img .ph-inner {
+    text-align: center;
+    color: var(--rose);
+}
+
+.pol-img .ph-emoji {
+    font-size: 2.4rem;
+    display: block;
+}
+
+.pol-img .ph-text {
+    font-family: var(--font-hand);
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+.pol-strip {
+    font-family: var(--font-hand);
+    font-size: 1.05rem;
+    color: var(--plum);
+    text-align: center;
+    padding: 7px 4px 11px;
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* video play badge */
+.play-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: rgba(209, 104, 160, 0.92);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    padding-left: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+}
+
+/* ============================================================
+   BEAT 5 — CLOSING
+   ============================================================ */
+.closing {
+    min-height: 100svh;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 40%, #fff 0%, var(--blush) 55%, var(--soft-pink) 100%);
+    overflow: hidden;
+}
+
+.closing-inner {
+    text-align: center;
+    z-index: 2;
+    max-width: 620px;
+}
+
+.us-frame {
+    background: #fff;
+    padding: 14px 14px 22px;
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(107, 45, 77, 0.3);
+    transform: rotate(-2deg);
+    display: inline-block;
+    margin-bottom: 34px;
+}
+
+.us-photo {
+    display: block;
+    width: min(360px, 74vw);
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 3px;
+    background: #e9d6df;
+}
+
+.us-photo.ph {
+    background:
+        repeating-linear-gradient(45deg, #f3dde8, #f3dde8 14px, #efd3e1 14px, #efd3e1 28px);
+    position: relative;
+}
+
+.us-photo.ph::after {
+    content: "📷  a nice photo of us";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-hand);
+    font-size: 1.2rem;
+    color: var(--rose);
+}
+
+.closing-line {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 6vw, 3.2rem);
+    color: var(--rose);
+    line-height: 1.2;
+}
+
+.closing-sub {
+    font-family: var(--font-hand);
+    font-size: 1.5rem;
+    color: var(--plum);
+    margin-top: 16px;
+}
+
+.closing-bunny {
+    position: absolute;
+    bottom: -4px;
+    right: -10px;
+    width: 200px;
+    height: 230px;
+    background: url('../image/svg/Bunny.svg') no-repeat center bottom / contain;
+    z-index: 1;
+    animation: bunny-peek 4s ease-in-out infinite;
+}
+
+@keyframes bunny-peek {
+
+    0%,
+    100% {
+        transform: translateY(6px) rotate(-3deg);
+    }
+
+    50% {
+        transform: translateY(0) rotate(-3deg);
+    }
+}
+
+/* ============================================================
+   MEDIA LIGHTBOX (expanded view)
+   ============================================================ */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 22px;
+}
+
+.lightbox.open {
+    display: flex;
+}
+
+.lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(42, 31, 38, 0.85);
+    backdrop-filter: blur(4px);
+}
+
+.lightbox-content {
+    position: relative;
+    z-index: 1;
+    max-width: min(900px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.lightbox.open .lightbox-content {
+    animation: lb-pop 0.32s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+@keyframes lb-pop {
+    0% {
+        transform: scale(0.4);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lightbox-media {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+}
+
+.lightbox-media img,
+.lightbox-media video {
+    display: block;
+    max-width: 100%;
+    max-height: 80svh;
+    width: auto;
+    height: auto;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    background: #000;
+}
+
+/* youtube/drive embeds keep a 16:9 frame */
+.lightbox-media .lb-frame {
+    position: relative;
+    width: min(880px, 92vw);
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.lightbox-media .lb-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.lightbox-caption {
+    text-align: center;
+    font-family: var(--font-hand);
+    font-size: 1.4rem;
+    color: #fff;
+    margin-top: 16px;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -46px;
+    right: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: none;
+    background: #fff;
+    color: var(--plum);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 2;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+    .beat {
+        padding: 54px 16px;
+    }
+
+    .clock-unit {
+        min-width: 60px;
+        padding: 10px 5px 8px;
+        border-radius: 14px;
+    }
+
+    .clock {
+        gap: 3px;
+    }
+
+    .clock-sep {
+        font-size: 1.3rem;
+    }
+
+    .polaroid-wall {
+        grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+        gap: 26px 18px;
+    }
+
+    .pol-caption .cap-text {
+        font-size: 1.05rem;
+    }
+
+    .pol-strip {
+        font-size: 0.9rem;
+        min-height: 36px;
+    }
+
+    .plush-corner {
+        width: 92px;
+        height: 92px;
+    }
+
+    .closing-bunny {
+        width: 130px;
+        height: 150px;
+    }
+}
+
+/* ============================================================
+   LOCKED STATE — only the countdown shows until the clock
+   reaches zero (30 May 2026 00:00 SGT). Then the rest unlocks.
+   ============================================================ */
+body.locked {
+    overflow: hidden;
+    height: 100vh;
+    height: 100svh;
+}
+
+body.locked .beat:not(.countdown),
+body.locked .lightbox {
+    display: none !important;
+}
+
+/* gentle reveal of the rest once unlocked */
+@keyframes unlockReveal {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: none; }
+}
+
+body.unlocked .beat:not(.countdown) {
+    animation: unlockReveal 1s ease both;
+}

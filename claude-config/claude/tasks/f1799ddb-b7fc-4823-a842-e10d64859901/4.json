@@ -1,0 +1,8 @@
+{
+  "id": "4",
+  "subject": "Add SuggestTeamsFromPointOfCare to Helpers.bas",
+  "description": "New public sub: prompts for FC Summary Report export, tallies Point of Care per staff name, writes suggestions to Config sheet columns F-K without overwriting A/B, shows summary MsgBox",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

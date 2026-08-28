@@ -1,0 +1,38 @@
+QUICK START - Buyamia Credit LiveKit Agent
+===========================================
+
+1. INSTALL PACKAGES (One-time setup)
+   cd livekit-agent
+   python -m pip install -r requirements.txt
+   
+   NOTE: Uses system Python (packages already installed? Skip this step!)
+
+2. CONFIGURE ENVIRONMENT VARIABLES
+   Create .env file in project root with:
+   LIVEKIT_URL=wss://your-project.livekit.cloud
+   LIVEKIT_API_KEY=your-key
+   LIVEKIT_API_SECRET=your-secret
+   OPENAI_API_KEY=your-openai-key
+   
+   Optional (for Supabase):
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_SERVICE_KEY=your-service-key
+
+3. RUN THE AGENT
+   
+   IMPORTANT: If you see (.venv) in your PowerShell prompt, deactivate it first:
+   deactivate
+   
+   Then run:
+   Windows: .\run-console.bat
+   Or: .\run-console.ps1
+   Or: python agent.py console --text
+   
+   The scripts will automatically use system Python (where packages are installed).
+
+TROUBLESHOOTING:
+- "Permission denied" creating venv? The venv is incomplete/corrupted. 
+  Use system Python instead (run-console.bat does this automatically).
+- Packages already installed? Just run step 3!
+
+For detailed instructions, see STARTUP_GUIDE.md

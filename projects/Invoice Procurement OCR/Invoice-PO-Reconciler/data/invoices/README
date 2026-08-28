@@ -1,0 +1,6 @@
+Invoice images go here.
+
+Use scripts/prepare_data.py to browse the HuggingFace dataset and
+manually save selected invoice images as inv_001.png, inv_002.png, etc.
+
+Required: pip install datasets Pillow

@@ -1,0 +1,3912 @@
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic 	
+Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate the Missed FC Report via eFC system. 
+Staff are required to generate 2 types of eFC reports.
+
+(Firstly generate eFC report without FC ID number)
+
+ 
+
+ 
+
+ 
+
+
+	
+
+
+	
+First report with no FC ID number.
+
+1.	Log in eFC System
+
+
+
+
+
+
+
+
+2.	Log in with your ID
+NHG\ADID
+
+
+
+3.	From your left-hand sidebar, select ‘Reports’.
+
+4.	Select ‘Inflight Financial Counselling.’
+
+5.    On your right-hand side bar, fill in under these Tabs: 
+a) Visit/Admission Date:
+Enter a one-month date range, (eg :06.08.2025 to 06.09.2025)
+b) Admission Type: Enter ‘Emergency’
+c)         Tick Missed FC
+
+6. Click ‘Submit Request’.
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	
+Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+
+(eFC report without FC ID number)
+
+
+  
+
+ 
+
+
+ 
+
+
+
+
+
+
+
+
+
+	First report with no FC ID number.
+
+Cont’d:
+
+
+7.    Click  refresh button.
+
+
+
+
+8.    Once it shows as ‘Downloaded’. (it will download automatically), click ‘Open’, then extract the report.
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+
+(eFC report without FC ID number)
+
+ 
+
+ 
+
+ 
+
+ 
+ 
+
+ 
+
+ 	First report with no FC ID number.
+
+(To save eFC report in Onedrive).
+
+9. Click open file.
+10. Save the report to MFC daily report folder. Search for the current month and rename the report based on current date first. **This first report (with “tick” √ Missed FC), will not show FC ID number**
+
+a) Make sure you are in ‘OneDrive’
+b) Select ‘File’
+c) Select ‘save File as’
+d) Select ‘Browse’ 
+e) Select ‘Inflight Report’
+f) Select ‘2026 folder’
+g) Select MFC folder
+h) Select current folder, eg: Sep
+i) Rename the File using the date range input in eFC
+j) Save
+
+**Leave it as open as you need to combine with the other report**
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+(Secondly, generate eFC reports with FC ID number)
+
+
+ 
+
+
+
+
+
+
+
+ 
+
+
+
+
+ 
+
+
+
+	Second report with FC ID number.
+
+11. For the second report, follow steps 3 and 4 above. However, leave the Missed FC box as blank.
+
+a) From your left-hand side bar, select ‘Reports’.
+b) Select ‘Inflight Financial Counselling’.
+c) On your right-hand side bar, fill in the following information under these Tabs below: 
+d) Visit/Admission Date:
+Enter one-month date range, (eg :06.08.2025 to 06.09.2025)
+e) Admission Type: Enter ‘Emergency’.
+
+      f)         Leave blank for Missed FC box leave blank
+      g) Submit request
+
+**This second report (with blank       Missed FC), will show cases with FC ID number**
+
+
+
+12. Once, it shows as ‘Downloaded’, please extract the report.
+
+
+13. Extract the report.
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY 
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+(Merge the 2nd eFC reports with the 1st eFC report once the 2nd report has been extracted)
+
+ 
+ 
+
+ 
+ 
+
+  
+ 
+
+
+
+
+
+	Second report with FC ID number. (Merge the 2 reports, “1 with no FC ID” and “1 with FC ID”).
+
+
+14. Once the second report is generated, you will notice that it will display the FC ID numbers.
+
+15. Combine these 2 reports into 1 report (merge).
+
+a) From the header (FC ID) press ‘CTRL+Shift+ Down (Arrow)’ to reach the last row of FC ID column
+b) Then, copy-paste the second report to this last row
+c) Once it is copy-pasted, there will be two reports in one original sheet (one with FC ID and one with no FC ID)
+
+
+16. Next, to insert a new sheet beside the Encounter No. column (this is to clear the cell formatting).
+
+17. Then, enter this formula in the empty cell:
+=C2*1and press Enter (C2 is an Encounter No. from the first cell)
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic 	
+Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY 
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+(Merge the 2nd eFC reports with the 1st report once the 2nd report is extracted)
+
+ 
+
+
+ 
+
+ 
+
+ 
+Second report with FC ID number. (To merge the 2 reports, 1 with no FC ID and 1 with FC ID).
+
+18. Once you press enter, a new Encounter number will auto-populate.
+
+
+
+
+19. Next, from the Excel ribbon select ‘Home’ and then select ‘General’.
+
+
+
+20. Select ‘Number’.
+
+
+
+
+21. It will auto-populate a number with a decimal point.
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+(Merge the 2nd eFC reports with the 1st report once the 2nd report has been extracted)
+
+
+ 
+
+ 
+
+
+ 
+	2nd report with FC ID number. (To merge the 2 reports, 1 with no FC ID and 1 with FC ID).
+
+22. Drag the number down, then:
+
+a) Right-click
+b) Select ‘Format’
+c) Select ‘Number’ (under category)
+d) Change the decimal places from 2 to 0
+e) Click ‘OK’
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+(Merge the 2nd eFC reports with the 1st report once the 2nd report has been extracted)
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+	2nd report with FC ID number. (To merge the 2 reports, 1 with no FC ID and 1 with FC ID).
+
+23. Next, to manually copy ‘Ctrl+C’ to the ‘Encounter No’ column.
+
+24. Paste as ‘123’.
+
+25. Then right-click, under category:
+•select ‘Format’
+•change ‘2’ to ‘0’
+
+26.  Delete the columns ‘D’ (the column that you inserted earlier).
+
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2025
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/06/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate Missed FC Report via eFC system. 
+Filter the Excel file once it has been combined. (after combining the 2 reports, need to filter accordingly)
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To maintain what is needed in eFC report for MFC daily list.
+
+26. To copy the original sheet to the next new sheet and delete the columns that is not required.
+Next, to Maintain these columns below in the new sheet:
+a) FC ID
+b) Encounter No
+c) Patient Name
+d) Admission Date
+e) Admission Status
+f) Point of Care
+g) Admission Class
+h) Accommodation Code
+i) FC Status
+j) Final Bed (to obtain from Epic)
+k) Epic Admission Status (to obtain from Epic)
+l) Last Updated by
+
+**Do not close the eFC excel report, whilst you are generating Bed number via Epic**
+
+
+
+
+
+ 
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/09/2025
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To obtain and generate Bed number and Epic Admission Status via Epic.
+
+ 
+ 
+ 
+ 
+
+ 
+
+ 
+	Generate Bed Number and Adm. Status
+1. Next, Log in to ‘EPIC’ for the Bed census.
+
+
+
+
+
+2. Select ‘Hyperdrive PRD’.
+
+
+3. Log in your ID and make sure it is the correct department, then click continue.
+
+
+
+4. Click closed ‘x’.
+
+
+
+
+
+
+5. Go to ‘Epic’.
+
+
+
+6. Select ‘Census Snapshot Report’.
+
+
+ 
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2025
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/06/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To set the criteria and Display setting before generating Bed number and Epic Admission Status via Epic.
+ 
+
+
+ 
+
+
+ 
+
+
+
+
+
+
+	Cont’d:
+7. To set the criteria follow these steps:
+a) Select ‘Display’
+b) Select ‘Available Columns’
+c) Search ‘CSN (EPT) (811)’
+d) Click the arrow sign           to move from left to right column
+
+
+
+
+
+
+
+
+8. Then follow points (a) to (d) from point 7 for ‘Hospital Bed’.
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To set the criteria and Display setting before generate Bed number and Epic Admission Status via Epic.
+ 
+
+
+ 
+
+
+ 
+ 
+
+ 
+Cont’d:
+9. Next, go to ‘Criteria’ and click the calendar icon. Select the date range for one month (eg : 10.08.2025 to 10.09.2025) to remove the timing.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+a• Use calendar to select the date:
+ eg: 10.08.2025 to 10.09.2025
+
+
+
+
+
+
+
+b• Then, run the report.
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To save Bed number and Epic Admission Status via shared “K drive”.
+
+ 
+
+ 
+
+ 
+	Cont’d:
+10. Once, report is out, go to the ‘3’  dots on the right-hand side and click.
+
+
+
+
+
+
+
+
+a) Click ‘Export’.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+b) Click ‘Permit all access’.
+
+
+
+
+
+
+ 
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To save Bed number and Epic Admission Status via shared K drive.
+
+
+
+ 
+
+ 
+ 
+ 
+
+ 
+
+
+
+
+	
+Cont’d:
+c) Click ‘Browse’
+d) Click ‘PC’
+e) Click ‘K’ shared drive
+
+
+
+
+
+
+
+
+f) Search for ‘Inpatient Ops Financial Counselling’.
+
+
+
+
+g) Search for ‘Inpatient FC’.
+
+h) Search for ‘Sept folder’ (based on current month)
+
+i) Rename folder to current date
+j) Set password as ‘123’ 
+k) Confirmed password as 123
+l) Save.
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To retrieve Epic Bed census in shared drive.
+ 
+
+
+
+ 
+ 
+ 
+ 
+ 
+1. To retrieve Epic Bed census, follow these steps:
+
+a) Go to ‘This PC’.
+
+b) Click ‘Shared K drive’.
+
+
+
+c) Search for ‘Inpatient Ops Financial Counselling’
+d) Search for ‘Inflight FC’
+e) Search for ‘Inflight-Report’
+f) Search for ‘INFC 2026 Folder’
+g) Search for current Folder eg: Epic Report MAY 2026.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To retrieve Bed number and Epic Admission Status via shared drive.
+
+
+ 
+ 
+
+ 
+
+ 
+
+
+ 
+
+
+	To change the format for the Bed Census.
+2. Go to the report that you have save and click
+
+3. Open the file that you save on the current date. (eg., if file was saved on 11.08.2025 to 11.09.2025, you need to open this file):
+a) Click the folder
+
+b) Highlight the ‘CSN row’
+c) Click ‘General’
+
+
+
+
+d) Change ‘General” to “Number’.
+e) The CSN number will auto appear with a decimal number.
+
+
+
+
+
+
+
+f) Right click.
+g) Click ‘Format Cells’.
+
+
+
+
+
+
+Cont’d:
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+3
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To retrieve Bed number and Epic Admission Status via shared drive.
+
+
+ 
+
+ 
+
+
+
+	To change the format for the Bed Census 1st.
+
+h) Change number ‘2’ to ‘0’.
+i) Click ‘OK’.
+(It will remove the decimal place)
+
+
+
+
+
+**Keep the Epic report open at all times until the eFC report has obtained the “Final bed” number and “Epic Admission Status”.**
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To obtain Final Bed No and Epic Admission Status from Epic reports.
+
+
+ 
+ 
+ 
+ 
+ 
+
+
+ 
+
+
+
+ 
+
+ 
+
+
+	eFC report:
+
+1.Next, Go to the eFC report to:
+
+
+
+a) Insert a new sheet beside ‘Point of Care’ column.
+b) Rename it to ‘Final Bed’.
+
+
+
+
+c) Insert a new sheet beside any column (it is proposed to insert beside FC Status, you may arrange the column accordingly):
+
+
+
+d) Rename as ‘Epic Admission Status’.
+
+
+2. Next, go to ‘Final Bed’ column and key in this formula:
+=xlookup(Encounter No,CSN No,Bed no)enter
+=XLOOKUP(C2,[test.xlsx]Sheet1!$A:$A,[test.xlsx]Sheet1!$D:$D)
+a) Type =xlookup(
+b) Mouse over to Encounter cell 
+c) Press ‘,’(comma) key
+d) Then press ‘Alt’ and ‘Tab’ button to access Epic report
+e) Highlight CSN row
+f) Press ‘,’ comma key
+g) Highlight Bed column 
+h) ‘)’ Closed bracket
+
+3. Once the Bed number appear, drag it down.
+
+
+
+ 
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2025
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/06/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	To obtain Final Bed No and Epic Admission Status from Epic reports.
+
+
+
+  
+
+ 
+
+
+
+
+ 
+
+
+
+	Cont’d:
+
+4. Next, go to ‘Epic Admission Status’ column
+and key in this formula below:
+
+=xlookup(C2,CSN No,Admit Status)enter
+=xlookup(C2,[test.xlsx]Sheet1!$A:$A,[test.xlsx]Sheet1!$G:$G)
+
+a) Type =xlookup(
+b) Mouse over to Encounter cell, click on the cell and press comma key’,’
+
+
+c) Then switch to the Epic report using ‘ALT+Tab’.
+d) Highlight ‘Admit Status’ column
+e) Closed bracket by typing ‘)’.
+f) Then, drag the formula down.
+
+g) The current status will be automatically populated, such as Discharge/Admission/Planned**
+•Then, drag it down.
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Next, filter out unwanted cases under FC Status, once you obtained the Bed number and Epic Admission Status.
+
+
+ 
+
+ 
+
+ 
+
+
+ 
+4. Filter unwanted cases
+a) Click ‘Data’
+b) Click ‘Filter’	
+
+
+
+
+
+c) Untick all ‘Draft’ first
+
+
+d) Delete all these ticks below:
+Completed, 
+Attempted-Unable to complete, 
+Acknowledge By Other Means, 
+Attempted-Virtual FC Completed, pending signature, 
+Attempted-Patient/NOK declines to sign, Attempted-Unable to complete
+e) Next click ‘OK’.
+
+
+
+
+f) Go to ‘FC Status’.
+
+
+
+
+
+g) Tick back the ‘Draft’.
+
+
+
+h) Click ‘OK’
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Next, filter out the unwanted cases under FC Status, once you obtained the Bed number and Epic Admission Status.
+
+
+
+ 
+
+ 
+
+
+
+	5. Untick all the wards that Inflight is not covering, such as:
+•AUC
+•EDC
+•EDTC
+•EDX
+•O14
+•O15
+•3E/F
+•6E/F
+•8E
+•TWAS
+•TWDS
+
+
+a) The tick options will represent the wards that the Inflight team is covering.
+Such as below:
+-level 3
+-level 6
+-level 5
+-level 7
+-level 8
+-level 9
+-level 10
+-level 11
+-level 12
+-level 13
+-level ICH 7/8/9 G & H
+-Renci
+-MIC
+
+b. Next, click ‘OK’.
+
+
+
+
+ 
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Next, filter out the Discharged cases under Admission Status.
+
+ 
+ 
+
+ 
+ 
+   
+	Cont’d:
+
+6. Next, go to ‘Admission’ tab and untick all option except for the following:
+
+
+
+a) Select ‘Discharge’, then delete the discharged cases.
+
+
+
+7. Then, Go to the ‘Encounter tab’:
+a) Mouse over to ‘Conditional Formatting’
+b) Click ‘Highlight Cells Rules’
+c) Click ‘Duplicate values’
+
+
+
+
+
+
+d) Click ‘OK’
+
+
+e) Go to ‘Sort & Filter’	
+
+f) Sort smallest to largest
+
+
+
+
+g) Then, remove any one of the duplicate ‘Encounter no’.
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Copy the MFC daily template sheet to ‘Sheet 2’ of the eFC report.
+
+ 
+ 
+
+
+ 
+ 
+
+
+ 
+
+
+   
+
+
+	Contd:
+8. Go to Onedrive and search for the MFC daily template under Kenzo Test File.
+From ‘MFC template – Kenzo Test File’
+a) Open the folder
+
+
+
+
+b) Copy both sheets of (‘MFC Kenzo daily’ and ‘List’) to the current Missed FC report by pressing ‘Ctrl’ + ‘Shift’ simultaneously, then right-click.
+
+
+c) √ Tick ‘Create a copy’
+d) From the drop-down, choose the current folder where you want to copy and save the file (eg MFC ddmmyy To ddmmyy)
+
+e) Click ‘OK’.
+
+
+
+
+
+9. Both ‘MFC Kenzo daily’ and ‘List’ will be moved to the current Missed FC folder that you have copied them to.
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Copy the report that have been filtered earlier to new MFC daily List from ‘sheet 2’ for Inflight team’s daily cases.
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+
+
+ 
+
+
+
+
+ 
+	
+10. Next, copy the filtered eFC data to the MFC daily List using the following fields:
+•FC ID
+•Encounter No
+•MRN
+•Patient Name
+•Admission Date
+•Admission Point of Care
+•Final Bed
+•Admission Level Of Care
+•FC Status
+•Epic Admission Status
+
+**To copy the Admission Date follow these steps:**
+
+a) Manually highlight the Admission Date from the eFC report and press ‘Ctrl+C’.
+
+
+
+b) Go to MFC current sheet 
+
+
+
+
+
+
+
+c) Click on the first cell of the ‘Admission Date’ column.
+
+
+
+
+d) Click ‘Paste as 123’
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	● NBS
+● eFC
+● Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Copy the report that have been filtered earlier to new MFC daily List from ‘sheet 2’ for Inflight team’s daily cases.
+
+ 
+ 
+
+
+ 
+
+ 
+
+
+	Cont’d:
+
+e) Once it has been copied to column ‘AC’
+f) Highlight column ‘AD’ (‘Adm Date for MFC’) and right-click
+g) Click ‘Copy’
+h) Go to ‘Adm Date for MFC’(column Q)
+i) Paste as ‘123’.
+
+
+
+
+
+
+
+
+11. Next, input the follow-up cases under ‘Staff Follow-up’:
+a) Copy the row from ‘Last Updated By’.
+
+b) Temporarily paste to the MFC Kenzo sheet under Remarks column.
+c) Tick Inflight team staff names who have cases for follow-up.
+d) Under ‘Staff Follow-up’, type the names of the staff who have their follow-up cases.
+e) Highlight them in pink, then once done,
+f) Untick them.
+g) Delete the name that was temporarily pasted in the Remarks column
+
+12) Once done, divide the cases equally amongst the team.
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+PSA, study assigned case from eFC.
+
+ 
+
+ 
+
+ 
+
+
+ 
+	
+eFC:
+
+1) Log in to eFC system
+
+
+
+2) Copy the ‘Encounter No’ from the Missed FC daily list and paste it into the the ‘Encounter No’ box.
+
+
+3) Click ‘Search’.
+
+
+
+
+
+
+4) Select the correct ‘Encounter No’.
+
+
+
+
+
+
+
+5) Click on the draft ‘FC ID’ number.
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	PSA, study assigned case from eFC.
+
+ 
+
+ 
+
+
+	
+eFC:
+
+6) Under ‘Communication Tools’, select the ‘Task ID’. 
+
+
+
+
+
+
+
+7) Check the details documented under the ‘Description’ and proceed with any necessary follow up.
+
+
+
+
+
+
+
+
+ 
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	PSA, obtain spokesperson contact details via Epic.
+
+ 
+
+ 
+
+ 
+
+
+ 
+	Obtaining spokesperson contact details.
+
+1) Context switch to ‘Epic’ or log in to ‘Epic’ directly.
+
+
+2) Click ‘Patient Station’ and copy the Encounter No.
+
+3) Next, paste it into the ‘CSN’ box.
+
+
+4) Click ‘Find’.
+
+
+
+
+5) Click ‘Accept’ or double-click on the patient’s name.
+
+
+
+
+
+
+6) Verify these below if it is the correct patient:
+a) Patient’s name.
+b) Current Admission date.
+c) Current ward bed.
+d) Class status.
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+5
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+PSA, obtain spokesperson contact details via Epic.
+
+
+
+
+  
+
+
+
+
+ 
+
+
+
+
+
+
+
+	Cont’d:
+
+EPIC:
+
+7. Next, mouse over to storyboard and double click ‘Accept’.
+a) Select ‘Patient contacts’ for the (NOK contact details).
+
+
+
+
+
+
+
+
+
+b) Select the spokesperson as stated in the ‘Patient contact’ section.
+
+
+
+d) Take note of the spokesperson’s contact details and call when PSA is performing FC to NOK.
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+PSA, study assigned case via Epic.
+
+
+
+ 
+
+
+
+ 
+
+
+
+	
+
+
+1. To read the notes in Epic before PSA attempts FC.:
+
+
+
+
+
+
+a) Select ‘Hospital Charge’.
+
+
+
+
+
+b) Select ‘Notes’ and take note of any issues.
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	PSA, study assigned case via NBS.
+
+ 
+
+ 
+
+
+	Contd:
+
+2. Context switch to NBS via ‘Launch NBS’ in Epic. Alternatively, users may log in directly from the NBS application.
+
+1) Select ‘Manage Billable Event’.
+
+
+
+
+
+
+
+
+
+
+
+
+2) Key in NRIC number at ‘Patient MRN’ or CSN number at ‘PM Reference ID’.
+
+
+
+3) Select ‘Go’.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+PSA, study assigned case via NBS.
+
+ 
+
+
+ 
+
+ 
+
+
+	Cont’d:
+
+
+4) Click on the arrow ‘>’.
+
+
+
+
+
+
+
+
+
+
+5) Under the correct PM Reference ID, select the Bill number for inpatient starting with ‘AKN’.
+
+
+
+
+
+
+
+
+
+
+6) Go to ‘Payor Assignment’ to check patient’s MCAF-S/MCAF-M status.
+
+**The PSA may advise/generate the interim bill, if necessary**.
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	•eFC
+•NBS
+•	Epic	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	PSA, study assigned case via NBS.
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Cont’d:
+
+7) Select ‘Payor and Scheme Information’ and check MCAF M/S status.
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Generate and print out Care Cost Form (Missed FC) via eFC with FC ID.
+ 
+
+ 
+
+ 
+
+ 
+
+
+
+	
+
+
+
+
+
+1. Log in to eFC and click the search button.
+
+
+
+
+
+
+2. Paste the Encounter No and search.
+
+
+
+
+
+
+
+
+
+
+
+
+3. Click on the Encounter No and verify the correct Admission date.
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Generate and print the Care Cost Form (Missed FC) via eFC using the FC ID.
+.
+
+
+ 
+
+
+ 
+ 
+
+ 
+	Cont’d:
+
+
+4. Confirm all of the following before clicking the FC ID:
+a) Patient name
+b) Admission Date
+c) Accommodation code
+d) Encounter No
+d) Admit Type as Emergency
+e) FC ID
+
+
+
+
+
+5. Read the task comments and take note of any follow-ups that Inflight team needs to take actions from ED colleague.
+
+
+
+
+
+6. Select ‘Admission tab’.
+
+
+7. Retrieve ‘ALOS’.
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC with FC ID.
+
+
+ 
+
+ 
+
+ 
+ 
+Cont’d:
+
+
+
+
+
+8. Next, select ‘Payor Assignment’ and ensure that the relevant payors have been selected, such as Medishield life/PMI and Medisave (√).
+
+
+
+
+9. Go to ‘Estimated Bill’. Once the CCF is generated, it will display the patient’s ward of choice.
+
+
+
+
+
+
+
+
+
+
+10. Then, you ‘Select ward’.
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC with FC ID.
+
+ 
+
+ 
+
+ 	Cont’d:
+
+
+11. Click ‘Generate Care Cost Form’.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+12. The Care Cost Form will be displayed, and you may print it if necessary.
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC with no FC ID.
+(If there is no FC ID generated)
+
+ 
+
+ 
+
+
+ 
+	
+
+
+1) Log in to eFC
+
+
+2) Input the ‘Encounter No’ from the eFC Missed FC list.
+
+
+
+
+
+
+
+3) Click ‘Search’.
+
+
+
+
+
+4) It will bring you to patient’s Admission details. Click on the ‘Encounter No’ to proceed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC.
+(If there is no FC ID generated)
+
+
+ 
+
+ 
+
+ 
+
+	
+Cont’d:
+
+
+
+5) Click ‘Create’ if there is no FC ID created.
+
+
+
+
+
+
+
+
+
+
+
+
+6) Select the correct FC mode to create a new FC.
+
+
+
+
+
+
+
+
+
+
+
+
+
+7) Next, click ‘Save as Draft’.
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC.
+(If there is no FC ID generated)
+
+
+ 
+
+ 
+
+ 
+	Cont’d
+
+
+
+
+
+8) Click ‘Refresh Tables’.
+
+
+
+
+
+
+
+
+
+
+
+9) Under ‘Admissions’, select ‘Retrieve ALOS’.
+
+
+
+
+
+
+
+
+
+
+
+10) Check the number reflected in the ‘General’ column. If the number does not reflect the correct ‘ALOS’, manually calculate and input the correct number.
+(ALOS=Specialty actual length of stay).
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC.
+(If there is no FC ID generated)
+
+ 
+
+
+ 
+
+
+
+
+
+
+
+	
+Cont’d:
+
+
+11) Go to ‘Payor Assignment’.
+
+12) Select ‘Refresh Tables’.
+
+
+
+
+
+
+
+
+
+
+
+13) Go to ‘Estimated Bill’.
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+9
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Generate and print the Care Cost Form (Missed FC) via eFC.
+(If there is no FC ID generated)
+
+ 
+
+ 
+
+
+
+
+
+	Cont’d:
+
+14) Click on ‘Select Ward’.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+15) Tick the ‘Unmasked MRN’ checkbox.
+
+*Select ‘Maximum Subsidy’ while performing FC to next-of-kin. 
+*Uncheck ‘Maximum Subsidy’ to show the actual subsidy level while performing FC to patient.
+
+16) Select ‘Generate Care Cost Form’.
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+10
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Conduct Missed FC:
+
+Scenario 1: Perform Missed FC to Patient/ NOK at ward 
+
+ 
+
+ 
+
+ 
+
+
+ 
+
+
+
+
+To inputs “Task” once done.
+ 	
+
+
+1) Check patient’s condition with nurse-in-charge before approaching.
+
+
+
+
+
+
+
+
+2) Explain Care Cost Form and obtained patient/nok signature.
+
+
+*Refer Footnote no.1 for the suggested talking points.
+
+
+
+
+
+
+
+
+3) Offer MCAF M/S if required.
+(**Otherwise, seek verbal consent from the nok/patient.)
+
+
+
+
+
+
+
+4) Under ‘Communications Tools’, key in your comments under ‘Add Task’ once done with explaining the CCF to the patient.
+(**Note: Select ‘Encounter level’ when adding the tasks comments)
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	(Follow steps 8 & 9 for generating CCF)
+
+Scenario 2: Perform Missed FC via phone call.
+
+ 
+
+ 
+ 
+ 
+ 
+	
+To obtain spokeperson contact details in Epic.
+
+1. Obtain the patient patient/nok contact details before calling to explain the Missed FC to patient/NOK.
+
+2. Go to your desk and double-click on ‘Hyperspace PRD Web’. It will automatically open in the web browser.
+
+
+3. Click on ‘Hyperspace PRD’. Epic Grand Central will automatically open. Enter the following details:
+•User ID: Your ADID
+•Password: Your ADID Password (Desktop Password).
+
+
+
+
+
+
+4. Under ‘Department’ select: TTSH ADMINISTRATIVE DEPARTMENT [106003791]. 
+
+
+•Click ‘Continue’.
+
+
+
+
+
+ 
+•Click ‘OK’.
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	Scenario 2: Perform Missed FC via phone call
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+
+
+	To obtain spokeperson contact details in Epic.
+
+
+
+
+
+5. Two pop-up boxes will appear. Press ‘Esc’ on the keyboard or click ‘Cancel’.
+
+
+
+
+
+
+
+
+
+
+6. Click on ‘Patient Station’.
+
+
+
+
+7. Paste the CSN number or Encounter No.
+
+
+8. Click on ‘Find Patient’.
+
+
+
+
+
+9. Click ‘Accept’.
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+11
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Scenario 2: Perform Missed FC via phone call
+
+ 
+
+ 
+
+ 
+ 
+ 
+  
+
+
+ 
+
+ 
+eFC
+To inputs “Task” once done.
+ 
+	To obtain spokeperson contact details in Epic.
+9. Several lines will appear on this screen. Click on the current admission with the current ward.
+
+
+
+10. Click on ‘Hospital Charge’.
+
+11. The storyboard will display the spokesperson’s details, or you can access this information under ‘Communication’.
+
+
+
+
+
+12. If neither option contains the information, click on ‘Patient Demographic’. Under ‘Demographic’, you will find the NOK contact number.
+
+
+
+
+
+
+
+
+
+
+
+
+13. To inputs comments in the eFC, go to  ‘Communications Tools’ and enter your comments under ‘Add Task’, once you have explained the CCF form to patient or NOK.
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Encrypt PDF Care Cost Form.
+
+ 
+
+
+ 
+
+ 
+
+	
+
+1. Set password to protect the PDF file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. Send the Care Cost Form using email template.
+
+
+
+
+
+
+
+
+
+
+
+3. Attach the sent email to patient or next of kin’s record.
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+13
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+To scan all essential documents in eFC system.
+
+ 
+  
+
+ 
+
+ 
+ 
+
+
+1. Go to eForms.
+
+
+
+
+
+2. From the drop-arrow, select ‘Navigate to Patient + Billable Event Level Attachment’ and Launch eForm.
+
+
+
+
+
+
+
+
+3. Go to ‘Encounter Level’, then select ‘CCF Form’.
+
+4. Click ‘Scan’.
+
+5. Once CCF is captured in the system, save and preview.
+
+6. Once, saved, click ‘Complete’.
+
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+PSA will update the Missed FC daily report.
+
+ 
+
+
+
+
+
+
+
+
+
+ 
+
+ 
+	
+1. Update and select the ‘FC Status’ accordingly via the drop-down list.
+
+-	No Attempt
+-	Attempted - Pending FC
+-	FC Complete - CCF left with NOK
+-	FC Complete - CCF signed
+-	FC Completed @ ED
+-	FC Declined @ ED
+-	FC Declined @ Inflight
+-	Discharged – MCAF
+-	Discharged - No MCAF
+-	Uncontactable NOK with MCAF
+-	Transfer to NCID/Renci
+-	Planned Transfer
+-	C Class with MediFund Activated
+-	Nursing Home Case / No NOK
+-	Deceased
+-	Received unsigned CCF/FC/ReFC
+-	Non-Inflight Case
+-	Explained CCF but Declined FC form
+-	LOG Template
+-	Others (to indicate in Remarks)
+
+
+2.   Update the ‘Date Updated’ field in the format (DD/MM/YYYY).
+
+
+3.    Update ‘Staff Follow Up’ under your name.
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+Points to take note:
+Daily eFC cases need to be attended to by Inflight team members.
+
+•Inflight team should prioritize cases with an ‘FC ID’ first, as these cases could potentially fall through the cracks.
+
+•Any returned hardcopy CCF forms must be signed and stamped ‘Received’ by PSA before scanning.
+
+
+	
+
+
+
+
+
+
+ 
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+Footnote 1 – Explain Care Cost Form 
+Suggested Talking points: 
+
+Dialog: 
+“This is your Care Cost Form which states your estimated bill”
+May I verify your name and NRIC No as shown in the form?
+“You have chosen Y Class Ward with the following inclusions:
+-	Refer to CCF form
+“For subsidies: A team of clinicians, led by a senior doctor will be taking care of you 
+After discharged, your outpatient follow-up will be at subsidised clinic/s”
+“For non-subsidised: you will have a choice of specialist. After discharge, your outpatient follow-up will be at non-subsidised clinic/s with your preferred doctor.”
+“This estimated bill is based on X (number of days) Day of stay in a Y Class Ward”
+“The likely estimated charges is $****. But should you require more complex care, the bill may reach $****.”
+“You will be eligible for Govt Subsidy of up to A%.”
+“You have an estimated insurance coverage of $****.”
+“The estimated Medisave claimable is about $****.”
+Your likely out-of-pocket payment is about $****.
+Or 
+Current, the likely cash payment is zero.
+Or/And
+A deposit of $**** is required for your current admission.
+Your implant and consumables cost will be $****.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Operation:  
+	Inflight Financial Counselling (Missed FC) via eFC system.	SW No   : SW-FCD-GEN-019
+SW Rev : 02
+
+Equipment; Parts; Tools; Materials	Scanner, eFC, Photocopier 	
+Last Review Date : 12/06/2026
+Related Documents; Forms	Inpatient Financial Counselling Form (Missed FC)	Effective: 12/09/2025
+DD/MM/YYYY
+
+#	WORK SEQUENCE	STANDARD 
+Time/ Duration
+(Specifications, Quality, Safety)
+
+14
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+1)	You have been advised on patient estimated care cost.
+2)	You agree to pay for all charges related to my admission as reflected on the final bill.
+3)	You acknowledge that you have been advised on the following points regarding patient estimated care cost:
+a.	You have been advised on patient estimated case cost based on past bill sizes for the medical investigations, treatments and procedures in question
+b.	Patient final bill will include all charges for medical investigations, doctors’ fees, warding, treatments and implants, where applicable. Depending on patient medical condition, the final cost may differ from the estimated care cost.
+c.	If the hospital faced a sudden and overwhelming surge in the number of patients, temporary beds may be activated so that appropriate and timely care can be administered to patients. The same ward charges will apply.
+These beds may be located in the main hospital block, National Centre for Infectious Diseases (NCID) or TTSH wards at Renci Community Hospital.
+4)	Change of Ward Type
+a.	To a higher ward type
+i.	Subject to bed availability.
+ii.	Higher rate effective from date of transfer for General Ward Fee.
+iii.	Higher rate effective from date of admission for Service Charges.
+b.	To a lower ward type
+i.	Subject to means testing and bed availability
+ii.	Lower rate effective from date of transfer for both General Ward Fee and Service Charges
+c.	Use of Specialised Treatment Areas
+i.	Higher ward charges may apply if patient require treatment in specialized treatment areas such as High Dependency Units (HDUs), Intensive Care Units (ICUs), or Isolation Wards.
+d.	Overstaying
+i.	To ensure that hospital beds are available to patient requiring acute care, Government subsidy, MediShield Life or Medifund will not be extended further from the 7th calendar day after the patient is certified to be medically fit for discharge from the hospital, if the patient decides to remain in the hospital. Integrated Shield Plans (IPs) ad Civil Service Medical Benefits will similarly not be extended further.
+
+5)	MediShield Life (MSHL) / Integrated Shield Plan (IP)
+a.	All Singapore Citizens (SCs) and Permanent Residents (PRs) are covered under MSHL. Patients with IPs may enjoy higher coverage provided by their private insurers, subject to the benefits under their IP policies
+b.	MSHL / IP payouts for the patient’s hospitalization bills will be computed based on scheme parameters such as claim limits, deductibles and co-insurance.
+c.	A list of standard exclusions (e.g. cosmetic treatment) apply under MediShield / Integrated Shield Plans. Treatments under this list will not be covered.
+6)	All pre-existing medical conditions are covered under MSHL. However, the patient’s private insurer may impose exclusions. Please check with patient private insurer for more information if needed.
+7)	MediSave (MSV)
+a.	Patients may use their own MediSave or cash to pay for the remainder of their bill after subsidies (if applicable) and MediShield Life/Integrated Shield Plan coverage. Family members can also use their MediSave to pay for their approved dependents. More than one of these payment modes may be combined.
+*MSV is capped at the withdrawal limit.
+b.	MSV cannot be used for: 
+i.	Hospitalization stay of less than 8 hours (except day surgeries)
+ii.	Pre-admission Tests when admission is cancelled
+iii.	Treatments for non-medical purposes (e.g. cosmetic surgeries)
+iv.	Appliance (e.g. crutches/ walking frames)
+v.	Charges incurred at the Accident & Emergency (A&E) department.
+8)	Financial Assistance
+a.	SC/PR subsidized patients who require financial assistance may approach out staff for more information.
+9)	You understand the hospital is committed to providing further care cost advice and to providing me with an updated estimated care cost if the bill size is likely to change significantly due to the development of patient medical condition and/or increase in length of stay.
+10)	Itemized bills can be provided at the end of patient admission, upon request.
+11)	Patient personal data, including medical information, may be disclosed and used by the hospital and its appointed agents for bill collection, or to facilitate payments to the patient and/or and individual.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
